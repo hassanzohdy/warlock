@@ -1,4 +1,4 @@
-import AccessTokenBluePrint from "./access-token-blueprint";
+import { AccessTokenBluePrint } from "./access-token";
 
 export async function accessTokenMigration() {
   await AccessTokenBluePrint.unique("token");

@@ -2,9 +2,9 @@ import config from "@mongez/config";
 import Is from "@mongez/supportive-is";
 import chalk from "chalk";
 import { Request } from "../http";
-import Rule from "./rules/rule";
+import { Rule } from "./rules/rule";
 
-export default class RulesList {
+export class RulesList {
   /**
    * Errors list
    */
@@ -21,7 +21,7 @@ export default class RulesList {
   public constructor(
     protected readonly input: string,
     protected readonly value: any,
-    protected readonly rules: any,
+    protected readonly rules: any
   ) {
     //
   }
@@ -66,11 +66,11 @@ export default class RulesList {
           throw new Error(
             chalk.bold(
               `Missing Validation Rule: ${chalk.redBright(
-                ruleName + " rule",
+                ruleName + " rule"
               )} is not listed under the configurations of ${chalk.cyan(
-                "validation.rules",
-              )} list`,
-            ),
+                "validation.rules"
+              )} list`
+            )
           );
         }
 
@@ -119,7 +119,7 @@ export default class RulesList {
   public errors() {
     const returnErrorStrategy = config.get(
       "validation.returnErrorStrategy",
-      "first",
+      "first"
     );
     const inputKey = config.get("validation.keys.inputKey", "input");
     const inputError = config.get("validation.keys.inputError", "error");

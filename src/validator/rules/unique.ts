@@ -1,8 +1,8 @@
 import { Aggregate, Model } from "@mongez/mongodb";
 import { getCurrentUser } from "../../auth";
-import Rule from "./rule";
+import { Rule } from "./rule";
 
-export default class UniqueRule extends Rule {
+export class UniqueRule extends Rule {
   /**
    * Rule name
    */
@@ -38,7 +38,7 @@ export default class UniqueRule extends Rule {
    */
   public constructor(
     tableName: string | typeof Model,
-    protected columnName?: string,
+    protected columnName?: string
   ) {
     //
     super();

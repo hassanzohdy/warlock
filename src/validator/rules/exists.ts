@@ -1,7 +1,7 @@
 import { Aggregate } from "@mongez/mongodb";
-import UniqueRule from "./unique";
+import { UniqueRule } from "./unique";
 
-export default class ExistsRule extends UniqueRule {
+export class ExistsRule extends UniqueRule {
   /**
    * Rule name
    */

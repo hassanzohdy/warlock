@@ -59,7 +59,7 @@ export class Output {
    * return list of resources for the given array ouf data
    */
   public static collect(data: OutputResource[]) {
-    return data.map(item => {
+    return data.map((item) => {
       return new this(item);
     });
   }
@@ -225,7 +225,7 @@ export class Output {
       const value = get(
         this.resource,
         resourceInput,
-        get(this.defaults, key, undefined),
+        get(this.defaults, key, undefined)
       );
 
       if (value === undefined) {
@@ -243,8 +243,10 @@ export class Output {
           this.data,
           key,
           await Promise.all(
-            value.map(async item => await this.transformValue(item, valueType)),
-          ),
+            value.map(
+              async (item) => await this.transformValue(item, valueType)
+            )
+          )
         );
       } else {
         set(this.data, key, await this.transformValue(value, valueType));

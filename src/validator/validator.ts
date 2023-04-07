@@ -1,9 +1,9 @@
 import events from "@mongez/events";
 import { Request } from "../http";
-import RulesList from "./rules-list";
+import { RulesList } from "./rules-list";
 import { ValidationEvent } from "./types";
 
-export default class Validator {
+export class Validator {
   /**
    * Errors list
    */
@@ -14,7 +14,7 @@ export default class Validator {
    */
   public constructor(
     protected readonly request: Request,
-    protected rules?: any,
+    protected rules?: any
   ) {
     //
   }
@@ -153,7 +153,7 @@ export default class Validator {
    */
   public static on(
     eventName: ValidationEvent,
-    callback: (...args: any[]) => void,
+    callback: (...args: any[]) => void
   ) {
     return events.subscribe(`validation.${eventName}`, callback);
   }

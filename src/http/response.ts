@@ -109,7 +109,7 @@ export class Response {
    */
   public static on(
     event: ResponseEvent,
-    listener: (...args: any[]) => void,
+    listener: (...args: any[]) => void
   ): EventSubscription {
     return events.subscribe(event, listener);
   }
@@ -147,7 +147,7 @@ export class Response {
       return Promise.all(
         values.map(async (item: any) => {
           return await this.parse(item);
-        }),
+        })
       );
     }
 
@@ -419,7 +419,7 @@ export class Response {
   public notFound(
     data: any = {
       error: "notFound",
-    },
+    }
   ) {
     return this.send(data, 404);
   }
@@ -489,7 +489,7 @@ export class Response {
       {
         [responseErrorsKey]: validator.errors(),
       },
-      responseStatus,
+      responseStatus
     );
   }
 }

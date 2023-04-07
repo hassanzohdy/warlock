@@ -1,6 +1,6 @@
-import Rule from "./rule";
+import { Rule } from "./rule";
 
-export default class FloatRule extends Rule {
+export class FloatRule extends Rule {
   /**
    * Rule name
    */

@@ -5,7 +5,7 @@ import { RestfulMiddleware, RouteResource } from "../router";
 import { Request, Response } from "./..//http";
 import { RepositoryManager } from "./../repositories";
 
-export default class Restful<T extends Model> implements RouteResource {
+export class Restful<T extends Model> implements RouteResource {
   /**
    * Base model
    */

@@ -1,7 +1,7 @@
 import { toStudlyCase } from "@mongez/reinforcements";
-import Rule from "./rule";
+import { Rule } from "./rule";
 
-export default class ConfirmedRule extends Rule {
+export class ConfirmedRule extends Rule {
   /**
    * Rule name
    */

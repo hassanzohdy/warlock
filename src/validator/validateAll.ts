@@ -2,15 +2,15 @@ import config from "@mongez/config";
 import { log } from "@mongez/logger";
 import { Request, Response } from "../http";
 import { Route } from "../router";
-import Validator from "./validator";
+import { Validator } from "./validator";
 
 /**
  * Validate the request route
  */
-export default async function validateAll(
+export async function validateAll(
   validation: Route["handler"]["validation"],
   request: Request,
-  response: Response,
+  response: Response
 ) {
   if (!validation) return;
 

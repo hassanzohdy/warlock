@@ -1,4 +1,4 @@
-import RequestLog from "./database/RequestLog";
+import { RequestLog } from "./database/RequestLog";
 import { Request } from "./request";
 import { Response } from "./response";
 

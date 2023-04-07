@@ -1,6 +1,6 @@
-import Rule from "./rule";
+import { Rule } from "./rule";
 
-export default class IntRule extends Rule {
+export class IntRule extends Rule {
   /**
    * Rule name
    */

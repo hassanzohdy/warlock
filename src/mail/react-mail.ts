@@ -1,4 +1,4 @@
-import { render } from "core/react";
+import { render } from "./../react";
 
 function createHtmlPage(html: string): string {
   const styles: string[] = [];
@@ -12,14 +12,14 @@ function createHtmlPage(html: string): string {
         links.push(match);
       }
       return "";
-    },
+    }
   );
   const head = `<head>${links.join("")}${styles.join("")}</head>`;
   return `<!doctype html><html>${head}<body>${body}</body></html>`;
 }
 
 export function renderMail(
-  reactElement: React.ReactElement | React.ComponentType,
+  reactElement: React.ReactElement | React.ComponentType
 ) {
   const content = render(reactElement);
 

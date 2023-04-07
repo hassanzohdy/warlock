@@ -1,6 +1,6 @@
-import Rule from "./rule";
+import { Rule } from "./rule";
 
-export default class MinLengthRule extends Rule {
+export class MinLengthRule extends Rule {
   /**
    * Rule name
    */

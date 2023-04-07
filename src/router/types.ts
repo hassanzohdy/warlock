@@ -7,7 +7,7 @@ import { Request, Response, ReturnedResponse } from "../http";
  */
 export type Middleware = (
   request: Request,
-  response: Response,
+  response: Response
 ) => ReturnedResponse | undefined | void;
 
 export type RestfulMiddleware = Record<string, [Middleware]>;

@@ -1,7 +1,7 @@
 import Is from "@mongez/supportive-is";
-import Rule from "./rule";
+import { Rule } from "./rule";
 
-export default class RequiredRule extends Rule {
+export class RequiredRule extends Rule {
   /**
    * Rule name
    */

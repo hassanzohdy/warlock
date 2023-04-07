@@ -1,4 +1,5 @@
 export * from "./rules";
+export * from "./rules-list";
 export * from "./types";
-export { default as validateAll } from "./validateAll";
-export { default as Validator } from "./validator";
+export * from "./validateAll";
+export * from "./validator";

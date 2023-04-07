@@ -2,7 +2,7 @@ import { trans } from "@mongez/localization";
 import { merge } from "@mongez/reinforcements";
 import { Request } from "../../http";
 
-export default abstract class Rule {
+export abstract class Rule {
   /**
    * Rule name
    */
@@ -127,7 +127,7 @@ export default abstract class Rule {
         value: this.value,
       },
       attributes,
-      this.errorMessageAttributes,
+      this.errorMessageAttributes
     );
     return trans(this.errorMessage || `validation.${key}`, attributes);
   }

@@ -1,6 +1,6 @@
-import Rule from "./rule";
+import { Rule } from "./rule";
 
-export default class ArrayOfRule extends Rule {
+export class ArrayOfRule extends Rule {
   /**
    * Rule name
    */
@@ -26,7 +26,7 @@ export default class ArrayOfRule extends Rule {
 
     if (!type) return;
 
-    this.isValid = (this.value as any[]).every(item => typeof item === type);
+    this.isValid = (this.value as any[]).every((item) => typeof item === type);
   }
 
   /**
