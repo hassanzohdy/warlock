@@ -1,7 +1,8 @@
 import concatRoute from "@mongez/concat-route";
 import { ltrim, merge, toCamelCase, trim } from "@mongez/reinforcements";
 import Is from "@mongez/supportive-is";
-import { Request, Response } from "../http";
+import { Request } from "../http/request";
+import { Response } from "../http/response";
 import {
   GroupedRoutesOptions,
   Route,
