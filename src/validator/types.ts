@@ -1,4 +1,4 @@
-import Rule from "./rules/rule";
+import { Rule } from "./rules/rule";
 
 /**
  * Validation event types

@@ -49,15 +49,16 @@ export class RulesList {
     for (let ruleName of this.rules) {
       let rule: Rule;
 
-      let ruleOptions = [];
+      let ruleOptions: any[] = [];
 
       if (ruleName instanceof Rule) {
         rule = ruleName;
       } else {
         if (ruleName.includes(":")) {
-          [ruleName, ruleOptions] = ruleName.split(":");
+          const [baseRuleName, gluedRuleOptions] = ruleName.split(":");
 
-          ruleOptions = ruleOptions.split(",");
+          ruleOptions = gluedRuleOptions.split(",");
+          ruleName = baseRuleName;
         }
 
         const RuleClass = config.get(`validation.rules.${ruleName}`);

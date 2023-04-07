@@ -1,6 +1,6 @@
 import { RequestLog } from "./database/RequestLog";
 import { Request } from "./request";
-import { Response } from "./response";
+import type { Response } from "./response";
 
 export function logResponse(response: Response) {
   const request = Request.current;
