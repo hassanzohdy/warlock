@@ -43,10 +43,15 @@ export class Router {
    */
   public add(
     method: Route["method"],
-    path: string,
+    path: string | string[],
     handler: RouteHandler,
-    options: RouteOptions = {}
+    options: RouteOptions = {},
   ) {
+    if (Array.isArray(path)) {
+      path.forEach(p => this.add(method, p, handler, options));
+      return this;
+    }
+
     const routeData: Route = {
       method,
       path,
@@ -56,7 +61,7 @@ export class Router {
 
     if (routeData.name) {
       // check if the name exists
-      const route = this.routes.find((route) => route.name === routeData.name);
+      const route = this.routes.find(route => route.name === routeData.name);
 
       if (route) {
         // check again if the route name exists with the same method
@@ -83,7 +88,11 @@ export class Router {
   /**
    * Add post request method
    */
-  public post(path: string, handler: RouteHandler, options: RouteOptions = {}) {
+  public post(
+    path: string | string[],
+    handler: RouteHandler,
+    options: RouteOptions = {},
+  ) {
     return this.add("POST", path, handler, options);
   }
 
@@ -98,9 +107,9 @@ export class Router {
    * Add delete request method
    */
   public delete(
-    path: string,
+    path: string | string[],
     handler: RouteHandler,
-    options: RouteOptions = {}
+    options: RouteOptions = {},
   ) {
     return this.add("DELETE", path, handler, options);
   }
@@ -111,7 +120,7 @@ export class Router {
   public patch(
     path: string,
     handler: RouteHandler,
-    options: RouteOptions = {}
+    options: RouteOptions = {},
   ) {
     return this.add("PATCH", path, handler, options);
   }
@@ -129,7 +138,7 @@ export class Router {
   public restfulResource(
     path: string,
     resource: RouteResource,
-    options: RouteOptions = {}
+    options: RouteOptions = {},
   ) {
     // get base resource name
     const baseResourceName = options.name || toCamelCase(ltrim(path, "/"));
@@ -156,7 +165,7 @@ export class Router {
 
       this.manageValidation(resource, "create");
 
-      this.post(path, resource.create.bind(resource), {
+      this.post(path, resource.create, {
         ...options,
         name: resourceName,
       });
@@ -204,9 +213,9 @@ export class Router {
 
     const applyGroupOptionsOnRoutes = (
       // type is routes of grouped routes options but it has to be changed to be strict
-      routes: Route[]
+      routes: Route[],
     ) => {
-      routes.forEach((route) => {
+      routes.forEach(route => {
         if (prefix) {
           route.path = concatRoute(prefix, route.path);
         }
@@ -254,7 +263,7 @@ export class Router {
       callback();
       // get new routes
       const newRoutes = this.routes.filter(
-        (route) => !currentRoutes.includes(route)
+        route => !currentRoutes.includes(route),
       );
 
       this.routes = [...currentRoutes];
@@ -277,7 +286,7 @@ export class Router {
    */
   private manageValidation(
     resource: RouteResource,
-    method: "create" | "update" | "patch"
+    method: "create" | "update" | "patch",
   ) {
     const handler = resource[method]?.bind(resource);
 
@@ -285,20 +294,21 @@ export class Router {
 
     const methodValidation = resource?.validation?.[method];
 
-    if (!resource.validation || !methodValidation) return;
+    if (!resource.validation || (!methodValidation && !resource.validation.all))
+      return;
 
     if (resource.validation.all) {
       const validationMethods = {
         all: resource?.validation?.all?.validate,
-        [method]: methodValidation.validate,
+        [method]: methodValidation?.validate,
       };
 
       const validation: RouteHandlerValidation = {};
 
-      if (resource.validation.all.rules || methodValidation.rules) {
+      if (resource.validation.all.rules || methodValidation?.rules) {
         validation.rules = merge(
           resource.validation.all.rules,
-          methodValidation.rules
+          methodValidation?.rules,
         );
       }
 
@@ -314,7 +324,7 @@ export class Router {
             return await validationMethods[method]?.(request, response);
           }
 
-          return undefined;
+          return;
         };
       }
 
@@ -343,8 +353,8 @@ export class Router {
    * Register routes to the server
    */
   public scan(server: any) {
-    this.routes.forEach((route) => {
-      const requestMethod = route.method.toLowerCase();
+    this.routes.forEach(route => {
+      const requestMethod = route.method.toLowerCase(); /// post
       const requestMethodFunction = server[requestMethod].bind(server);
 
       requestMethodFunction(route.path, this.handleRoute(route));

@@ -109,7 +109,7 @@ export class Response {
    */
   public static on(
     event: ResponseEvent,
-    listener: (...args: any[]) => void
+    listener: (...args: any[]) => void,
   ): EventSubscription {
     return events.subscribe(event, listener);
   }
@@ -137,6 +137,7 @@ export class Response {
 
     // if it has a `toJSON` method, call it and await the result then return it
     if (value.toJSON) {
+      value.request = this.request;
       return await value.toJSON();
     }
 
@@ -147,7 +148,7 @@ export class Response {
       return Promise.all(
         values.map(async (item: any) => {
           return await this.parse(item);
-        })
+        }),
       );
     }
 
@@ -172,7 +173,12 @@ export class Response {
   public log(message: string, level: LogLevel = "info") {
     if (!config.get("http.log")) return;
 
-    log("response", this.route.method + " " + this.route.path, message, level);
+    log(
+      "response",
+      this.route.method + " " + this.route.path.replace("/*", ""),
+      message,
+      level,
+    );
   }
 
   /**
@@ -419,7 +425,7 @@ export class Response {
   public notFound(
     data: any = {
       error: "notFound",
-    }
+    },
   ) {
     return this.send(data, 404);
   }
@@ -489,7 +495,7 @@ export class Response {
       {
         [responseErrorsKey]: validator.errors(),
       },
-      responseStatus
+      responseStatus,
     );
   }
 }

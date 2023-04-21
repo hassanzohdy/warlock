@@ -35,3 +35,17 @@ export function publicPath(relativePath = "") {
 export function cachePath(relativePath = "") {
   return rootPath("storage", "cache", relativePath);
 }
+
+/**
+ * App path
+ */
+export function appPath(relativePath = "") {
+  return rootPath("src/app", relativePath);
+}
+
+/**
+ * Console path
+ */
+export function consolePath(relativePath = "") {
+  return rootPath("src/console", relativePath);
+}

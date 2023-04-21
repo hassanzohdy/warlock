@@ -21,7 +21,7 @@ export class RulesList {
   public constructor(
     protected readonly input: string,
     protected readonly value: any,
-    protected readonly rules: any
+    protected readonly rules: any,
   ) {
     //
   }
@@ -67,11 +67,11 @@ export class RulesList {
           throw new Error(
             chalk.bold(
               `Missing Validation Rule: ${chalk.redBright(
-                ruleName + " rule"
+                ruleName + " rule",
               )} is not listed under the configurations of ${chalk.cyan(
-                "validation.rules"
-              )} list`
-            )
+                "validation.rules",
+              )} list`,
+            ),
           );
         }
 
@@ -120,7 +120,7 @@ export class RulesList {
   public errors() {
     const returnErrorStrategy = config.get(
       "validation.returnErrorStrategy",
-      "first"
+      "first",
     );
     const inputKey = config.get("validation.keys.inputKey", "input");
     const inputError = config.get("validation.keys.inputError", "error");

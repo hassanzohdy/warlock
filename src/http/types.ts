@@ -119,8 +119,13 @@ export interface HttpConfigurations {
    */
   log?: boolean;
   /**
-   * Rate limit
+   * File upload limit in bytes
    *
+   * @default 10MB
+   */
+  fileUploadLimit?: number;
+  /**
+   * Rate limit
    */
   rateLimit?: {
     /**

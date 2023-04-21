@@ -1,4 +1,4 @@
-import { Request, Response, ReturnedResponse } from "../http";
+import type { Request, Response, ReturnedResponse } from "../http";
 
 /**
  * Middleware method
@@ -7,7 +7,7 @@ import { Request, Response, ReturnedResponse } from "../http";
  */
 export type Middleware = (
   request: Request,
-  response: Response
+  response: Response,
 ) => ReturnedResponse | undefined | void;
 
 export type RestfulMiddleware = Record<string, [Middleware]>;

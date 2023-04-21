@@ -2,8 +2,10 @@ import { Model } from "@mongez/mongodb";
 import { GenericObject, get, set, unset } from "@mongez/reinforcements";
 import Is from "@mongez/supportive-is";
 import dayjs from "dayjs";
+import { Request } from "../http";
+import { requestContext } from "../http/middleware/inject-request-context";
 import { assetsUrl, uploadsUrl, url } from "../utils/urls";
-import { FinalOutput, OutputResource } from "./types";
+import { FinalOutput, OutputResource, OutputValue } from "./types";
 
 export class Output {
   /**
@@ -34,12 +36,20 @@ export class Output {
   /**
    * Default date format
    */
-  protected dateFormat = "DD-MM-YYYY HH:mm:ss A";
+  protected dateFormat = "DD-MM-YYYY hh:mm:ss A";
 
   /**
    * Original resource data
    */
   protected originalResource!: OutputResource;
+
+  /**
+   * Request object
+   * Injected when output is sent to response
+   * If you're going to use toJSON before sending it to response
+   * Make sure to attach the request object to the output
+   */
+  public request!: Request;
 
   /**
    * Constructor
@@ -59,7 +69,7 @@ export class Output {
    * return list of resources for the given array ouf data
    */
   public static collect(data: OutputResource[]) {
-    return data.map((item) => {
+    return data.map(item => {
       return new this(item);
     });
   }
@@ -131,6 +141,7 @@ export class Output {
         this.disabledKeys.splice(keyIndex, 1);
       }
     }
+
     this.allowedKeys.push(...keys);
 
     return this;
@@ -203,11 +214,7 @@ export class Output {
   protected async transformOutput() {
     for (const key in this.output) {
       // first check if key is disabled
-      if (this.isDisabledKey(key)) {
-        continue;
-      }
-
-      if (!this.isAllowedKey(key)) {
+      if (this.isDisabledKey(key) || !this.isAllowedKey(key)) {
         continue;
       }
 
@@ -225,28 +232,26 @@ export class Output {
       const value = get(
         this.resource,
         resourceInput,
-        get(this.defaults, key, undefined)
+        get(this.defaults, key, undefined),
       );
 
       if (value === undefined) {
         continue;
       }
 
-      if (Is.object(value) && !Is.array(value)) {
+      if (Is.object(value) && !Array.isArray(value)) {
         if (!Is.plainObject(value) && !Is.empty(value)) {
           continue;
         }
       } else if (Is.empty(value)) continue;
 
-      if (Array.isArray(value)) {
+      if (Array.isArray(value) && valueType !== "localized") {
         set(
           this.data,
           key,
           await Promise.all(
-            value.map(
-              async (item) => await this.transformValue(item, valueType)
-            )
-          )
+            value.map(async item => await this.transformValue(item, valueType)),
+          ),
         );
       } else {
         set(this.data, key, await this.transformValue(value, valueType));
@@ -283,26 +288,51 @@ export class Output {
   /**
    * Transform value
    */
-  protected async transformValue(value: any, valueType: any) {
+  protected async transformValue(
+    value: any,
+    valueType: OutputValue | [string, OutputValue],
+  ) {
     if (typeof valueType === "string") {
       value = this.cast(value, valueType);
-    } else if (valueType.prototype instanceof Output) {
+    } else if ((valueType as any).prototype instanceof Output) {
       // if value is not a valid resource value then return null
 
       if (!this.isValidResourceValue(value)) return null;
 
-      value = await new valueType(value).toJSON();
+      value = await new (valueType as any)(value).toJSON();
     } else if (typeof valueType === "function") {
-      value = await valueType.call(this, value);
+      value = await (valueType as any).call(this, value);
     }
 
     return value;
   }
 
   /**
+   * Transform the value of the given key
+   */
+  public transform(key: string, type: OutputValue) {
+    const value = this.get(key);
+
+    if (!value) return;
+
+    return this.transformValue(value, type);
+  }
+
+  /**
+   * Transform and store the transformed value in the final output of the given key
+   */
+  public async opt(key: string, type: OutputValue) {
+    const value = await this.transform(key, type);
+
+    if (value === undefined) return;
+
+    return this.set(key, value);
+  }
+
+  /**
    * Builtin casts
    */
-  protected cast(value: any, type: string) {
+  protected cast(value: any, type: OutputValue) {
     switch (type) {
       case "number":
         return Number(value);
@@ -330,6 +360,21 @@ export class Output {
         return uploadsUrl(value);
       case "assetsUrl":
         return assetsUrl(value);
+      case "localized":
+        // check if the request has
+        // eslint-disable-next-line no-case-declarations
+        const { request } = requestContext();
+
+        // eslint-disable-next-line no-case-declarations
+        const localeCode = request?.locale;
+
+        if (!localeCode) return value;
+
+        if (!Array.isArray(value)) return value;
+
+        return (
+          value.find(item => item.localeCode === localeCode)?.value || value
+        );
       default:
         return value;
     }
@@ -342,7 +387,7 @@ export class Output {
     return {
       format: dayjs(value).format(format),
       timestamp: dayjs(value).unix(),
-      humanTime: dayjs(value).fromNow(),
+      humanTime: (dayjs(value) as any).fromNow(),
       text: new Intl.DateTimeFormat("en-US", {
         dateStyle: "long",
         timeStyle: "medium",

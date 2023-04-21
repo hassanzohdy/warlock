@@ -10,17 +10,23 @@ import { Validator } from "./validator";
 export async function validateAll(
   validation: Route["handler"]["validation"],
   request: Request,
-  response: Response
+  response: Response,
 ) {
   if (!validation) return;
 
   log.info("request", "validation", "Start validating the request");
 
   if (validation.rules) {
-    const validator = await request.validate(validation.rules);
+    try {
+      const validator = await request.validate(validation.rules);
 
-    if (validator.fails()) {
-      return response.validationFailed(validator);
+      if (validator.fails()) {
+        return response.validationFailed(validator);
+      }
+    } catch (error) {
+      console.log("Error");
+
+      log.error("request", "validation", "Validation failed", error);
     }
   }
 

@@ -1,10 +1,9 @@
-import { Model } from "@mongez/mongodb";
+import { Filter, Model } from "@mongez/mongodb";
 import { RepositoryListManager } from "./repository-list-manager";
-import { RepositoryOptions } from "./types";
 
 export abstract class RepositoryDestroyManager<
   T extends Model,
-  M extends typeof Model = typeof Model
+  M extends typeof Model = typeof Model,
 > extends RepositoryListManager<T, M> {
   /**
    * Delete Record
@@ -46,19 +45,11 @@ export abstract class RepositoryDestroyManager<
   /**
    * Delete multiple records
    */
-  public async deleteMany(options: RepositoryOptions) {
-    this.prepareOptions(options);
+  public async deleteMany(options: Filter) {
+    const query = this.newQuery();
 
-    const Model = this.model;
+    query.where(options);
 
-    this.query = (Model as any).aggregate();
-
-    if (!this.query) return 0;
-
-    this.parseFilterBy();
-
-    this.filter();
-
-    return await this.query.delete();
+    return await query.delete();
   }
 }

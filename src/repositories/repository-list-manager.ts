@@ -1,44 +1,17 @@
-import {
-  Model,
-  ModelAggregate,
-  PaginationListing,
-  toOperator,
-  WhereOperator,
-  whereOperators,
-} from "@mongez/mongodb";
-import { get } from "@mongez/reinforcements";
-import dayjs from "dayjs";
+import { Model, ModelAggregate } from "@mongez/mongodb";
 import { BaseRepositoryManager } from "./base-repository-manager";
-import { FilterByOptions, FilterByType, RepositoryOptions } from "./types";
+import { RepositoryListing } from "./repository-listing";
+import { FilterByOptions, RepositoryOptions } from "./types";
 import { defaultRepositoryOptions } from "./utils";
-
-const Missing = Symbol("Missing");
 
 export abstract class RepositoryListManager<
   T extends Model,
-  M extends typeof Model = typeof Model
+  M extends typeof Model = typeof Model,
 > extends BaseRepositoryManager<T, M> {
-  /**
-   * Aggregate query
-   */
-  protected query!: ModelAggregate<T>;
-
   /**
    * List default options
    */
   protected defaultOptions: RepositoryOptions = { ...defaultRepositoryOptions };
-
-  /**
-   * List options
-   */
-  protected options: RepositoryOptions = {};
-
-  /**
-   * Pagination info
-   *
-   * Returned when the list is paginated
-   */
-  public paginationInfo?: PaginationListing<T>["paginationInfo"];
 
   /**
    * Filter By options
@@ -49,7 +22,10 @@ export abstract class RepositoryListManager<
    * Before listing
    * Called before listing records
    */
-  protected async beforeListing() {
+  public async beforeListing(
+    _query: ModelAggregate<T>,
+    _options: RepositoryOptions,
+  ) {
     // override this method
   }
 
@@ -57,7 +33,7 @@ export abstract class RepositoryListManager<
    * On list
    * Called after listing records
    */
-  protected async onList(records: T[]): Promise<T[]> {
+  public async onList(records: T[]): Promise<T[]> {
     return records;
   }
 
@@ -65,13 +41,13 @@ export abstract class RepositoryListManager<
    * Merge default options with the given options
    */
   protected withDefaultOptions(options: RepositoryOptions) {
-    return { ...this.defaultOptions, ...options };
+    return { ...defaultRepositoryOptions, ...options };
   }
 
   /**
    * Get new query
    */
-  protected newQuery() {
+  public newQuery() {
     return (this.model as any).aggregate() as ModelAggregate<T>;
   }
 
@@ -79,75 +55,49 @@ export abstract class RepositoryListManager<
    * List records
    */
   public async list(options?: RepositoryOptions) {
-    this.prepareOptions(options);
+    const repositoryListing = this.newListing(options);
 
-    this.query = this.newQuery();
+    await repositoryListing.list();
 
-    await this.beforeListing();
-
-    await this.parseFilterBy();
-
-    this.filter();
-
-    this.orderBy();
-
-    if (this.options.select) {
-      this.query.select(this.options.select);
+    if (repositoryListing.hasPagination()) {
+      return {
+        documents: repositoryListing.documents,
+        paginationInfo: repositoryListing.paginationInfo,
+      };
     }
 
-    if (this.options.perform) {
-      this.options.perform(this.query);
+    return {
+      documents: repositoryListing.documents,
+    };
+  }
+
+  /**
+   * Get new repository listing instance
+   */
+  public newListing(options?: RepositoryOptions) {
+    const listing = new RepositoryListing<T, M>(this as any, this.filterBy, {
+      ...this.defaultOptions,
+      ...(options || {}),
+    });
+
+    if (this.dateFormat) {
+      listing.setDateFormat(this.dateFormat);
     }
 
-    let records: T[] = [];
-
-    const paginate = this.options.paginate;
-
-    const limit = this.options.limit;
-
-    if (paginate) {
-      const { documents, paginationInfo } = await this.query.paginate(
-        Number(this.options.page || 1),
-        Number(limit)
-      );
-
-      records = documents;
-
-      this.paginationInfo = paginationInfo;
-    } else {
-      if (limit && options?.limit) {
-        this.query.limit(limit);
-      }
-
-      records = await this.query.get();
+    if (this.dateTimeFormat) {
+      listing.setDateTimeFormat(this.dateTimeFormat);
     }
 
-    records = await this.onList(records);
-
-    return records;
+    return listing;
   }
 
   /**
    * Count total records based on the given options
    */
   public async count(options: RepositoryOptions = {}) {
-    this.prepareOptions(options);
+    const repositoryListing = this.newListing(options);
 
-    const Model = this.model;
-
-    this.query = (Model as any).aggregate();
-
-    if (!this.query) return [];
-
-    await this.beforeListing();
-
-    this.parseFilterBy();
-
-    this.filter();
-
-    this.orderBy();
-
-    return await this.query.count();
+    return await repositoryListing.count();
   }
 
   /**
@@ -202,7 +152,7 @@ export abstract class RepositoryListManager<
   public async listOwned(
     userId: number,
     options: RepositoryOptions = {},
-    column = "createdBy"
+    column = "createdBy",
   ) {
     return await this.list({
       ...options,
@@ -216,582 +166,40 @@ export abstract class RepositoryListManager<
    * Get first record
    */
   public async first(options?: RepositoryOptions) {
-    const records = await this.list({
+    const { documents } = await this.list({
       orderBy: ["id", "asc"],
       ...options,
       limit: 1,
     });
 
-    return records[0] ?? null;
+    return documents[0] ?? null;
   }
 
   /**
    * Get last record
    */
   public async last(options?: RepositoryOptions) {
-    const records = await this.list({
+    const { documents } = await this.list({
       orderBy: ["id", "desc"],
       ...options,
       limit: 1,
     });
 
-    return records[0];
-  }
-
-  /**
-   * Prepare options
-   */
-  protected prepareOptions(options: RepositoryOptions = {}) {
-    this.paginationInfo = undefined;
-    this.options = {
-      ...this.defaultOptions,
-      ...options,
-    };
-  }
-
-  /**
-   * Parse filter by
-   */
-  protected async parseFilterBy() {
-    // get where operators from WhereOperator type
-    for (const optionKey in this.filterBy) {
-      const filterValue = this.option(optionKey);
-      if (filterValue === undefined) continue;
-
-      const { filterType, columns, column } = this.prepareFilterType(
-        optionKey,
-        this.filterBy[optionKey]
-      );
-
-      if (typeof filterType === "function") {
-        await filterType(filterValue, this.query);
-        continue;
-      }
-
-      // where operators
-      if (whereOperators.includes(filterType as WhereOperator)) {
-        if (column) {
-          this.query.where(column, filterType as WhereOperator, filterValue);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              [toOperator(filterType as WhereOperator)]: filterValue,
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-
-      // bool, boolean
-      if (["bool", "boolean"].includes(filterType)) {
-        const value = filterValue === "0" ? false : Boolean(filterValue);
-        if (column) {
-          this.query.where(column, value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = value;
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-        continue;
-      }
-
-      // !int
-      if (filterType === "!int") {
-        if (column) {
-          this.query.where(column, "!=", parseInt(filterValue));
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              $ne: parseInt(filterValue),
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-        continue;
-      }
-
-      // int, integer
-
-      if (["int", "integer"].includes(filterType)) {
-        if (column) {
-          this.query.where(column, parseInt(filterValue));
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = parseInt(filterValue);
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-        continue;
-      }
-
-      // inInt
-      if (filterType === "inInt") {
-        const value = Array(filterValue).map((v: any) => parseInt(v));
-        if (column) {
-          this.query.whereIn(column, value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              $in: value,
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-        continue;
-      }
-
-      // number
-
-      if (filterType === "number") {
-        if (column) {
-          this.query.where(column, Number(filterValue));
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = Number(filterValue);
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-        continue;
-      }
-
-      // inNumber
-      if (filterType === "inNumber") {
-        const value = Array(filterValue).map((v: any) => Number(v));
-        if (column) {
-          this.query.whereIn(column, value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              $in: value,
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-
-      // float, double
-      if (["float", "double"].includes(filterType)) {
-        const value = Array(filterValue).map((v: any) => parseFloat(v));
-        if (column) {
-          this.query.whereIn(column, value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              $in: value,
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-
-      // date
-
-      if (filterType === "date") {
-        const value = this.parseDate(filterValue);
-        if (column) {
-          this.query.where(column, value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = value;
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-
-      // date>
-
-      if (filterType === "date>") {
-        const value = this.parseDate(filterValue);
-        if (column) {
-          this.query.where(column, ">", value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              $gt: value,
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-
-      // date>=
-      if (filterType === "date>=") {
-        const value = this.parseDate(filterValue);
-        if (column) {
-          this.query.where(column, ">=", value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              $gte: value,
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-
-      // date<
-
-      if (filterType === "date<") {
-        const value = this.parseDate(filterValue);
-        if (column) {
-          this.query.where(column, "<", value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              $gte: value,
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-
-      // date<=
-      if (filterType === "date<=") {
-        const value = this.parseDate(filterValue);
-        if (column) {
-          this.query.where(column, "<=", value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              $gte: value,
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-
-      // inDate
-
-      if (filterType === "inDate") {
-        const value = Array(filterValue).map((v: any) => this.parseDate(v));
-        if (column) {
-          this.query.whereIn(column, value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              $in: value,
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-
-      // dateBetween
-
-      if (filterType === "dateBetween") {
-        const value: any = Array(filterValue).map((v: any) =>
-          this.parseDate(v)
-        );
-
-        if (column) {
-          this.query.whereBetween(column, value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              $between: value,
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-
-      // dateTime
-
-      if (filterType === "dateTime") {
-        const value = this.parseDate(filterValue, this.dateTimeFormat);
-        if (column) {
-          this.query.where(column, value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = value;
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-
-      // dateTime>
-
-      if (filterType === "dateTime>") {
-        const value = this.parseDate(filterValue, this.dateTimeFormat);
-        if (column) {
-          this.query.where(column, ">", value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              $gt: value,
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-
-      // dateTime>=
-
-      if (filterType === "dateTime>=") {
-        const value = this.parseDate(filterValue, this.dateTimeFormat);
-        if (column) {
-          this.query.where(column, ">=", value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              $gte: value,
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-
-      // dateTime<
-
-      if (filterType === "dateTime<") {
-        const value = this.parseDate(filterValue, this.dateTimeFormat);
-        if (column) {
-          this.query.where(column, "<", value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              $gte: value,
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-
-      // dateTime<=
-
-      if (filterType === "dateTime<=") {
-        const value = this.parseDate(filterValue, this.dateTimeFormat);
-        if (column) {
-          this.query.where(column, "<=", value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              $gte: value,
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-
-      // inDateTime
-
-      if (filterType === "inDateTime") {
-        const value = Array(filterValue).map((v: any) =>
-          this.parseDate(v, this.dateTimeFormat)
-        );
-        if (column) {
-          this.query.whereIn(column, value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              $in: value,
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-
-      // dateTimeBetween
-
-      if (filterType === "dateTimeBetween") {
-        const value: any = Array(filterValue).map((v: any) =>
-          this.parseDate(v, this.dateTimeFormat)
-        );
-
-        if (column) {
-          this.query.whereBetween(column, value);
-        } else if (columns) {
-          const columnsAsObject: any = {};
-
-          for (const column of columns) {
-            columnsAsObject[column] = {
-              $between: value,
-            };
-          }
-
-          this.query.orWhere(columnsAsObject);
-        }
-
-        continue;
-      }
-    }
-  }
-
-  /**
-   * Prepare filter type
-   */
-  protected prepareFilterType(optionKey: string, filterType: FilterByType) {
-    if (Array.isArray(filterType)) {
-      if (filterType.length === 1) {
-        return {
-          filterType: filterType[0],
-          column: optionKey,
-          columns: undefined,
-        } as const;
-      }
-
-      if (Array.isArray(filterType[1])) {
-        return {
-          filterType: filterType[0],
-          column: undefined,
-          columns: filterType[1],
-        } as const;
-      } else {
-        return {
-          filterType: filterType[0],
-          column: filterType[1],
-          columns: undefined,
-        } as const;
-      }
-    }
-
-    return {
-      filterType,
-      column: optionKey,
-      columns: undefined,
-    };
-  }
-
-  /**
-   * Parse date value
-   */
-  protected parseDate(value: any, format = this.dateFormat) {
-    if (value instanceof Date) return value;
-
-    if (typeof value === "string") {
-      return dayjs(value, format);
-    }
-
-    return value;
-  }
-
-  /**
-   * Get option's value for the given key
-   */
-  protected option(key: string, defaultValue: any = Missing) {
-    const value = get(this.options, key, defaultValue);
-
-    return value === Missing ? undefined : value;
+    return documents[0];
   }
 
   /**
    * Make filter
    */
-  protected filter() {
+  public async filter(_query: ModelAggregate<T>, _options: RepositoryOptions) {
     //
   }
 
   /**
-   * Make order by
+   * {@inheritdoc}
    */
-  protected orderBy() {
-    if (!this.options.orderBy) return;
-
-    const orderBy = this.options.orderBy;
-
-    if (Array.isArray(orderBy)) {
-      const [column, direction] = orderBy;
-      this.query.orderBy(column, direction);
-      return;
-    }
-
-    this.query.sortBy(orderBy);
+  public orderBy(_options: RepositoryOptions): any {
+    //
   }
 
   /**

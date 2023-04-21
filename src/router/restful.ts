@@ -67,12 +67,12 @@ export class Restful<T extends Model> implements RouteResource {
       }
 
       if (this.repository) {
-        responseDocument[this.recordsListName] = await this.repository.list(
-          data
-        );
+        const { documents, paginationInfo } = await this.repository.list(data);
 
-        if (this.repository.paginationInfo) {
-          responseDocument.paginationInfo = this.repository.paginationInfo;
+        responseDocument[this.recordsListName] = documents;
+
+        if (paginationInfo) {
+          responseDocument.paginationInfo = paginationInfo;
         }
 
         return response.success(responseDocument);
@@ -85,7 +85,7 @@ export class Restful<T extends Model> implements RouteResource {
 
         const { documents, paginationInfo } = await query.paginate(
           request.input("page", 1),
-          request.input("limit", 15)
+          request.input("limit", 15),
         );
 
         responseDocument[this.recordsListName] = documents;
@@ -125,14 +125,14 @@ export class Restful<T extends Model> implements RouteResource {
    */
   public async create(request: Request, response: Response) {
     try {
-      this.beforeCreate(request, response);
-      this.beforeSave(request, response);
+      this.beforeCreate(request);
+      this.beforeSave(request);
       const record = this.repository
         ? await this.repository.create(request.all())
         : ((await this.model?.create(request.all())) as T);
 
-      this.onCreate(record, request, response);
-      this.onSave(record, request, response);
+      this.onCreate(request, record);
+      this.onSave(request, record);
 
       if (this.returnOn.create === "records") {
         return this.list(request, response);
@@ -159,8 +159,10 @@ export class Restful<T extends Model> implements RouteResource {
         });
       }
 
-      this.beforeUpdate(record, request, response);
-      this.beforeSave(request, response, record);
+      this.beforeUpdate(request, record);
+      this.beforeSave(request, record);
+
+      const oldRecord = record.clone();
 
       if (record.filled.length > 0) {
         await record.save(request.only(record.filled));
@@ -168,8 +170,8 @@ export class Restful<T extends Model> implements RouteResource {
         await record.save(request.allExceptParams());
       }
 
-      this.onUpdate(record, request, response);
-      this.onSave(record, request, response);
+      this.onUpdate(request, record, oldRecord);
+      this.onSave(request, record, oldRecord);
 
       if (this.returnOn.update === "records") {
         return this.list(request, response);
@@ -187,6 +189,10 @@ export class Restful<T extends Model> implements RouteResource {
    * Delete record
    */
   public async delete(request: Request, response: Response) {
+    if (String(request.input("id")).includes(",")) {
+      return this.deleteMany(request, response);
+    }
+
     try {
       const record = await this.find(request.int("id"));
 
@@ -196,11 +202,11 @@ export class Restful<T extends Model> implements RouteResource {
         });
       }
 
-      this.beforeDelete(record, request, response);
+      this.beforeDelete(request, record);
 
       await record.destroy();
 
-      this.onDelete(record, request, response);
+      this.onDelete(request, record);
 
       if (this.returnOn.delete === "records") {
         return this.list(request, response);
@@ -212,6 +218,39 @@ export class Restful<T extends Model> implements RouteResource {
     } catch (error) {
       log.error("restful", "delete", error);
     }
+  }
+
+  /**
+   * Delete bulk records
+   */
+  public async deleteMany(request: Request, response: Response) {
+    const ids = String(request.input("id"))
+      .split(",")
+      .map(id => parseInt(id));
+
+    const records = await this.model?.aggregate().whereIn("id", ids).get();
+
+    if (!records) {
+      return response.notFound({
+        error: "Record not found",
+      });
+    }
+
+    for (const record of records) {
+      this.beforeDelete(request, record);
+      record.destroy();
+      this.onDelete(request, record);
+    }
+
+    console.log(this.returnOn.delete);
+
+    if (this.returnOn.delete === "records") {
+      return this.list(request, response);
+    }
+
+    return response.success({
+      [this.recordsListName]: records,
+    });
   }
 
   /**
@@ -227,13 +266,15 @@ export class Restful<T extends Model> implements RouteResource {
         });
       }
 
-      this.beforePatch(record, request, response);
-      this.beforeSave(request, response, record);
+      const oldRecord = record.clone();
+
+      this.beforePatch(request, record, oldRecord);
+      this.beforeSave(request, record, oldRecord);
 
       await record.save(request.all());
 
-      this.onPatch(record, request, response);
-      this.onSave(record, request, response);
+      this.onPatch(request, record, oldRecord);
+      this.onSave(request, record, oldRecord);
 
       if (this.returnOn.delete === "records") {
         return this.list(request, response);
@@ -250,70 +291,70 @@ export class Restful<T extends Model> implements RouteResource {
   /**
    * Before create
    */
-  protected beforeCreate(_request: Request, _response: Response) {
+  protected beforeCreate(_request: Request) {
     //
   }
 
   /**
    * On create
    */
-  protected onCreate(_record: T, _request: Request, _response: Response) {
+  protected onCreate(_request: Request, _record: T) {
     //
   }
 
   /**
    * Before update
    */
-  protected beforeUpdate(_record: T, _request: Request, _response: Response) {
+  protected beforeUpdate(_request: Request, _record: T, _oldRecord?: T) {
     //
   }
 
   /**
    * On update
    */
-  protected onUpdate(_record: T, _request: Request, _response: Response) {
+  protected onUpdate(_request: Request, _record: T, _oldRecord: T) {
     //
   }
 
   /**
    * Before delete
    */
-  protected beforeDelete(_record: T, _request: Request, _response: Response) {
+  protected beforeDelete(_request: Request, _record: T) {
     //
   }
 
   /**
    * On delete
    */
-  protected onDelete(_record: T, _request: Request, _response: Response) {
+  protected onDelete(_request: Request, _record: T) {
     //
   }
 
   /**
    * Before patch
    */
-  protected beforePatch(_record: T, _request: Request, _response: Response) {
+  protected beforePatch(_request: Request, _record: T, _oldRecord?: T) {
     //
   }
 
   /**
    * On patch
    */
-  protected onPatch(_record: T, _request: Request, _response: Response) {
+  protected onPatch(_request: Request, _record: T, _oldRecord: T) {
     //
   }
 
   /**
    * Before save
    */
-  protected beforeSave(_request: Request, _response: Response, _record?: T) {
+  protected beforeSave(_request: Request, _record?: T, _oldRecord?: T) {
     //
   }
 
   /**
    * On save
    */
-  protected onSave(_record: T, _request: Request, _response: Response) {
+  protected onSave(_request: Request, _record: T, _oldRecord?: T) {
     //
   }
 
@@ -324,7 +365,7 @@ export class Restful<T extends Model> implements RouteResource {
   protected async callMiddleware(
     method: string,
     request: Request,
-    response: Response
+    response: Response,
   ) {
     if (!this.middleware[method]) return;
 

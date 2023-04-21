@@ -1,4 +1,3 @@
-import { trans } from "@mongez/localization";
 import { merge } from "@mongez/reinforcements";
 import { Request } from "../../http";
 
@@ -127,9 +126,13 @@ export abstract class Rule {
         value: this.value,
       },
       attributes,
-      this.errorMessageAttributes
+      this.errorMessageAttributes,
     );
-    return trans(this.errorMessage || `validation.${key}`, attributes);
+
+    return this.request.trans(
+      this.errorMessage || `validation.${key}`,
+      attributes,
+    );
   }
 
   public error() {

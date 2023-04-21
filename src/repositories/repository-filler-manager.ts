@@ -1,43 +1,35 @@
 import { Model } from "@mongez/mongodb";
+import { Request } from "../http";
 import { RepositoryDestroyManager } from "./repository-destroyer-manager";
-import { SaveMode } from "./types";
+import { RepositoryFiller } from "./repository-filler";
+import { Fillable, SaveMode } from "./types";
 
 export abstract class RepositoryFillerManager<
   T extends Model,
-  M extends typeof Model = typeof Model
+  M extends typeof Model = typeof Model,
 > extends RepositoryDestroyManager<T, M> {
+  /**
+   * Data to be filled in the model during creation|update|patch
+   */
+  protected fillable?: Fillable;
+
+  /**
+   * Filled inputs
+   * Will be used with create or update to only get the inputs that are fillable
+   */
+  protected filled?: string[];
+
   /**
    * Create new record
    */
   public async create(data: any): Promise<T> {
-    const Model: any = this.model;
+    const filler = this.makeFiller();
 
-    const model = new Model(data);
+    if (data instanceof Request) {
+      data = data.all();
+    }
 
-    this.onSaving(model, data);
-    this.onCreating(model, data);
-
-    this.setData(model, data, "create");
-
-    this.trigger("creating", model, data);
-    this.trigger("saving", model, data);
-
-    await model.save();
-
-    this.onCreate(model, data);
-    this.onSave(model, data);
-
-    this.trigger("create", model);
-    this.trigger("save", model);
-
-    return model;
-  }
-
-  /**
-   * Set data
-   */
-  protected setData(model: T, data: any, saveMode: SaveMode) {
-    //
+    return filler.create(data) as Promise<T>;
   }
 
   /**
@@ -48,32 +40,41 @@ export abstract class RepositoryFillerManager<
 
     if (!model) return;
 
-    const currentModel = this.newModel(model.data);
+    if (data instanceof Request) {
+      data = data.all();
+    }
 
-    this.onUpdating(model, data);
-    this.onSaving(model, data);
+    const filler = this.makeFiller();
 
-    this.setData(model, data, "update");
+    return filler.update(model, data) as Promise<T>;
+  }
 
-    this.trigger("updating", model, data);
-    this.trigger("saving", model, data);
+  /**
+   * Set data
+   */
+  public async setData(_model: T, _data: any, _saveMode: SaveMode) {
+    //
+  }
 
-    await model.save(data);
+  /**
+   * Make new instance of the filler
+   */
+  public makeFiller(): RepositoryFiller {
+    return new RepositoryFiller(this, this.getFillable(), this.filled);
+  }
 
-    this.onUpdate(model, data, currentModel);
-    this.onSave(model, data, currentModel);
-
-    this.trigger("update", model, currentModel);
-    this.trigger("save", model, currentModel);
-
-    return model;
+  /**
+   * Get fillable data
+   */
+  public getFillable() {
+    return this.fillable;
   }
 
   /**
    * On creating event
    */
   // eslint-disable-next-line unused-imports/no-unused-vars
-  protected onCreating(model: T, data: any) {
+  public async onCreating(_model: T, _data: any) {
     //
   }
 
@@ -81,7 +82,7 @@ export abstract class RepositoryFillerManager<
    * On create event
    */
   // eslint-disable-next-line unused-imports/no-unused-vars
-  protected onCreate(model: T, data: any) {
+  public async onCreate(_model: T, _data: any) {
     //
   }
 
@@ -89,7 +90,7 @@ export abstract class RepositoryFillerManager<
    * On updating event
    */
   // eslint-disable-next-line unused-imports/no-unused-vars
-  protected onUpdating(model: T, data: any, oldModel?: T) {
+  public async onUpdating(_model: T, _data: any, _oldModel?: T) {
     //
   }
 
@@ -97,7 +98,7 @@ export abstract class RepositoryFillerManager<
    * On update event
    */
   // eslint-disable-next-line unused-imports/no-unused-vars
-  protected onUpdate(model: T, data: any, oldModel?: T) {
+  public async onUpdate(_model: T, _data: any, _oldModel?: T) {
     //
   }
 
@@ -105,7 +106,7 @@ export abstract class RepositoryFillerManager<
    * On saving event
    */
   // eslint-disable-next-line unused-imports/no-unused-vars
-  protected onSaving(model: T, data: any, oldModel?: T) {
+  public async onSaving(_model: T, _data: any, _oldModel?: T) {
     //
   }
 
@@ -113,7 +114,7 @@ export abstract class RepositoryFillerManager<
    * On save event
    */
   // eslint-disable-next-line unused-imports/no-unused-vars
-  protected onSave(model: T, data: any, oldModel?: T) {
+  public async onSave(_model: T, _data: any, _oldModel?: T) {
     //
   }
 }

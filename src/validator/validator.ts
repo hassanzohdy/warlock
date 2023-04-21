@@ -14,7 +14,7 @@ export class Validator {
    */
   public constructor(
     protected readonly request: Request,
-    protected rules?: any
+    protected rules?: any,
   ) {
     //
   }
@@ -48,6 +48,7 @@ export class Validator {
         input = input.replace(".*", "");
       } else if (input.includes(".*.")) {
         await this.validateArrayObject(input, inputRules);
+        continue;
       }
 
       const inputValue = this.request.input(input);
@@ -153,7 +154,7 @@ export class Validator {
    */
   public static on(
     eventName: ValidationEvent,
-    callback: (...args: any[]) => void
+    callback: (...args: any[]) => void,
   ) {
     return events.subscribe(`validation.${eventName}`, callback);
   }

@@ -24,6 +24,10 @@ export async function registerHttpPlugins() {
   // 👇🏻 import multipart plugin
   registerPlugin(fastifyMultipart, {
     attachFieldsToBody: true,
+    limits: {
+      // file size could be up to 10MB
+      fileSize: config.get("http.fileSizeLimit", 10 * 1024 * 1024),
+    },
   });
 
   // 👇🏻 use the jwt plugin with your preferred secret key

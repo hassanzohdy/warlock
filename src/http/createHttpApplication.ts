@@ -11,7 +11,6 @@ export async function createHttpApplication() {
   await registerHttpPlugins();
 
   router.scan(server);
-
   try {
     log.info("http", "server", "Connecting to the server");
     // 👇🏻 We can use the url of the server

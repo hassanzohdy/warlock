@@ -1,4 +1,5 @@
 import { Aggregate } from "@mongez/mongodb";
+import Is from "@mongez/supportive-is";
 import { UniqueRule } from "./unique";
 
 export class ExistsRule extends UniqueRule {
@@ -23,15 +24,16 @@ export class ExistsRule extends UniqueRule {
       query = new Aggregate(this.tableName as string);
     }
 
-    const value = this.isCaseSensitive ? this.value : this.value.toLowerCase();
+    const value = this.isCaseSensitive
+      ? Is.numeric(this.value)
+        ? Number(this.value)
+        : this.value
+      : this.value.toLowerCase();
 
     query.where(this.columnName || this.input, value);
 
     if (this.exceptValue) {
-      const exceptValue = this.isCaseSensitive
-        ? this.exceptValue
-        : this.exceptValue.toLowerCase();
-      query.where(this.exceptColumn, "!=", exceptValue);
+      query.where(this.exceptColumn, "!=", this.exceptValue);
     }
 
     this.isValid = (await query.count()) > 0;
@@ -41,6 +43,6 @@ export class ExistsRule extends UniqueRule {
    * Get error message
    */
   public error() {
-    return this.trans("unique");
+    return this.trans("exists");
   }
 }

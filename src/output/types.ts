@@ -18,6 +18,7 @@ export type OutputCastType =
   | "date"
   | "birthDate"
   | "url"
+  | "localized"
   | "uploadsUrl"
   | "publicUrl"
   | "assetsUrl";

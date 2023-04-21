@@ -57,7 +57,7 @@ export abstract class Auth extends Model {
    */
   public static async attempt<T>(
     this: ChildModel<T>,
-    data: any
+    data: any,
   ): Promise<T | null> {
     // find first user with the given data, but exclude from it the password
     const { password, ...otherData } = data;

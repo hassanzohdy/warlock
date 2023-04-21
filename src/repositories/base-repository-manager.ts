@@ -4,7 +4,7 @@ import { RepositoryEvent } from "./types";
 
 export class BaseRepositoryManager<
   T extends Model,
-  StaticModel extends typeof Model = typeof Model
+  StaticModel extends typeof Model = typeof Model,
 > {
   /**
    * Base model
@@ -76,7 +76,7 @@ export class BaseRepositoryManager<
   /**
    * Create new model
    */
-  public newModel(data: any): T {
+  public newModel(data?: any): T {
     const Model: any = this.model;
 
     return new Model(data);

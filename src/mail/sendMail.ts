@@ -1,5 +1,7 @@
 import nodemailer from "nodemailer";
 import { Options } from "nodemailer/lib/mailer";
+import React from "react";
+import { render } from "../react";
 import { getMailConfigurations } from "./config";
 import { MailConfigurations } from "./types";
 
@@ -43,6 +45,17 @@ export async function sendMail(options: Options) {
   return getMailer().sendMail({
     from: parseFrom(options),
     ...options,
+  });
+}
+
+export async function sendReactMail(
+  options: Omit<Options, "html"> & {
+    render: React.ReactElement;
+  },
+) {
+  return sendMail({
+    ...options,
+    html: render(options.render),
   });
 }
 

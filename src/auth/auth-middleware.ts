@@ -35,6 +35,10 @@ export function authMiddleware(allowedUserType?: string) {
       // get user model class
       const UserModel = config.get(`auth.userType.${userType}`);
 
+      if (!UserModel) {
+        throw new Error(`User type ${userType} is unknown type.`);
+      }
+
       // get user model instance
       const currentUser = await UserModel.find(user.id);
 

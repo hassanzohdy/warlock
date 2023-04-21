@@ -1,4 +1,4 @@
-import { ModelAggregate, WhereOperator } from "@mongez/mongodb";
+import { Model, ModelAggregate, WhereOperator } from "@mongez/mongodb";
 
 export type RepositoryEvent =
   | "listing"
@@ -13,6 +13,64 @@ export type RepositoryEvent =
   | "patch"
   | "deleting"
   | "delete";
+
+export type FillableColumnDataType =
+  | "string"
+  | "email"
+  | "number"
+  | "boolean"
+  | "date"
+  | "dateTime"
+  | "location"
+  | "array"
+  | "object"
+  | "int"
+  | "integer"
+  | "float"
+  | "double"
+  | "bool"
+  | "boolean"
+  | ((value: any, model: Model) => any);
+
+export type FillableColumnOptions = {
+  /**
+   * Set the column data type
+   *
+   * @default string
+   */
+  type?: FillableColumnDataType;
+  /**
+   * Set the default value if the value is not present
+   */
+  defaultValue?: any;
+  /**
+   * If set to false and there is no value, the column will not be updated and kept as it is
+   * If set to true, the column will be updated with the default value
+   *
+   * @default false
+   */
+  mandatory?: boolean;
+  /**
+   * Set the column name
+   *
+   * @default key
+   */
+  column?: string;
+  /**
+   * Validate the value before saving it
+   *
+   * If the validation fails, the value will not be saved
+   */
+  validate?: (
+    value: any,
+    model: Model,
+    data: any,
+  ) => boolean | Promise<boolean>;
+};
+
+export type Fillable = {
+  [column: string]: FillableColumnDataType | FillableColumnOptions;
+};
 
 export type FilterByOption =
   | {
@@ -67,6 +125,8 @@ export type RepositoryOptions = {
   limit?: number;
   owned?: boolean;
   page?: number;
+  select?: string[];
+  deselect?: string[];
   orderBy?:
     | [string, "asc" | "desc"]
     | {

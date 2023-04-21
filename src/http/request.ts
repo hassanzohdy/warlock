@@ -1,6 +1,7 @@
 import config from "@mongez/config";
 import events from "@mongez/events";
-import { log, LogLevel } from "@mongez/logger";
+import { trans, transFrom } from "@mongez/localization";
+import { LogLevel, log } from "@mongez/logger";
 import { except, get, only, rtrim, set } from "@mongez/reinforcements";
 import Is from "@mongez/supportive-is";
 import chalk from "chalk";
@@ -9,12 +10,13 @@ import type { Auth } from "../auth/models/auth";
 import type { Middleware, Route } from "../router";
 import { validateAll } from "../validator/validateAll";
 import { Validator } from "../validator/validator";
+import { UploadedFile } from "./UploadedFile";
 import { httpConfig } from "./config";
+import { createRequestContext } from "./middleware/inject-request-context";
 import { Response } from "./response";
 import { RequestEvent } from "./types";
-import { UploadedFile } from "./UploadedFile";
 
-export class Request {
+export class Request<User extends Auth = any> {
   /**
    * Fastify Request object
    */
@@ -38,7 +40,7 @@ export class Request {
   /**
    * Current user
    */
-  public user!: Auth;
+  public user!: User;
 
   /**
    * Current request instance
@@ -51,6 +53,12 @@ export class Request {
   protected validator!: Validator;
 
   /**
+   * Translation method
+   * Type of it is the same as the type of trans function
+   */
+  public trans: ReturnType<typeof trans> = trans;
+
+  /**
    * Set request handler
    */
   public setRequest(request: FastifyRequest) {
@@ -60,7 +68,29 @@ export class Request {
 
     this.parsePayload();
 
+    this.trans = this.locale ? transFrom.bind(null, this.locale) : trans;
+
     return this;
+  }
+
+  /**
+   * Get current locale code
+   */
+  public get locale() {
+    return (
+      this.header("locale-code") ||
+      this.header("locale") ||
+      this.input("locale")
+    );
+  }
+
+  /**
+   * Get current locale code or return default locale code
+   */
+  public getLocaleCode(
+    defaultLocaleCode: string = config.get("app.localeCode"),
+  ) {
+    return this.locale || defaultLocaleCode;
   }
 
   /**
@@ -177,7 +207,7 @@ export class Request {
           keyName + "." + keyNameParts[0],
           Array.isArray(value)
             ? value.map(this.parseInputValue.bind(this))
-            : this.parseInputValue(value)
+            : this.parseInputValue(value),
         );
 
         continue;
@@ -214,7 +244,10 @@ export class Request {
     // if it json, then just return the data
     if (data.file) return data;
 
-    if (data.value !== undefined) return data.value;
+    // if (data.value !== undefined) return data.value;
+    if (data.value !== undefined) {
+      data = data.value;
+    }
 
     if (data === "false") return false;
 
@@ -222,7 +255,7 @@ export class Request {
 
     if (data === "null") return null;
 
-    if (Is.numeric(data)) return Number(data);
+    if (Is.numeric(data) && !String(data).startsWith("0")) return Number(data);
 
     if (Is.string(data)) return data.trim();
 
@@ -270,7 +303,12 @@ export class Request {
   public log(message: any, level: LogLevel = "info") {
     if (!config.get("http.log")) return;
 
-    log("request", this.route.method + " " + this.route.path, message, level);
+    log(
+      "request",
+      this.route.method + " " + this.route.path.replace("/*", ""),
+      message,
+      level,
+    );
   }
 
   /**
@@ -294,7 +332,7 @@ export class Request {
     const validationOutput = await validateAll(
       handler.validation,
       this,
-      this.response
+      this.response,
     );
 
     if (validationOutput !== undefined) {
@@ -310,18 +348,13 @@ export class Request {
       this.log("Executing the request");
 
       this.trigger("executingAction", this.route);
-      const output = await handler(this, this.response);
 
       this.log("Request executed successfully");
 
+      await createRequestContext(this, this.response, handler);
+
       // call executedAction event
       this.trigger("executedAction", this.route);
-
-      // 👇🏻 make sure first its not a response instance
-      if (output instanceof Response) return;
-
-      // 👇🏻 send the response
-      await this.response.send(output);
     } catch (error) {
       this.log(error, "error");
 
@@ -353,7 +386,7 @@ export class Request {
         this.log(
           chalk.yellow("request intercepted by middleware ") +
             chalk.cyanBright(middleware.name),
-          "warn"
+          "warn",
         );
 
         this.trigger("executedMiddleware");
@@ -384,9 +417,9 @@ export class Request {
     const allMiddlewaresConfigurations = httpConfig("middleware.all");
 
     // check if it has middleware list
-    if (allMiddlewaresConfigurations?.middleware) {
+    if (allMiddlewaresConfigurations) {
       // now just push everything there
-      middlewaresList.push(...allMiddlewaresConfigurations.middleware);
+      middlewaresList.push(...allMiddlewaresConfigurations);
     }
 
     // 2- check if there is `only` property
@@ -482,7 +515,7 @@ export class Request {
 
     return file
       ? Array.isArray(file)
-        ? file.map((file) => new UploadedFile(file))
+        ? file.map(file => new UploadedFile(file))
         : new UploadedFile(file)
       : null;
   }
