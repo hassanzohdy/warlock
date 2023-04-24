@@ -1,6 +1,6 @@
 {
     "name": "@mongez/warlock",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "description": "A comprehensive nodejs framework for building nodejs applications",
     "main": "src/index.ts",
     "scripts": {
@@ -14,13 +14,13 @@
         "@mongez/concat-route": "^1.0.0",
         "@mongez/config": "^1.0.26",
         "@mongez/dotenv": "^1.0.3",
-        "@mongez/time-wizard": "^1.0.4",
+        "@mongez/time-wizard": "^1.0.5",
         "@mongez/events": "^2.0.0",
         "@mongez/fs": "^3.0.0",
         "@mongez/http": "^2.2.4",
         "@mongez/localization": "^2.2.1",
         "@mongez/logger": "^1.0.6",
-        "@mongez/mongodb": "^1.0.33",
+        "@mongez/mongodb": "^1.0.34",
         "@mongez/node": "^1.0.1",
         "@mongez/password": "^1.0.2",
         "@mongez/reinforcements": "^2.3.1",
