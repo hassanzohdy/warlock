@@ -244,10 +244,8 @@ export class Request<User extends Auth = any> {
     // if it json, then just return the data
     if (data.file) return data;
 
+    // this should not be considered used because the value key could be used as an actual input key
     // if (data.value !== undefined) return data.value;
-    if (data.value !== undefined) {
-      data = data.value;
-    }
 
     if (data === "false") return false;
 

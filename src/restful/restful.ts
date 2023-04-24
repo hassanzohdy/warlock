@@ -125,8 +125,9 @@ export class Restful<T extends Model> implements RouteResource {
    */
   public async create(request: Request, response: Response) {
     try {
-      this.beforeCreate(request);
-      this.beforeSave(request);
+      await this.beforeCreate(request);
+      await this.beforeSave(request);
+
       const record = this.repository
         ? await this.repository.create(request.all())
         : ((await this.model?.create(request.all())) as T);
@@ -159,8 +160,8 @@ export class Restful<T extends Model> implements RouteResource {
         });
       }
 
-      this.beforeUpdate(request, record);
-      this.beforeSave(request, record);
+      await this.beforeUpdate(request, record);
+      await this.beforeSave(request, record);
 
       const oldRecord = record.clone();
 
@@ -202,7 +203,7 @@ export class Restful<T extends Model> implements RouteResource {
         });
       }
 
-      this.beforeDelete(request, record);
+      await this.beforeDelete(request, record);
 
       await record.destroy();
 
@@ -237,12 +238,10 @@ export class Restful<T extends Model> implements RouteResource {
     }
 
     for (const record of records) {
-      this.beforeDelete(request, record);
+      await this.beforeDelete(request, record);
       record.destroy();
       this.onDelete(request, record);
     }
-
-    console.log(this.returnOn.delete);
 
     if (this.returnOn.delete === "records") {
       return this.list(request, response);
@@ -268,8 +267,8 @@ export class Restful<T extends Model> implements RouteResource {
 
       const oldRecord = record.clone();
 
-      this.beforePatch(request, record, oldRecord);
-      this.beforeSave(request, record, oldRecord);
+      await this.beforePatch(request, record, oldRecord);
+      await this.beforeSave(request, record, oldRecord);
 
       await record.save(request.all());
 

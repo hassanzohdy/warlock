@@ -1,5 +1,6 @@
 export * from "./array";
 export * from "./arrayOf";
+export * from "./boolean";
 export * from "./confirmed";
 export * from "./email";
 export * from "./exists";

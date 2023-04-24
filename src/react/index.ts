@@ -10,3 +10,5 @@ export function render(reactElement: React.ReactElement | React.ComponentType) {
 
   return output;
 }
+
+export const renderReact = render;

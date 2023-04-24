@@ -23,8 +23,6 @@ export class LocalizedRule extends Rule {
     }
 
     for (const [index, value] of this.value.entries()) {
-      console.log(value);
-
       if (typeof value !== "object") {
         return this.markError("object", {
           input: `${this.input}.${index}`,
@@ -43,6 +41,8 @@ export class LocalizedRule extends Rule {
         });
       }
     }
+
+    this.isValid = true;
   }
 
   /**
