@@ -7,6 +7,7 @@ export * from "./mail";
 export * from "./output";
 export * from "./react";
 export * from "./repositories";
+export * from "./restful";
 export * from "./router";
 export * from "./utils";
 export * from "./validator";

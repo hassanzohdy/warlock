@@ -113,7 +113,7 @@ export abstract class RepositoryListManager<
   /**
    * Get active record
    */
-  public async getActive(id: number, options: RepositoryOptions = {}) {
+  public async getActive(id: number | string, options: RepositoryOptions = {}) {
     return this.first({
       id,
       ...options,
@@ -147,7 +147,7 @@ export abstract class RepositoryListManager<
   }
 
   /**
-   * Get owned record
+   * Get owned records
    */
   public async listOwned(
     userId: number,
@@ -156,6 +156,23 @@ export abstract class RepositoryListManager<
   ) {
     return await this.list({
       ...options,
+      perform(query) {
+        query.where(`${column}.id`, userId);
+      },
+    });
+  }
+
+  /**
+   * Get owned active records
+   */
+  public async listOwnedActive(
+    userId: number,
+    options: RepositoryOptions = {},
+    column = "createdBy",
+  ) {
+    return await this.list({
+      ...options,
+      isActive: true,
       perform(query) {
         query.where(`${column}.id`, userId);
       },

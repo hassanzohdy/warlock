@@ -1,9 +1,9 @@
 import { log } from "@mongez/logger";
 import { ChildModel, Model } from "@mongez/mongodb";
 import { GenericObject } from "@mongez/reinforcements";
+import { Request, Response } from "../http";
+import { RepositoryManager } from "../repositories";
 import { RestfulMiddleware, RouteResource } from "../router";
-import { Request, Response } from "./..//http";
-import { RepositoryManager } from "./../repositories";
 
 export class Restful<T extends Model> implements RouteResource {
   /**

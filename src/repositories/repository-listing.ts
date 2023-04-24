@@ -48,6 +48,18 @@ export class RepositoryListing<
   protected dateFormat = "";
 
   /**
+   * Filters map
+   */
+  // public filtersMap = {
+  //   int: this.intFilter,
+  //   integer: this.intFilter,
+  //   inInt: this.inIntFilter,
+  //   float: this.floatFilter,
+  //   date: this.dateFilter,
+  //   inDate: this.inDateFilter,
+  // };
+
+  /**
    * Constructor
    */
   public constructor(
@@ -172,10 +184,108 @@ export class RepositoryListing<
   }
 
   /**
+   * Int filter
+   */
+  protected intFilter(
+    column: string | undefined,
+    value: any,
+    columns: string[] | undefined,
+  ) {
+    if (column) {
+      this.query.where(column, parseInt(value));
+    } else if (columns) {
+      const columnsAsObject: any = {};
+
+      for (const column of columns) {
+        columnsAsObject[column] = parseInt(value);
+      }
+
+      this.query.orWhere(columnsAsObject);
+    }
+  }
+
+  /**
+   * float filter
+   */
+  protected floatFilter(
+    column: string | undefined,
+    value: any,
+    columns: string[] | undefined,
+  ) {
+    if (column) {
+      this.query.where(column, parseFloat(value));
+    } else if (columns) {
+      const columnsAsObject: any = {};
+
+      for (const column of columns) {
+        columnsAsObject[column] = parseFloat(value);
+      }
+
+      this.query.orWhere(columnsAsObject);
+    }
+  }
+
+  /**
+   * Where operators filter
+   */
+  protected whereOperatorsFilter(
+    column: string | undefined,
+    value: any,
+    columns: string[] | undefined,
+    filterType: WhereOperator,
+  ) {
+    if (column) {
+      this.query.where(column, filterType as WhereOperator, value);
+    } else if (columns) {
+      const columnsAsObject: any = {};
+
+      for (const column of columns) {
+        columnsAsObject[column] = {
+          [toOperator(filterType as WhereOperator)]: value,
+        };
+      }
+
+      this.query.orWhere(columnsAsObject);
+    }
+  }
+
+  /**
    * Parse filter by
    */
   protected async parseFilterBy() {
+    // TODO: Use filter maps instead of these tons of if statements
     // get where operators from WhereOperator type
+    // just get the keys
+    // const filtersKeys = Object.keys(this.filterBy).filter(
+    //   key => this.option(key) !== undefined,
+    // );
+
+    // for (const filterKey of filtersKeys) {
+    //   const filterValue = this.option(filterKey);
+    //   if (filterValue === undefined) continue;
+
+    //   const { filterType, columns, column } = this.prepareFilterType(
+    //     filterKey,
+    //     this.filterBy[filterKey],
+    //   );
+
+    //   if (typeof filterType === "function") {
+    //     await filterType(filterValue, this.query);
+    //     continue;
+    //   }
+
+    //   // where operators
+    //   if (whereOperators.includes(filterType as WhereOperator)) {
+    //     this.whereOperatorsFilter(
+    //       column,
+    //       filterValue,
+    //       columns,
+    //       filterType as WhereOperator,
+    //     );
+    //     continue;
+    //   }
+    // }
+
     for (const optionKey in this.filterBy) {
       const filterValue = this.option(optionKey);
       if (filterValue === undefined) continue;
@@ -259,6 +369,78 @@ export class RepositoryListing<
           this.query.orWhere(columnsAsObject);
         }
         continue;
+      }
+
+      // int>
+      if (filterType === "int>") {
+        const value = parseInt(filterValue);
+        if (column) {
+          this.query.where(column, ">", value);
+        } else if (columns) {
+          const columnsAsObject: any = {};
+
+          for (const column of columns) {
+            columnsAsObject[column] = {
+              $gt: value,
+            };
+          }
+
+          this.query.orWhere(columnsAsObject);
+        }
+      }
+
+      // int>=
+      if (filterType === "int>=") {
+        const value = parseInt(filterValue);
+        if (column) {
+          this.query.where(column, ">=", value);
+        } else if (columns) {
+          const columnsAsObject: any = {};
+
+          for (const column of columns) {
+            columnsAsObject[column] = {
+              $gte: value,
+            };
+          }
+
+          this.query.orWhere(columnsAsObject);
+        }
+      }
+
+      // int<
+      if (filterType === "int<") {
+        const value = parseInt(filterValue);
+        if (column) {
+          this.query.where(column, "<", value);
+        } else if (columns) {
+          const columnsAsObject: any = {};
+
+          for (const column of columns) {
+            columnsAsObject[column] = {
+              $lt: value,
+            };
+          }
+
+          this.query.orWhere(columnsAsObject);
+        }
+      }
+
+      // int<=
+      if (filterType === "int<=") {
+        const value = parseInt(filterValue);
+        if (column) {
+          this.query.where(column, "<=", value);
+        } else if (columns) {
+          const columnsAsObject: any = {};
+
+          for (const column of columns) {
+            columnsAsObject[column] = {
+              $lte: value,
+            };
+          }
+
+          this.query.orWhere(columnsAsObject);
+        }
       }
 
       // inInt
@@ -429,6 +611,42 @@ export class RepositoryListing<
           for (const column of columns) {
             columnsAsObject[column] = {
               $gte: value,
+            };
+          }
+
+          this.query.orWhere(columnsAsObject);
+        }
+
+        continue;
+      }
+
+      // null
+      if (filterType === "null") {
+        if (column) {
+          this.query.whereNull(column);
+        } else if (columns) {
+          const columnsAsObject: any = {};
+
+          for (const column of columns) {
+            columnsAsObject[column] = null;
+          }
+
+          this.query.orWhere(columnsAsObject);
+        }
+
+        continue;
+      }
+
+      // notNull | !null
+      if (["notNull", "!null"].includes(filterType)) {
+        if (column) {
+          this.query.whereNotNull(column);
+        } else if (columns) {
+          const columnsAsObject: any = {};
+
+          for (const column of columns) {
+            columnsAsObject[column] = {
+              $ne: null,
             };
           }
 

@@ -415,7 +415,11 @@ export class Response {
   /**
    * Send an unauthorized response with status code 401
    */
-  public unauthorized(data: any) {
+  public unauthorized(
+    data: any = {
+      error: "unauthorized",
+    },
+  ) {
     return this.send(data, 401);
   }
 

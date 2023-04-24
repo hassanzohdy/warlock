@@ -26,7 +26,7 @@ export class ArrayOfRule extends Rule {
 
     if (!type) return;
 
-    this.isValid = (this.value as any[]).every((item) => typeof item === type);
+    this.isValid = (this.value as any[]).every(item => typeof item === type);
   }
 
   /**

@@ -36,7 +36,7 @@ export abstract class RepositoryFillerManager<
    * Update record
    */
   public async update(id: number | string | T, data: any) {
-    const model = await this.find(id);
+    const model = id instanceof Model ? id : await this.find(id);
 
     if (!model) return;
 

@@ -84,7 +84,14 @@ export type FilterOptionType =
   | "boolean"
   | "number"
   | "inNumber"
+  | "null"
+  | "notNull"
+  | "!null"
   | "int"
+  | "int>"
+  | "int>="
+  | "int<"
+  | "int<="
   | "!int"
   | "integer"
   | "inInt"
@@ -128,6 +135,7 @@ export type RepositoryOptions = {
   select?: string[];
   deselect?: string[];
   orderBy?:
+    | string
     | [string, "asc" | "desc"]
     | {
         [key: string]: "asc" | "desc";

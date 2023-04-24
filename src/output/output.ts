@@ -330,6 +330,13 @@ export class Output {
   }
 
   /**
+   * Get resource id
+   */
+  public get id() {
+    return this.get("id");
+  }
+
+  /**
    * Builtin casts
    */
   protected cast(value: any, type: OutputValue) {

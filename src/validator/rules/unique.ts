@@ -124,7 +124,11 @@ export class UniqueRule extends Rule {
         : this.value
       : (this.value || "").toLowerCase();
 
-    query.where(this.columnName || this.input, value);
+    if (Array.isArray(value)) {
+      query.whereIn(this.columnName || this.input, value);
+    } else {
+      query.where(this.columnName || this.input, value);
+    }
 
     if (this.exceptValue) {
       query.where(this.exceptColumn, "!=", this.exceptValue);

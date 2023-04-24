@@ -463,8 +463,15 @@ export class Request<User extends Auth = any> {
   /**
    * Get request input value from query string, params or body
    */
-  public input(key: string, defaultValue: any = null) {
+  public input(key: string, defaultValue?: any) {
     return get(this.payload.all, key, defaultValue);
+  }
+
+  /**
+   * @alias input
+   */
+  public get(key: string, defaultValue?: any) {
+    return this.input(key, defaultValue);
   }
 
   /**

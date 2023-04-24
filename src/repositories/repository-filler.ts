@@ -94,6 +94,32 @@ export class RepositoryFiller {
   }
 
   /**
+   * Increment a column value
+   */
+  public async increment(model: Model | number, column: string, value = 1) {
+    if (typeof model === "number") {
+      model = (await this.repository.find(model)) as Model;
+    }
+
+    await model.increment(column, value);
+
+    return model;
+  }
+
+  /**
+   * Decrement a column value
+   */
+  public async decrement(model: Model | number, column: string, value = 1) {
+    if (typeof model === "number") {
+      model = (await this.repository.find(model)) as Model;
+    }
+
+    await model.decrement(column, value);
+
+    return model;
+  }
+
+  /**
    * Parse fillable
    */
   protected async parseFillable(model: Model, data: any) {
