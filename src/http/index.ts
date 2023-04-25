@@ -4,6 +4,8 @@ export * from "./config";
 export * from "./createHttpApplication";
 export * from "./database/RequestLog";
 export * from "./events";
+// middleware
+export * from "./middleware";
 export * from "./plugins";
 // request exports
 export * from "./request";

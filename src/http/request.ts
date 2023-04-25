@@ -5,10 +5,10 @@ import { LogLevel, log } from "@mongez/logger";
 import { except, get, only, rtrim, set } from "@mongez/reinforcements";
 import Is from "@mongez/supportive-is";
 import chalk from "chalk";
-import { FastifyReply, FastifyRequest } from "fastify";
+import { FastifyRequest } from "fastify";
 import type { Auth } from "../auth/models/auth";
 import type { Middleware, Route } from "../router";
-import { validateAll } from "../validator/validateAll";
+import { validateAll } from "../validator";
 import { Validator } from "../validator/validator";
 import { UploadedFile } from "./UploadedFile";
 import { httpConfig } from "./config";
@@ -30,7 +30,7 @@ export class Request<User extends Auth = any> {
   /**
    * Route Object
    */
-  private route!: Route;
+  public route!: Route;
 
   /**
    * Parsed Request Payload
@@ -68,7 +68,9 @@ export class Request<User extends Auth = any> {
 
     this.parsePayload();
 
-    this.trans = this.locale ? transFrom.bind(null, this.locale) : trans;
+    const localeCode = this.getLocaleCode();
+
+    this.trans = transFrom.bind(null, localeCode);
 
     return this;
   }
@@ -279,15 +281,6 @@ export class Request<User extends Auth = any> {
   }
 
   /**
-   * Set Fastify response
-   */
-  public setResponse(response: FastifyReply) {
-    this.response.setResponse(response);
-
-    return this;
-  }
-
-  /**
    * Set route handler
    */
   public setRoute(route: Route) {
@@ -302,7 +295,7 @@ export class Request<User extends Auth = any> {
   /**
    * Trigger an http event
    */
-  protected trigger(eventName: RequestEvent, ...args: any[]) {
+  public trigger(eventName: RequestEvent, ...args: any[]) {
     return events.trigger(`request.${eventName}`, ...args, this);
   }
 
@@ -328,9 +321,9 @@ export class Request<User extends Auth = any> {
   }
 
   /**
-   * Execute the request
+   * Run middleware
    */
-  public async execute() {
+  public async runMiddleware() {
     // measure request time
     // check for middleware first
     const middlewareOutput = await this.executeMiddleware();
@@ -357,20 +350,25 @@ export class Request<User extends Auth = any> {
       // 👇🏻 send the response
       return this.response.send(validationOutput);
     }
+  }
 
+  /**
+   * Get route handler
+   */
+  public getHandler() {
+    return this.route.handler;
+  }
+
+  /**
+   * Execute the request
+   */
+  public async execute() {
     try {
       // call executingAction event
 
       this.log("Executing the request");
 
-      this.trigger("executingAction", this.route);
-
-      this.log("Request executed successfully");
-
-      await createRequestContext(this, this.response, handler);
-
-      // call executedAction event
-      this.trigger("executedAction", this.route);
+      await createRequestContext(this, this.response);
     } catch (error) {
       this.log(error, "error");
 
@@ -684,12 +682,5 @@ export class Request<User extends Auth = any> {
    */
   public get headers() {
     return this.baseRequest.headers;
-  }
-
-  /**
-   * Get current route
-   */
-  public get currentRoute() {
-    return this.route;
   }
 }

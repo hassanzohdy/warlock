@@ -22,7 +22,6 @@ const asyncLocalStorage = new AsyncLocalStorage<Context>();
 export function createRequestContext(
   request: Request<Auth>,
   response: Response,
-  handler: any,
 ) {
   // store the request and response in the context
   return new Promise((resolve, reject) => {
@@ -31,7 +30,21 @@ export function createRequestContext(
       async () => {
         //
         try {
-          resolve(await handler(request, response));
+          const result = await request.runMiddleware();
+          if (result) {
+            return resolve(result);
+          }
+
+          request.trigger("executingAction", request.route);
+
+          request.log("Request executed successfully");
+
+          const handler = request.getHandler();
+
+          await handler(request, response);
+
+          // call executedAction event
+          request.trigger("executedAction", request.route);
         } catch (error) {
           reject(error);
         }
@@ -46,3 +59,9 @@ export function requestContext<UserType extends Auth = Auth>() {
 }
 
 export const requestCtx = requestContext;
+
+export function t(keyword: string, placeholders?: any) {
+  const { request } = requestContext();
+
+  return request.trans(keyword, placeholders);
+}

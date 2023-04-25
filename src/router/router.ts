@@ -10,7 +10,6 @@ import {
 import Is from "@mongez/supportive-is";
 import { Request } from "../http/request";
 import { Response } from "../http/response";
-import { Restful } from "../restful";
 import {
   GroupedRoutesOptions,
   ResourceMethod,
@@ -420,14 +419,14 @@ export class Router {
     return async (fastifyRequest: any, fastifyResponse: any) => {
       const request = new Request();
       const response = new Response();
+
+      response.setResponse(fastifyResponse);
+
       request.response = response;
 
       response.request = request;
 
-      request
-        .setRequest(fastifyRequest)
-        .setResponse(fastifyResponse)
-        .setRoute(route);
+      request.setRequest(fastifyRequest).setRoute(route);
 
       Request.current = request;
 

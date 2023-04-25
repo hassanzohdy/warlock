@@ -118,7 +118,10 @@ export class Response {
    * Trigger the response event
    */
   protected static trigger(event: ResponseEvent, ...args: any[]) {
-    return events.trigger(event, ...args);
+    // make a timeout to make sure the request events is executed first
+    setTimeout(() => {
+      events.trigger(event, ...args);
+    }, 0);
   }
 
   /**
@@ -193,7 +196,7 @@ export class Response {
 
     this.log("Sending response");
     // trigger the sending event
-    this.currentBody = Response.trigger("sending", this) || this.currentBody;
+    Response.trigger("sending", this);
 
     // parse the body and make sure it is transformed to sync data instead of async data
     if (typeof this.currentBody !== "string") {
