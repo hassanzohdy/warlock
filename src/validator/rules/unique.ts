@@ -48,7 +48,7 @@ export class UniqueRule extends Rule {
    */
   public constructor(
     tableName: string | typeof Model,
-    protected columnName: string = "id",
+    protected columnName?: string,
   ) {
     //
     super();
@@ -119,10 +119,10 @@ export class UniqueRule extends Rule {
     }
 
     const value = this.isCaseSensitive
-      ? Is.numeric(this.value)
-        ? Number(this.value)
+      ? Is.string(this.value)
+        ? (this.value || "").toLowerCase()
         : this.value
-      : (this.value || "").toLowerCase();
+      : this.value;
 
     if (Array.isArray(value)) {
       query.whereIn(this.columnName || this.input, value);

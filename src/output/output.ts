@@ -382,6 +382,8 @@ export class Output {
         return (
           value.find(item => item.localeCode === localeCode)?.value || value
         );
+      case "any":
+      case "mixed":
       default:
         return value;
     }

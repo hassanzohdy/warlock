@@ -1,10 +1,19 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import concatRoute from "@mongez/concat-route";
-import { ltrim, merge, toCamelCase, trim } from "@mongez/reinforcements";
+import {
+  GenericObject,
+  ltrim,
+  merge,
+  toCamelCase,
+  trim,
+} from "@mongez/reinforcements";
 import Is from "@mongez/supportive-is";
 import { Request } from "../http/request";
 import { Response } from "../http/response";
+import { Restful } from "../restful";
 import {
   GroupedRoutesOptions,
+  ResourceMethod,
   Route,
   RouteHandler,
   RouteHandlerValidation,
@@ -44,12 +53,35 @@ export class Router {
   public add(
     method: Route["method"],
     path: string | string[],
-    handler: RouteHandler,
+    handler: RouteHandler | [GenericObject, string],
     options: RouteOptions = {},
   ) {
     if (Array.isArray(path)) {
       path.forEach(p => this.add(method, p, handler, options));
       return this;
+    }
+
+    if (Array.isArray(handler)) {
+      const [controller, action] = handler;
+
+      if (typeof controller[action] !== "function") {
+        throw new Error(
+          `Invalid controller action "${action}" for controller "${controller.constructor.name}"`,
+        );
+      }
+
+      handler = controller[action].bind(controller) as RouteHandler;
+
+      if (!handler.validation) {
+        handler.validation = {};
+        if (controller[`${action}ValidationRules`]) {
+          handler.validation.rules = controller[`${action}ValidationRules`]();
+        }
+
+        if (controller[`${action}Validate`]) {
+          handler.validation.validate = controller[`${action}Validate`];
+        }
+      }
     }
 
     const routeData: Route = {
@@ -81,7 +113,11 @@ export class Router {
   /**
    * Add get request method
    */
-  public get(path: string, handler: RouteHandler, options: RouteOptions = {}) {
+  public get(
+    path: string,
+    handler: RouteHandler | [GenericObject, string],
+    options: RouteOptions = {},
+  ) {
     return this.add("GET", path, handler, options);
   }
 
@@ -90,7 +126,7 @@ export class Router {
    */
   public post(
     path: string | string[],
-    handler: RouteHandler,
+    handler: RouteHandler | [GenericObject, string],
     options: RouteOptions = {},
   ) {
     return this.add("POST", path, handler, options);
@@ -99,7 +135,11 @@ export class Router {
   /**
    * Add put request method
    */
-  public put(path: string, handler: RouteHandler, options: RouteOptions = {}) {
+  public put(
+    path: string,
+    handler: RouteHandler | [GenericObject, string],
+    options: RouteOptions = {},
+  ) {
     return this.add("PUT", path, handler, options);
   }
 
@@ -108,7 +148,7 @@ export class Router {
    */
   public delete(
     path: string | string[],
-    handler: RouteHandler,
+    handler: RouteHandler | [GenericObject, string],
     options: RouteOptions = {},
   ) {
     return this.add("DELETE", path, handler, options);
@@ -119,7 +159,7 @@ export class Router {
    */
   public patch(
     path: string,
-    handler: RouteHandler,
+    handler: RouteHandler | [GenericObject, string],
     options: RouteOptions = {},
   ) {
     return this.add("PATCH", path, handler, options);
@@ -138,12 +178,24 @@ export class Router {
   public restfulResource(
     path: string,
     resource: RouteResource,
-    options: RouteOptions = {},
+    options: RouteOptions & {
+      only?: ResourceMethod[];
+      except?: ResourceMethod[];
+    } = {},
   ) {
     // get base resource name
     const baseResourceName = options.name || toCamelCase(ltrim(path, "/"));
 
-    if (resource.list) {
+    const isAcceptableResource = (type: ResourceMethod) => {
+      return Boolean(
+        // check if the route is not excluded
+        (!options.except || !options.except.includes(type)) &&
+          // check if the only option is set and the route is included
+          (!options.only || options.only.includes(type)),
+      );
+    };
+
+    if (resource.list && isAcceptableResource("list")) {
       const resourceName = baseResourceName + ".list";
       this.get(path, resource.list.bind(resource), {
         ...options,
@@ -151,7 +203,7 @@ export class Router {
       });
     }
 
-    if (resource.get) {
+    if (resource.get && isAcceptableResource("get")) {
       const resourceName = baseResourceName + ".get";
 
       this.get(path + "/:id", resource.get.bind(resource), {
@@ -160,18 +212,18 @@ export class Router {
       });
     }
 
-    if (resource.create) {
+    if (resource.create && isAcceptableResource("create")) {
       const resourceName = baseResourceName + ".create";
 
       this.manageValidation(resource, "create");
 
-      this.post(path, resource.create, {
+      this.post(path, resource.create.bind(resource), {
         ...options,
         name: resourceName,
       });
     }
 
-    if (resource.update) {
+    if (resource.update && isAcceptableResource("update")) {
       const resourceName = baseResourceName + ".update";
 
       this.manageValidation(resource, "update");
@@ -182,7 +234,7 @@ export class Router {
       });
     }
 
-    if (resource.patch) {
+    if (resource.patch && isAcceptableResource("patch")) {
       const resourceName = baseResourceName + ".patch";
 
       this.manageValidation(resource, "patch");
@@ -193,7 +245,7 @@ export class Router {
       });
     }
 
-    if (resource.delete) {
+    if (resource.delete && isAcceptableResource("delete")) {
       const resourceName = baseResourceName + ".delete";
 
       this.delete(path + "/:id", resource.delete.bind(resource), {

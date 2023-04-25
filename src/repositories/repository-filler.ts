@@ -31,12 +31,12 @@ export class RepositoryFiller {
     } else if (this.filled) {
       data = only(data, this.filled);
     } else {
-      const repositoryName = this.repository.constructor.name;
-      log.warn(
-        "repository",
-        "create",
-        `fillable property is not defined nor filled property for ${repositoryName} repository, this will save danger data in the database`,
-      );
+      // const repositoryName = this.repository.constructor.name;
+      // log.warn(
+      //   "repository",
+      //   "create",
+      //   `fillable property is not defined nor filled property for ${repositoryName} repository, this will save danger data in the database`,
+      // );
     }
 
     await this.repository.setData(model, data, "create");

@@ -1,6 +1,7 @@
 export * from "./application";
 export * from "./auth";
 export * from "./bootstrap";
+export * from "./cache";
 export * from "./console";
 export * from "./http";
 export * from "./mail";

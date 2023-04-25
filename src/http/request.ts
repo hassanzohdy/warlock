@@ -117,6 +117,24 @@ export class Request<User extends Auth = any> {
   }
 
   /**
+   * Get the current request domain
+   */
+  public get domain() {
+    const origin = this.origin;
+
+    const url = new URL(origin);
+
+    return url.hostname;
+  }
+
+  /**
+   * Get request origin
+   */
+  public get origin() {
+    return this.baseRequest.headers.origin as string;
+  }
+
+  /**
    * Get authorization header value
    */
   public authorizationValue() {

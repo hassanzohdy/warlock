@@ -10,6 +10,17 @@ export type Middleware = (
   response: Response,
 ) => ReturnedResponse | undefined | void;
 
+/**
+ * Resource standard methods
+ */
+export type ResourceMethod =
+  | "list"
+  | "get"
+  | "create"
+  | "update"
+  | "delete"
+  | "patch";
+
 export type RestfulMiddleware = Record<string, [Middleware]>;
 
 export type RouteHandlerValidation = {

@@ -5,7 +5,7 @@ import { Request, Response } from "../http";
 import { RepositoryManager } from "../repositories";
 import { RestfulMiddleware, RouteResource } from "../router";
 
-export class Restful<T extends Model> implements RouteResource {
+export abstract class Restful<T extends Model> implements RouteResource {
   /**
    * Base model
    */
@@ -29,7 +29,7 @@ export class Restful<T extends Model> implements RouteResource {
   /**
    * Repository
    */
-  protected repository?: RepositoryManager<T>;
+  protected abstract repository: RepositoryManager<T>;
 
   /**
    * Define what to be returned when a record is created|updated|deleted|patched
@@ -42,12 +42,18 @@ export class Restful<T extends Model> implements RouteResource {
   };
 
   /**
+   * Enable fetching cache
+   *
+   * @default true
+   */
+  public cache = true;
+
+  /**
    * Find record instance by id
    */
   public async find(id: number) {
-    return this.repository
-      ? await this.repository.find(id)
-      : await this.model?.find(id);
+    const findMethod = this.cache ? "getCached" : "find";
+    return this.repository[findMethod](id);
   }
 
   /**
@@ -66,33 +72,18 @@ export class Restful<T extends Model> implements RouteResource {
         data.paginate = false;
       }
 
-      if (this.repository) {
-        const { documents, paginationInfo } = await this.repository.list(data);
+      const listMethod = this.cache ? "listCached" : "list";
+      const { documents, paginationInfo } = await this.repository[listMethod](
+        data,
+      );
 
-        responseDocument[this.recordsListName] = documents;
+      responseDocument[this.recordsListName] = documents;
 
-        if (paginationInfo) {
-          responseDocument.paginationInfo = paginationInfo;
-        }
-
-        return response.success(responseDocument);
-      } else {
-        const query = (this.model as typeof Model).aggregate();
-
-        const { orderBy = ["id", "DESC"] } = data;
-
-        query.sort(orderBy[0], orderBy[1]);
-
-        const { documents, paginationInfo } = await query.paginate(
-          request.input("page", 1),
-          request.input("limit", 15),
-        );
-
-        responseDocument[this.recordsListName] = documents;
+      if (paginationInfo) {
         responseDocument.paginationInfo = paginationInfo;
-
-        return response.success(responseDocument);
       }
+
+      return response.success(responseDocument);
     } catch (error: any) {
       log.error("restful", "list", error);
       return response.serverError(error);

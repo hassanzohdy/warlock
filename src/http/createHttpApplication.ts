@@ -1,3 +1,4 @@
+import config from "@mongez/config";
 import { log } from "@mongez/logger";
 import { router } from "../router";
 import { setBaseUrl } from "../utils/urls";
@@ -8,9 +9,12 @@ import { getServer } from "./server";
 export async function createHttpApplication() {
   const server = getServer();
 
+  await import("app/bootstrap");
+
   await registerHttpPlugins();
 
   router.scan(server);
+
   try {
     log.info("http", "server", "Connecting to the server");
     // 👇🏻 We can use the url of the server
@@ -20,7 +24,7 @@ export async function createHttpApplication() {
     });
 
     // update base url
-    setBaseUrl(baseUrl);
+    setBaseUrl(config.get("app.baseUrl"));
 
     log.success("http", "server", `Server is listening on ${baseUrl}`);
   } catch (error) {
