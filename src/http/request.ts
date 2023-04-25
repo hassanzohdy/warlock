@@ -337,6 +337,8 @@ export class Request<User extends Auth = any> {
 
     const handler = this.route.handler;
 
+    if (!handler.validation) return;
+
     // 👇🏻 check for validation using validateAll helper function
     const validationOutput = await validateAll(
       handler.validation,
@@ -344,12 +346,7 @@ export class Request<User extends Auth = any> {
       this.response,
     );
 
-    if (validationOutput !== undefined) {
-      // 👇🏻 make sure first its not a response instance
-      if (validationOutput instanceof Response) return;
-      // 👇🏻 send the response
-      return this.response.send(validationOutput);
-    }
+    return validationOutput;
   }
 
   /**

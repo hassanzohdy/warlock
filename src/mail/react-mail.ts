@@ -1,4 +1,4 @@
-import { render } from "./../react";
+import { renderReact } from "./../react";
 
 function createHtmlPage(html: string): string {
   const styles: string[] = [];
@@ -18,10 +18,10 @@ function createHtmlPage(html: string): string {
   return `<!doctype html><html>${head}<body>${body}</body></html>`;
 }
 
-export function renderMail(
+export function renderReactMail(
   reactElement: React.ReactElement | React.ComponentType,
 ) {
-  const content = render(reactElement);
+  const content = renderReact(reactElement);
 
   return createHtmlPage(content);
 }

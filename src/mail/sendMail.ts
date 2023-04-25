@@ -1,8 +1,8 @@
 import nodemailer from "nodemailer";
 import { Options } from "nodemailer/lib/mailer";
 import React from "react";
-import { render } from "../react";
 import { getMailConfigurations } from "./config";
+import { renderReactMail } from "./react-mail";
 import { MailConfigurations } from "./types";
 
 let mailer: nodemailer.Transporter;
@@ -55,7 +55,7 @@ export async function sendReactMail(
 ) {
   return sendMail({
     ...options,
-    html: render(options.render),
+    html: renderReactMail(options.render),
   });
 }
 

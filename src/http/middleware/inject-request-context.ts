@@ -31,6 +31,7 @@ export function createRequestContext(
         //
         try {
           const result = await request.runMiddleware();
+
           if (result) {
             return resolve(result);
           }
