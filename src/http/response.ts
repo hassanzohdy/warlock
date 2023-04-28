@@ -117,11 +117,14 @@ export class Response {
   /**
    * Trigger the response event
    */
-  protected static trigger(event: ResponseEvent, ...args: any[]) {
+  protected static async trigger(event: ResponseEvent, ...args: any[]) {
     // make a timeout to make sure the request events is executed first
-    setTimeout(() => {
-      events.trigger(event, ...args);
-    }, 0);
+    return new Promise(resolve => {
+      setTimeout(async () => {
+        await events.trigger(event, ...args);
+        resolve(true);
+      }, 0);
+    });
   }
 
   /**
@@ -196,7 +199,7 @@ export class Response {
 
     this.log("Sending response");
     // trigger the sending event
-    Response.trigger("sending", this);
+    await Response.trigger("sending", this);
 
     // parse the body and make sure it is transformed to sync data instead of async data
     if (typeof this.currentBody !== "string") {

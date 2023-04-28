@@ -128,6 +128,7 @@ export type FilterByOptions = {
 export type SaveMode = "create" | "update" | "patch";
 
 export type RepositoryOptions = {
+  defaultLimit?: number;
   paginate?: boolean;
   limit?: number;
   owned?: boolean;
@@ -142,4 +143,9 @@ export type RepositoryOptions = {
       };
   [key: string]: any;
   perform?: (query: any) => void;
+};
+
+export type CachedRepositoryOptions = RepositoryOptions & {
+  cache?: boolean;
+  cacheCurrentLocale?: boolean;
 };

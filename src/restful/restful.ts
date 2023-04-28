@@ -1,16 +1,11 @@
 import { log } from "@mongez/logger";
-import { ChildModel, Model } from "@mongez/mongodb";
+import { Model } from "@mongez/mongodb";
 import { GenericObject } from "@mongez/reinforcements";
 import { Request, Response } from "../http";
 import { RepositoryManager } from "../repositories";
 import { RestfulMiddleware, RouteResource } from "../router";
 
 export abstract class Restful<T extends Model> implements RouteResource {
-  /**
-   * Base model
-   */
-  protected model?: ChildModel<T>;
-
   /**
    * Middleware for each method
    */
@@ -119,9 +114,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
       await this.beforeCreate(request);
       await this.beforeSave(request);
 
-      const record = this.repository
-        ? await this.repository.create(request.all())
-        : ((await this.model?.create(request.all())) as T);
+      const record = await this.repository.create(request.all());
 
       this.onCreate(request, record);
       this.onSave(request, record);
@@ -143,7 +136,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
    */
   public async update(request: Request, response: Response) {
     try {
-      const record = await this.find(request.int("id"));
+      const record = await this.repository.find(request.int("id"));
 
       if (!record) {
         return response.notFound({
@@ -186,7 +179,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
     }
 
     try {
-      const record = await this.find(request.int("id"));
+      const record = await this.repository.find(request.int("id"));
 
       if (!record) {
         return response.notFound({
@@ -220,9 +213,9 @@ export abstract class Restful<T extends Model> implements RouteResource {
       .split(",")
       .map(id => parseInt(id));
 
-    const records = await this.model?.aggregate().whereIn("id", ids).get();
+    const records = await this.repository.newQuery().whereIn("id", ids).get();
 
-    if (!records) {
+    if (records.length === 0) {
       return response.notFound({
         error: "Record not found",
       });
@@ -248,7 +241,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
    */
   public async patch(request: Request, response: Response) {
     try {
-      const record = await this.model?.find(request.int("id"));
+      const record = await this.repository.find(request.int("id"));
 
       if (!record) {
         return response.notFound({

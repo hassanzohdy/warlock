@@ -180,10 +180,14 @@ export class Router {
     options: RouteOptions & {
       only?: ResourceMethod[];
       except?: ResourceMethod[];
+      replace?: Partial<Record<ResourceMethod, RouteHandler>>;
     } = {},
   ) {
     // get base resource name
     const baseResourceName = options.name || toCamelCase(ltrim(path, "/"));
+
+    // clone the resource so we don't mess up with it
+    const routeResource = resource;
 
     const isAcceptableResource = (type: ResourceMethod) => {
       return Boolean(
@@ -194,63 +198,87 @@ export class Router {
       );
     };
 
-    if (resource.list && isAcceptableResource("list")) {
+    if (routeResource.list && isAcceptableResource("list")) {
       const resourceName = baseResourceName + ".list";
-      this.get(path, resource.list.bind(resource), {
-        ...options,
-        name: resourceName,
-      });
+      this.get(
+        path,
+        options.replace?.list || routeResource.list.bind(routeResource),
+        {
+          ...options,
+          name: resourceName,
+        },
+      );
     }
 
-    if (resource.get && isAcceptableResource("get")) {
+    if (routeResource.get && isAcceptableResource("get")) {
       const resourceName = baseResourceName + ".get";
 
-      this.get(path + "/:id", resource.get.bind(resource), {
-        ...options,
-        name: resourceName,
-      });
+      this.get(
+        path + "/:id",
+        options.replace?.get || routeResource.get.bind(routeResource),
+        {
+          ...options,
+          name: resourceName,
+        },
+      );
     }
 
-    if (resource.create && isAcceptableResource("create")) {
+    if (routeResource.create && isAcceptableResource("create")) {
       const resourceName = baseResourceName + ".create";
 
-      this.manageValidation(resource, "create");
+      this.manageValidation(routeResource, "create");
 
-      this.post(path, resource.create.bind(resource), {
-        ...options,
-        name: resourceName,
-      });
+      this.post(
+        path,
+        options.replace?.create || routeResource.create.bind(routeResource),
+        {
+          ...options,
+          name: resourceName,
+        },
+      );
     }
 
-    if (resource.update && isAcceptableResource("update")) {
+    if (routeResource.update && isAcceptableResource("update")) {
       const resourceName = baseResourceName + ".update";
 
-      this.manageValidation(resource, "update");
+      this.manageValidation(routeResource, "update");
 
-      this.put(path + "/:id", resource.update.bind(resource), {
-        ...options,
-        name: resourceName,
-      });
+      this.put(
+        path + "/:id",
+        options.replace?.update || routeResource.update.bind(routeResource),
+        {
+          ...options,
+          name: resourceName,
+        },
+      );
     }
 
-    if (resource.patch && isAcceptableResource("patch")) {
+    if (routeResource.patch && isAcceptableResource("patch")) {
       const resourceName = baseResourceName + ".patch";
 
-      this.manageValidation(resource, "patch");
+      this.manageValidation(routeResource, "patch");
 
-      this.patch(path + "/:id", resource.patch.bind(resource), {
-        ...options,
-        name: resourceName,
-      });
+      this.patch(
+        path + "/:id",
+        options.replace?.patch || routeResource.patch.bind(routeResource),
+        {
+          ...options,
+          name: resourceName,
+        },
+      );
     }
 
-    if (resource.delete && isAcceptableResource("delete")) {
+    if (routeResource.delete && isAcceptableResource("delete")) {
       const resourceName = baseResourceName + ".delete";
 
-      this.delete(path + "/:id", resource.delete.bind(resource), {
-        ...options,
-        name: resourceName,
-      });
+      this.delete(
+        path + "/:id",
+        options.replace?.delete || routeResource.delete.bind(routeResource),
+        {
+          ...options,
+          name: resourceName,
+        },
+      );
     }
 
     return this;

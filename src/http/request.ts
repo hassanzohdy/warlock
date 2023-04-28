@@ -59,6 +59,11 @@ export class Request<User extends Auth = any> {
   public trans: ReturnType<typeof trans> = trans;
 
   /**
+   * Allow the request instance to accept dynamic properties
+   */
+  [key: string]: any;
+
+  /**
    * Set request handler
    */
   public setRequest(request: FastifyRequest) {
@@ -80,9 +85,9 @@ export class Request<User extends Auth = any> {
    */
   public get locale() {
     return (
+      this.header("translation-locale-code") ||
       this.header("locale-code") ||
-      this.header("locale") ||
-      this.input("locale")
+      this.header("locale")
     );
   }
 
@@ -124,9 +129,17 @@ export class Request<User extends Auth = any> {
   public get domain() {
     const origin = this.origin;
 
-    const url = new URL(origin);
+    if (!origin) return "";
 
-    return url.hostname;
+    try {
+      const url = new URL(origin);
+
+      return url.hostname;
+    } catch (error) {
+      console.log("Domain Error", error);
+
+      return "";
+    }
   }
 
   /**

@@ -23,15 +23,11 @@ export const redisCache: CacheDriver<
     return this;
   },
   async removeByNamespace(namespace: string) {
-    const { request } = requestContext();
-
-    if (request) {
-      namespace = request.domain + "." + namespace;
-    }
+    namespace = this.parseKey(namespace);
 
     log.info("redis", "clearing namespace", namespace);
 
-    const keys = await this.client?.keys(`${namespace}.*`);
+    const keys = await this.client?.keys(`${namespace}*`);
 
     if (!keys || keys.length === 0) {
       log.info("redis", "empty namespace", namespace);
@@ -57,30 +53,33 @@ export const redisCache: CacheDriver<
     return key;
   },
   async set(key: string | GenericObject, value: any) {
+    key = this.parseKey(key);
     log.info("redis", "caching", key);
 
-    await this.client?.set(this.parseKey(key), JSON.stringify(value));
+    await this.client?.set(key, JSON.stringify(value));
 
     log.success("redis", "cached", key);
 
     return value;
   },
   async get(key: string | GenericObject) {
-    log.info("redis", "getting", key);
-    const value = await this.client?.get(this.parseKey(key));
+    key = this.parseKey(key);
+    log.info("redis", "fetching", key);
+    const value = await this.client?.get(key);
 
     if (!value) {
       log.info("redis", "not found", key);
       return null;
     }
 
-    log.success("redis", "got", key);
+    log.success("redis", "fetched", key);
 
     return JSON.parse(value);
   },
   async remove(key: string | GenericObject) {
+    key = this.parseKey(key);
     log.info("redis", "removing", key);
-    await this.client?.del(this.parseKey(key));
+    await this.client?.del(key);
     log.success("redis", "removed", key);
   },
   async flush() {

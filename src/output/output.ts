@@ -235,7 +235,7 @@ export class Output {
         get(this.defaults, key, undefined),
       );
 
-      if (value === undefined) {
+      if (value === undefined || value === null) {
         continue;
       }
 
@@ -373,7 +373,7 @@ export class Output {
         const { request } = requestContext();
 
         // eslint-disable-next-line no-case-declarations
-        const localeCode = request?.locale;
+        const localeCode = request?.header("locale-code");
 
         if (!localeCode) return value;
 

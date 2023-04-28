@@ -1,5 +1,4 @@
 import { Aggregate, Model } from "@mongez/mongodb";
-import Is from "@mongez/supportive-is";
 import { Rule } from "./rule";
 
 export class UniqueRule extends Rule {
@@ -119,9 +118,7 @@ export class UniqueRule extends Rule {
     }
 
     const value = this.isCaseSensitive
-      ? Is.string(this.value)
-        ? (this.value || "").toLowerCase()
-        : this.value
+      ? String(this.value || "").toLowerCase()
       : this.value;
 
     if (Array.isArray(value)) {

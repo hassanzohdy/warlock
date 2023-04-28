@@ -48,18 +48,6 @@ export class RepositoryListing<
   protected dateFormat = "";
 
   /**
-   * Filters map
-   */
-  // public filtersMap = {
-  //   int: this.intFilter,
-  //   integer: this.intFilter,
-  //   inInt: this.inIntFilter,
-  //   float: this.floatFilter,
-  //   date: this.dateFilter,
-  //   inDate: this.inDateFilter,
-  // };
-
-  /**
    * Constructor
    */
   public constructor(
@@ -130,14 +118,14 @@ export class RepositoryListing<
     if (paginate) {
       const { documents, paginationInfo } = await this.query.paginate(
         Number(this.options.page || 1),
-        Number(limit),
+        Number(limit || this.options.defaultLimit),
       );
 
       records = documents;
 
       this.paginationInfo = paginationInfo;
     } else {
-      if (limit && this.options?.limit) {
+      if (limit) {
         this.query.limit(limit);
       }
 
@@ -445,7 +433,9 @@ export class RepositoryListing<
 
       // inInt
       if (filterType === "inInt") {
-        const value = Array(filterValue).map((v: any) => parseInt(v));
+        const value = this.returnAsArray(filterValue).map((v: any) =>
+          parseInt(v),
+        );
         if (column) {
           this.query.whereIn(column, value);
         } else if (columns) {
@@ -481,7 +471,9 @@ export class RepositoryListing<
 
       // inNumber
       if (filterType === "inNumber") {
-        const value = Array(filterValue).map((v: any) => Number(v));
+        const value = this.returnAsArray(filterValue).map((v: any) =>
+          Number(v),
+        );
         if (column) {
           this.query.whereIn(column, value);
         } else if (columns) {
@@ -501,7 +493,9 @@ export class RepositoryListing<
 
       // float, double
       if (["float", "double"].includes(filterType)) {
-        const value = Array(filterValue).map((v: any) => parseFloat(v));
+        const value = this.returnAsArray(filterValue).map((v: any) =>
+          parseFloat(v),
+        );
         if (column) {
           this.query.whereIn(column, value);
         } else if (columns) {
@@ -659,7 +653,9 @@ export class RepositoryListing<
       // inDate
 
       if (filterType === "inDate") {
-        const value = Array(filterValue).map((v: any) => this.parseDate(v));
+        const value = this.returnAsArray(filterValue).map((v: any) =>
+          this.parseDate(v),
+        );
         if (column) {
           this.query.whereIn(column, value);
         } else if (columns) {
@@ -680,7 +676,7 @@ export class RepositoryListing<
       // dateBetween
 
       if (filterType === "dateBetween") {
-        const value: any = Array(filterValue).map((v: any) =>
+        const value: any = this.returnAsArray(filterValue).map((v: any) =>
           this.parseDate(v),
         );
 
@@ -807,7 +803,7 @@ export class RepositoryListing<
       // inDateTime
 
       if (filterType === "inDateTime") {
-        const value = Array(filterValue).map((v: any) =>
+        const value = this.returnAsArray(filterValue).map((v: any) =>
           this.parseDate(v, this.dateTimeFormat),
         );
         if (column) {
@@ -830,7 +826,7 @@ export class RepositoryListing<
       // dateTimeBetween
 
       if (filterType === "dateTimeBetween") {
-        const value: any = Array(filterValue).map((v: any) =>
+        const value: any = this.returnAsArray(filterValue).map((v: any) =>
           this.parseDate(v, this.dateTimeFormat),
         );
 
@@ -851,6 +847,15 @@ export class RepositoryListing<
         continue;
       }
     }
+  }
+
+  /**
+   * Return the given value as a array
+   */
+  protected returnAsArray(value: any) {
+    if (!Array.isArray(value)) return [value];
+
+    return value;
   }
 
   /**
@@ -908,6 +913,10 @@ export class RepositoryListing<
 
       this.query.orderBy(column, direction);
       return;
+    }
+
+    if (orderBy === "random") {
+      this.query.random(this.options.limit || this.options.defaultLimit);
     }
 
     this.query.sortBy(orderBy);

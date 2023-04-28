@@ -1,11 +1,16 @@
-import { Model, ModelAggregate } from "@mongez/mongodb";
+import { Model, ModelAggregate, PaginationListing } from "@mongez/mongodb";
 import { GenericObject } from "@mongez/reinforcements";
 import Is from "@mongez/supportive-is";
 import { cache } from "../cache";
 import { requestContext } from "../http/middleware/inject-request-context";
 import { BaseRepositoryManager } from "./base-repository-manager";
 import { RepositoryListing } from "./repository-listing";
-import { FilterByOptions, RepositoryOptions } from "./types";
+import { RepositoryManager } from "./repository-manager";
+import {
+  CachedRepositoryOptions,
+  FilterByOptions,
+  RepositoryOptions,
+} from "./types";
 import { defaultRepositoryOptions } from "./utils";
 
 export abstract class RepositoryListManager<
@@ -15,12 +20,22 @@ export abstract class RepositoryListManager<
   /**
    * List default options
    */
-  protected defaultOptions: RepositoryOptions = { ...defaultRepositoryOptions };
+  protected defaultOptions: RepositoryOptions = {};
 
   /**
    * Filter By options
    */
   protected filterBy: FilterByOptions = {};
+
+  /**
+   * List of repositories that should clear its cache when this repository is created, updated or deleted
+   */
+  protected clearCacheOnUpdate: RepositoryManager<any>[] = [];
+
+  /**
+   * Whether to enable caching
+   */
+  public isCacheable = true;
 
   /**
    * Constructor
@@ -33,16 +48,24 @@ export abstract class RepositoryListManager<
   /**
    * Prepare  cache
    */
-  protected prepareCache() {
+  public prepareCache() {
+    if (!cache.exists || !this.isCacheable) return;
+
     setTimeout(() => {
       this.model
         .events()
         .onSaved(async model => {
-          await this.clearCache();
-          await this.cacheModel(model);
+          this.clearCache();
+          this.cacheModel(model);
+          for (const repository of this.clearCacheOnUpdate) {
+            repository.clearCache();
+          }
         })
         .onDeleted(() => {
           this.clearCache();
+          for (const repository of this.clearCacheOnUpdate) {
+            repository.clearCache();
+          }
         });
     }, 0);
   }
@@ -53,7 +76,7 @@ export abstract class RepositoryListManager<
   public async cacheModel(model: T) {
     const cacheKey = this.generateCacheKey(`id.${model.id}`);
 
-    await cache.set(cacheKey, model.data);
+    await this.cache(cacheKey, model.data);
   }
 
   /**
@@ -126,7 +149,7 @@ export abstract class RepositoryListManager<
 
     if (!model) return null;
 
-    cache.set(cacheKey, await model);
+    this.cache(cacheKey, await model);
 
     return model;
   }
@@ -137,6 +160,20 @@ export abstract class RepositoryListManager<
   public async getCached(id: string | number) {
     return this.getCachedBy("id", Number(id));
   }
+
+  /**
+   * Get active cached model
+   */
+  public async getActiveCached(id: string | number) {
+    const model = await this.getCached(id);
+
+    if (!model) return null;
+
+    if (model.get("isActive") !== true) return null;
+
+    return model;
+  }
+
   /**
    * Generate cache key
    */
@@ -157,7 +194,7 @@ export abstract class RepositoryListManager<
     value: any,
     cacheKeyOptions?: GenericObject,
   ) {
-    const { request } = requestContext();
+    const { request } = requestContext() || {};
 
     const localeCode = request.locale ? `locale.${request.locale.code}.` : "";
 
@@ -169,14 +206,14 @@ export abstract class RepositoryListManager<
     const cachedModel = await cache.get(cacheKey);
 
     if (cachedModel) {
-      return cachedModel;
+      return this.newModel(cachedModel);
     }
 
     const model = await this.findBy(column, value);
 
     if (!model) return null;
 
-    cache.set(cacheKey, await model.toJSON());
+    this.cache(cacheKey, await model.data);
 
     return model;
   }
@@ -218,15 +255,19 @@ export abstract class RepositoryListManager<
   /**
    * List cached records
    */
-  public async listCached(options: RepositoryOptions = {}) {
-    const localeCode = requestContext().request.locale;
+  public async listCached(options: CachedRepositoryOptions = {}) {
+    if (!this.isCacheable) return this.list(options);
 
-    if (localeCode) {
-      if (!options) {
-        options = {};
+    if (options.cacheCurrentLocale !== false) {
+      const localeCode = requestContext()?.request?.locale;
+
+      if (localeCode) {
+        if (!options) {
+          options = {};
+        }
+
+        options.locale = localeCode;
       }
-
-      options.locale = localeCode;
     }
 
     const cacheKey = this.generateCacheKey("list", options);
@@ -241,15 +282,18 @@ export abstract class RepositoryListManager<
       return {
         paginationInfo: listing.paginationInfo,
         documents: listing.documents,
+      } as {
+        documents: T[];
+        paginationInfo: PaginationListing<T>["paginationInfo"];
       };
     }
 
     const { documents, paginationInfo } = await this.list(options);
 
     if (!options?.purgeCache) {
-      cache.set(cacheKey, {
+      this.cache(cacheKey, {
         documents: await Promise.all(
-          documents.map(async document => document.toJSON()),
+          documents.map(async document => await document.toJSON()),
         ),
         paginationInfo: paginationInfo,
       });
@@ -258,6 +302,9 @@ export abstract class RepositoryListManager<
     return {
       documents,
       paginationInfo,
+    } as {
+      documents: T[];
+      paginationInfo: PaginationListing<T>["paginationInfo"];
     };
   }
 
@@ -294,7 +341,7 @@ export abstract class RepositoryListManager<
    * Get total records based on the given options and cache it
    */
   public async countCached(options: RepositoryOptions = {}) {
-    const localeCode = requestContext().request.locale;
+    const localeCode = requestContext()?.request?.locale;
 
     if (localeCode) {
       if (!options) {
@@ -319,16 +366,25 @@ export abstract class RepositoryListManager<
     count = await this.count(options);
 
     if (!options.purgeCache) {
-      cache.set(cacheKey, count);
+      this.cache(cacheKey, count);
     }
 
     return count;
   }
 
   /**
+   * Cache the given key and value
+   */
+  protected async cache(key: string, value: any) {
+    if (!cache.exists || !this.isCacheable) return;
+
+    return await cache.set(key, value);
+  }
+
+  /**
    * List active cached records
    */
-  public async listActiveCached(options: RepositoryOptions = {}) {
+  public async listActiveCached(options: CachedRepositoryOptions = {}) {
     return this.listCached({
       ...options,
       isActive: true,

@@ -2,7 +2,6 @@ import events from "@mongez/events";
 import { Request } from "../http";
 import { RulesList } from "./rules-list";
 import { ValidationEvent } from "./types";
-
 export class Validator {
   /**
    * Errors list

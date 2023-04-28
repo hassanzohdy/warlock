@@ -12,11 +12,17 @@ export function databaseSeedsCommand() {
       "--once",
       "If set, the seed will be run only for one time even you run this command multiple times.",
     )
+    .option("--fresh", "Clear the previous seeds and run it again.")
     .description(
       "Run database seeds for all modules, make sure each seeds are in `seeds` directory in any module in `src/app` that you want to run seeds for it. ",
     )
     .action(async options => {
       await connectToDatabase();
+      if (options.fresh) {
+        console.log("Clearing previous seeds...");
+
+        await Seed.delete();
+      }
 
       await seedDatabase(
         process.cwd() + "/src/app/**/seeds/*.ts",
@@ -41,7 +47,7 @@ export function seedDatabase(seedsPath: string, once = false) {
         .relative(process.cwd(), file)
         .replaceAll("\\", "/");
 
-      console.log(`Seeding ${chalk.cyanBright(relativePath)}`);
+      console.log(`Collecting Seeds from ${chalk.magentaBright(relativePath)}`);
 
       const fileExports = await import(file);
 
@@ -60,10 +66,10 @@ export function seedDatabase(seedsPath: string, once = false) {
           seeder: functionName,
         });
 
-        console.log(`Seeding ${chalk.cyan(seederName)}`);
+        console.log(`Seeding ${chalk.blueBright(seederName)}`);
 
         if (seed && (once || functionCallback.once)) {
-          console.log(`Skipping ${chalk.yellowBright(seederName)}`);
+          console.log(`${chalk.yellowBright(seederName)} already seeded.`);
           completedFunctions++;
 
           if (completedFunctions === exportedFunctions) {
@@ -77,31 +83,36 @@ export function seedDatabase(seedsPath: string, once = false) {
           continue;
         }
 
-        functionCallback().then(async () => {
-          console.log(`Seeded ${chalk.greenBright(seederName)}`);
-          completedFunctions++;
-
-          if (!seed) {
-            await Seed.create({
-              file: relativePath,
-              seeder: functionName,
-              calls: 1,
-            });
-          } else {
-            seed.increment("calls");
-            await seed.save();
-          }
-
-          if (completedFunctions === exportedFunctions) {
-            completed++;
-
-            if (completed === totalFiles) {
-              console.log("Done");
-
-              resolve(true);
+        functionCallback()
+          .then(async () => {
+            if (!seed) {
+              await Seed.create({
+                file: relativePath,
+                seeder: functionName,
+                calls: 1,
+              });
+            } else {
+              seed.increment("calls");
+              await seed.save();
             }
-          }
-        });
+
+            console.log(`Seeded ${chalk.greenBright(seederName)}`);
+            completedFunctions++;
+
+            if (completedFunctions === exportedFunctions) {
+              completed++;
+
+              if (completed === totalFiles) {
+                console.log("Done");
+
+                resolve(true);
+              }
+            }
+          })
+          .catch((error: any) => {
+            console.log(`Failed to seed ${chalk.redBright(seederName)}`);
+            console.log(error);
+          });
       }
     }
   });

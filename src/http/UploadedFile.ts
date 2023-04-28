@@ -3,7 +3,7 @@ import { Random } from "@mongez/reinforcements";
 import crypto from "crypto";
 import { writeFileSync } from "fs";
 import path from "path";
-import { uploadsPath } from "../utils/paths";
+import { sanitizePath, uploadsPath } from "../utils/paths";
 
 export class UploadedFile {
   /**
@@ -32,7 +32,7 @@ export class UploadedFile {
    * Get file name
    */
   public get name() {
-    return this.fileData.filename;
+    return sanitizePath(this.fileData.filename);
   }
 
   /**

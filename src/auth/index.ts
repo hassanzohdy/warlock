@@ -5,4 +5,5 @@ export * from "./jwt";
 export * from "./models/access-token";
 export * from "./models/auth";
 export * from "./models/guest";
+export * from "./providers";
 export * from "./registerAuthRoutes";

@@ -21,6 +21,14 @@ groupedTranslations("validation", {
     en: ":input must match :confirmationInput.",
     ar: ":input يجب أن يتطابق مع :confirmationInput.",
   },
+  min: {
+    en: ":input must be at least :min.",
+    ar: ":input يجب أن يكون على الأقل :min.",
+  },
+  max: {
+    en: ":input must be at most :max.",
+    ar: ":input يجب أن يكون على الأكثر :max.",
+  },
   minLength: {
     en: ":input must be at least :min characters.",
     ar: ":input يجب أن يكون على الأقل :min حرف.",

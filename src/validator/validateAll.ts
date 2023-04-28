@@ -26,7 +26,7 @@ export async function validateAll(
     } catch (error) {
       console.log("Error");
 
-      log.error("request", "validation", "Validation failed", error);
+      log.error("request", "validation", "Validation error", error);
       throw error;
     }
   }
@@ -46,12 +46,12 @@ export async function validateAll(
         response.setStatusCode(config.get("validation.responseStatus", 400));
       }
 
-      log.error("request", "validation", "Validation failed");
+      log.info("request", "validation", "Validation failed");
 
       return result;
     }
 
-    log.success("request", "validation", "Validation passed");
+    log.info("request", "validation", "Validation passed");
 
     Validator.trigger("customPasses");
   }

@@ -49,3 +49,12 @@ export function appPath(relativePath = "") {
 export function consolePath(relativePath = "") {
   return rootPath("src/console", relativePath);
 }
+
+/**
+ * Remove any invalid characters from the file path using regex
+ * It should accept any language character, numbers, and the following characters: _ - .
+ */
+const invalidCharsRegex = /[<>:"/\\|?*]/g; // Regex to match invalid characters
+export function sanitizePath(filePath: string) {
+  return filePath.replace(invalidCharsRegex, ""); // Replace invalid characters with an empty string
+}
