@@ -401,6 +401,9 @@ export class Output {
         dateStyle: "long",
         timeStyle: "medium",
       }).format(value),
+      date: new Intl.DateTimeFormat("en-US", {
+        dateStyle: "long",
+      }).format(value),
     };
   }
 }
