@@ -31,6 +31,6 @@ export class Guest extends Auth {
     return {
       ...this.only(["id"]),
       userType: this.userType,
-    };
+    } as any;
   }
 }

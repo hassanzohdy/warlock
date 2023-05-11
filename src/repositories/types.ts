@@ -135,6 +135,7 @@ export type RepositoryOptions = {
   page?: number;
   select?: string[];
   deselect?: string[];
+  purgeCache?: boolean;
   orderBy?:
     | string
     | [string, "asc" | "desc"]

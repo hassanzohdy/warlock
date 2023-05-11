@@ -44,6 +44,28 @@ export function getActiveResource<T extends Model = Model>(
     });
   };
 }
+/**
+ * Get active cached resource by id
+ */
+export function getActiveCachedResource<T extends Model = Model>(
+  repository: RepositoryManager<T>,
+  returnAs = "record",
+) {
+  return async function _getActiveCachedResource(
+    request: Request,
+    response: Response,
+  ) {
+    const record = await repository.getActiveCached(request.input("id"));
+
+    if (!record) {
+      return response.notFound();
+    }
+
+    return response.success({
+      [returnAs]: record,
+    });
+  };
+}
 
 /**
  * Get owned resource by id
@@ -128,6 +150,28 @@ export function listActiveResources<T extends Model = Model>(
     response: Response,
   ) {
     const { documents, paginationInfo } = await repository.listActive(
+      request.all(),
+    );
+
+    return response.success({
+      [returnAs]: documents,
+      paginationInfo,
+    });
+  };
+}
+
+/**
+ * Return list of active cached resources with pagination
+ */
+export function listActiveCachedResources<T extends Model = Model>(
+  repository: RepositoryManager<T>,
+  returnAs = "records",
+) {
+  return async function _listActiveCachedResources(
+    request: Request,
+    response: Response,
+  ) {
+    const { documents, paginationInfo } = await repository.listActiveCached(
       request.all(),
     );
 

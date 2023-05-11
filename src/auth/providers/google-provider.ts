@@ -142,7 +142,6 @@ export class GoogleProvider {
    */
   public async login(code: string) {
     const provider = new OAuth2Client();
-    // console.log(await provider.getTokenInfo(code));
 
     provider.setCredentials({
       access_token: code,

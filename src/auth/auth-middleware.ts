@@ -7,9 +7,9 @@ import { AccessToken } from "./models/access-token";
 export function authMiddleware(allowedUserType?: string) {
   return async function auth(request: Request, response: Response) {
     try {
-      // use our own jwt verify to verify the token
       await jwt.verify(request);
 
+      // use our own jwt verify to verify the token
       const accessToken = await AccessToken.first({
         token: request.authorizationValue(),
       });

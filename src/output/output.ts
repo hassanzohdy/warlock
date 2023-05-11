@@ -86,7 +86,7 @@ export class Output {
   /**
    * Get value from final output
    */
-  public get(key: string, defaultValue = null) {
+  public get(key: string, defaultValue?: any) {
     return get(this.resource, key, defaultValue);
   }
 
@@ -393,17 +393,22 @@ export class Output {
    * Parse the given value
    */
   protected parseDate(value: any, format = this.dateFormat) {
+    // if format and timestamp exists, it means that the value is already parsed
+    if (value?.format && value?.timestamp) return value;
+
+    const dayjsDate = dayjs(value);
+
     return {
-      format: dayjs(value).format(format),
-      timestamp: dayjs(value).unix(),
-      humanTime: (dayjs(value) as any).fromNow(),
+      format: dayjsDate.format(format),
+      timestamp: dayjsDate.unix(),
+      humanTime: (dayjsDate as any).fromNow(),
       text: new Intl.DateTimeFormat("en-US", {
         dateStyle: "long",
         timeStyle: "medium",
-      }).format(value),
+      }).format(dayjsDate.toDate()),
       date: new Intl.DateTimeFormat("en-US", {
         dateStyle: "long",
-      }).format(value),
+      }).format(dayjsDate.toDate()),
     };
   }
 }

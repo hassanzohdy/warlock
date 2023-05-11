@@ -43,11 +43,13 @@ export const redisCache: CacheDriver<
   parseKey(key: string | GenericObject) {
     if (typeof key === "object") {
       key = JSON.stringify(key);
+      // remove any curly braces and double quotes
     }
+    key = key.replace(/[{}"]/g, "").replaceAll(":", ".").replaceAll(",", ".");
 
     const { request } = requestContext();
     if (request) {
-      key = request.domain + "." + key;
+      // key = request.domain + "." + key;
     }
 
     return key;

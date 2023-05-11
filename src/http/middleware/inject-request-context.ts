@@ -4,6 +4,7 @@
  */
 
 // use async_hooks to create a new context for each request
+import { trans } from "@mongez/localization";
 import { AsyncLocalStorage } from "async_hooks";
 import { Auth } from "../../auth";
 import { Request } from "../request";
@@ -26,7 +27,13 @@ export function createRequestContext(
   // store the request and response in the context
   return new Promise((resolve, reject) => {
     asyncLocalStorage.run(
-      { request, response, user: request.user },
+      {
+        request,
+        response,
+        get user() {
+          return request.user;
+        },
+      },
       async () => {
         //
         try {
@@ -37,8 +44,6 @@ export function createRequestContext(
           }
 
           request.trigger("executingAction", request.route);
-
-          request.log("Request executed successfully");
 
           const handler = request.getHandler();
 
@@ -64,5 +69,5 @@ export const requestCtx = requestContext;
 export function t(keyword: string, placeholders?: any) {
   const { request } = requestContext();
 
-  return request.trans(keyword, placeholders);
+  return request?.trans(keyword, placeholders) || trans(keyword);
 }

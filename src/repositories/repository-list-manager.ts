@@ -1,8 +1,10 @@
+import { putJsonFileAsync } from "@mongez/fs";
 import { Model, ModelAggregate, PaginationListing } from "@mongez/mongodb";
 import { GenericObject } from "@mongez/reinforcements";
 import Is from "@mongez/supportive-is";
 import { cache } from "../cache";
 import { requestContext } from "../http/middleware/inject-request-context";
+import { storagePath } from "../utils";
 import { BaseRepositoryManager } from "./base-repository-manager";
 import { RepositoryListing } from "./repository-listing";
 import { RepositoryManager } from "./repository-manager";
@@ -21,6 +23,17 @@ export abstract class RepositoryListManager<
    * List default options
    */
   protected defaultOptions: RepositoryOptions = {};
+
+  /**
+   * Default filters list
+   */
+  protected defaultFilters: FilterByOptions = {
+    id: "int",
+    ids: ["inInt", "id"],
+    createdBy: ["int", "createdBy.id"],
+    createdAt: "date",
+    isActive: "boolean",
+  };
 
   /**
    * Filter By options
@@ -113,6 +126,13 @@ export abstract class RepositoryListManager<
   }
 
   /**
+   * Add default filters along side with the given filters
+   */
+  public withDefaultFilters(filters: FilterByOptions = {}) {
+    return { ...this.defaultFilters, ...filters };
+  }
+
+  /**
    * Get new query
    */
   public newQuery() {
@@ -196,7 +216,7 @@ export abstract class RepositoryListManager<
   ) {
     const { request } = requestContext() || {};
 
-    const localeCode = request.locale ? `locale.${request.locale.code}.` : "";
+    const localeCode = request.locale ? `locale.${request.locale}.` : "";
 
     const cacheKey = this.generateCacheKey(
       `data.${localeCode}${column}.${value}`,
@@ -279,10 +299,7 @@ export abstract class RepositoryListManager<
     }
 
     if (listing) {
-      return {
-        paginationInfo: listing.paginationInfo,
-        documents: listing.documents,
-      } as {
+      return listing as {
         documents: T[];
         paginationInfo: PaginationListing<T>["paginationInfo"];
       };
@@ -290,19 +307,24 @@ export abstract class RepositoryListManager<
 
     const { documents, paginationInfo } = await this.list(options);
 
-    if (!options?.purgeCache) {
-      this.cache(cacheKey, {
-        documents: await Promise.all(
-          documents.map(async document => await document.toJSON()),
-        ),
-        paginationInfo: paginationInfo,
-      });
+    const cachedDocuments = await Promise.all(
+      documents.map(async document => await document.toJSON()),
+    );
+
+    putJsonFileAsync(storagePath(Date.now() + ".json"), {
+      documents: cachedDocuments,
+    });
+
+    const output = {
+      documents: cachedDocuments,
+      paginationInfo: paginationInfo,
+    };
+
+    if (!options.purgeCache) {
+      this.cache(cacheKey, output);
     }
 
-    return {
-      documents,
-      paginationInfo,
-    } as {
+    return output as {
       documents: T[];
       paginationInfo: PaginationListing<T>["paginationInfo"];
     };
@@ -312,6 +334,10 @@ export abstract class RepositoryListManager<
    * Get new repository listing instance
    */
   public newListing(options?: RepositoryOptions) {
+    if (!this.filterBy.id) {
+      this.filterBy.id = "int";
+    }
+
     const listing = new RepositoryListing<T, M>(this as any, this.filterBy, {
       ...this.defaultOptions,
       ...(options || {}),
@@ -426,9 +452,7 @@ export abstract class RepositoryListManager<
    * Get owned record
    */
   public async getOwned(userId: number, id: number, column = "createdBy") {
-    const record = await this.first({
-      id,
-    });
+    const record = await this.find(id);
 
     if (!record) return null;
 

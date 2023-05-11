@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import concatRoute from "@mongez/concat-route";
+import { log } from "@mongez/logger";
 import {
   GenericObject,
   ltrim,
@@ -445,6 +446,12 @@ export class Router {
    */
   private handleRoute(route: Route) {
     return async (fastifyRequest: any, fastifyResponse: any) => {
+      log.info(
+        "route",
+        route.method + " " + route.path.replace("/*", ""),
+        "Starting Request",
+      );
+
       const request = new Request();
       const response = new Response();
 

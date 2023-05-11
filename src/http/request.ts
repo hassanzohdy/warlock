@@ -334,6 +334,20 @@ export class Request<User extends Auth = any> {
   }
 
   /**
+   * Get current request path
+   */
+  public get path() {
+    return this.baseRequest.url;
+  }
+
+  /**
+   * {@alias}
+   */
+  public get url() {
+    return this.baseRequest.url;
+  }
+
+  /**
    * Run middleware
    */
   public async runMiddleware() {
@@ -415,12 +429,12 @@ export class Request<User extends Auth = any> {
 
         this.trigger("executedMiddleware");
 
-        this.log("request middlewares executed");
+        this.log("Request middlewares executed");
         return output;
       }
     }
 
-    this.log("request middlewares executed");
+    this.log("Request middlewares executed");
 
     // trigger the executedMiddleware event
     this.trigger("executedMiddleware", middlewares, this.route);
