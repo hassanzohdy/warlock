@@ -81,4 +81,8 @@ groupedTranslations("validation", {
     en: ":input must be an array of :type.",
     ar: ":input يجب أن يكون مصفوفة من :type.",
   },
+  url: {
+    en: ":input must be a valid URL.",
+    ar: ":input يجب أن يكون رابط صالح.",
+  },
 });

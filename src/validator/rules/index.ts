@@ -20,3 +20,4 @@ export * from "./required-if";
 export * from "./rule";
 export * from "./string";
 export * from "./unique";
+export * from "./url";

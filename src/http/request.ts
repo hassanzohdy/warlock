@@ -2,7 +2,7 @@ import config from "@mongez/config";
 import events from "@mongez/events";
 import { trans, transFrom } from "@mongez/localization";
 import { LogLevel, log } from "@mongez/logger";
-import { except, get, only, rtrim, set } from "@mongez/reinforcements";
+import { except, get, only, rtrim, set, unset } from "@mongez/reinforcements";
 import Is from "@mongez/supportive-is";
 import chalk from "chalk";
 import { FastifyRequest } from "fastify";
@@ -59,6 +59,11 @@ export class Request<User extends Auth = any> {
   public trans: ReturnType<typeof trans> = trans;
 
   /**
+   * Alias to trans method
+   */
+  public t: ReturnType<typeof trans> = trans;
+
+  /**
    * Allow the request instance to accept dynamic properties
    */
   [key: string]: any;
@@ -75,7 +80,7 @@ export class Request<User extends Auth = any> {
 
     const localeCode = this.getLocaleCode();
 
-    this.trans = transFrom.bind(null, localeCode);
+    this.trans = this.t = transFrom.bind(null, localeCode);
 
     return this;
   }
@@ -524,6 +529,15 @@ export class Request<User extends Auth = any> {
    */
   public set(key: string, value: any) {
     set(this.payload.all, key, value);
+  }
+
+  /**
+   * Unset request payload keys
+   */
+  public unset(...keys: string[]) {
+    this.payload.all = unset(this.payload.all, keys);
+
+    return this;
   }
 
   /**
