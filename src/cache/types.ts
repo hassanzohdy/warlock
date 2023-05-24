@@ -8,11 +8,11 @@ export type CacheDriver<ClientType, Options> = {
   /**
    *  Remove all cached items by namespace
    */
-  removeByNamespace(namespace: string): Promise<string[] | undefined>;
+  removeByNamespace(namespace: string): Promise<any>;
   /**
    * Set the cache driver options
    */
-  setOptions(options: Options): CacheDriver<ClientType, Options>;
+  setOptions(options: Options): any;
   /**
    * Parse the key to be used in the cache
    */

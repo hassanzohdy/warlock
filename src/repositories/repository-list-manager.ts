@@ -1,10 +1,8 @@
-import { putJsonFileAsync } from "@mongez/fs";
 import { Model, ModelAggregate, PaginationListing } from "@mongez/mongodb";
 import { GenericObject } from "@mongez/reinforcements";
 import Is from "@mongez/supportive-is";
 import { cache } from "../cache";
 import { requestContext } from "../http/middleware/inject-request-context";
-import { storagePath } from "../utils";
 import { BaseRepositoryManager } from "./base-repository-manager";
 import { RepositoryListing } from "./repository-listing";
 import { RepositoryManager } from "./repository-manager";
@@ -310,10 +308,6 @@ export abstract class RepositoryListManager<
     const cachedDocuments = await Promise.all(
       documents.map(async document => await document.toJSON()),
     );
-
-    putJsonFileAsync(storagePath(Date.now() + ".json"), {
-      documents: cachedDocuments,
-    });
 
     const output = {
       documents: cachedDocuments,

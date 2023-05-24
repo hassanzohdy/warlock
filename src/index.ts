@@ -4,6 +4,7 @@ export * from "./bootstrap";
 export * from "./cache";
 export * from "./console";
 export * from "./http";
+export * from "./image";
 export * from "./mail";
 export * from "./output";
 export * from "./react";

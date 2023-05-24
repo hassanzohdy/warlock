@@ -121,7 +121,7 @@ export class Response {
     // make a timeout to make sure the request events is executed first
     return new Promise(resolve => {
       setTimeout(async () => {
-        await events.trigger(event, ...args);
+        await events.triggerAllAsync(event, ...args);
         resolve(true);
       }, 0);
     });

@@ -31,9 +31,20 @@ export type OutputValue =
   | ((value: any) => Promise<any> | any);
 
 /**
+ * Advanced output transformer
+ */
+export type OutputTransformer = {
+  transformer: (value: any) => Promise<any> | any;
+  settings?: any;
+};
+
+/**
  * final output
  */
-export type FinalOutput = Record<string, OutputValue | [string, OutputValue]>;
+export type FinalOutput = Record<
+  string,
+  OutputValue | [string, OutputValue] | OutputTransformer
+>;
 
 /**
  * Allowed output data resource

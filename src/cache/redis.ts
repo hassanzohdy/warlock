@@ -1,5 +1,5 @@
 import { log } from "@mongez/logger";
-import { GenericObject } from "@mongez/reinforcements";
+import { GenericObject, rtrim } from "@mongez/reinforcements";
 import { createClient } from "redis";
 import { requestContext } from "../http/middleware/inject-request-context";
 import { CacheDriver } from "./types";
@@ -10,6 +10,7 @@ export type RedisOptions = {
   password?: string;
   username?: string;
   url?: string;
+  globalPrefix?: string;
 };
 
 export const redisCache: CacheDriver<
@@ -52,7 +53,9 @@ export const redisCache: CacheDriver<
       // key = request.domain + "." + key;
     }
 
-    return key;
+    return this.options.globalPrefix
+      ? rtrim(this.options.globalPrefix, ".") + "." + key
+      : key;
   },
   async set(key: string | GenericObject, value: any) {
     key = this.parseKey(key);
@@ -86,7 +89,11 @@ export const redisCache: CacheDriver<
   },
   async flush() {
     log.info("redis", "flushing");
-    await this.client?.flushAll();
+    if (this.options.globalPrefix) {
+      await this.removeByNamespace("");
+    } else {
+      await this.client?.flushAll();
+    }
     log.success("redis", "flushed");
   },
   async connect() {
@@ -100,7 +107,9 @@ export const redisCache: CacheDriver<
           ? `${options.username}:${options.password}@`
           : "";
 
-      options.url = `redis://${auth}${options.host}:${options.port || 6379}`;
+      if (!options.url) {
+        options.url = `redis://${auth}${options.host}:${options.port || 6379}`;
+      }
     }
 
     log.info("redis", "connection", "Connecting to Redis...");
@@ -110,11 +119,14 @@ export const redisCache: CacheDriver<
     this.client.on("error", error => {
       log.error("cache", "redis", error);
     });
+    try {
+      await this.client.connect();
 
-    await this.client.connect();
+      log.success("redis", "connection", "Connected Successfully");
 
-    log.success("redis", "connection", "Connected Successfully");
-
-    return this.client;
+      return this.client;
+    } catch (error) {
+      //
+    }
   },
 };

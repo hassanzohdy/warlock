@@ -24,6 +24,7 @@ export function logResponse(response: Response) {
 
 export function wrapResponseInDataKey(response: Response) {
   if (typeof response.body === "string") return;
+
   if (response.body) {
     response.body = { data: response.body };
   }

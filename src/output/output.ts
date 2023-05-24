@@ -5,7 +5,13 @@ import dayjs from "dayjs";
 import { Request } from "../http";
 import { requestContext } from "../http/middleware/inject-request-context";
 import { assetsUrl, uploadsUrl, url } from "../utils/urls";
-import { FinalOutput, OutputResource, OutputValue } from "./types";
+import {
+  FinalOutput,
+  OutputCastType,
+  OutputResource,
+  OutputTransformer,
+  OutputValue,
+} from "./types";
 
 export class Output {
   /**
@@ -196,6 +202,44 @@ export class Output {
   }
 
   /**
+   * Manage the output as localized value and parse the value by using the given output
+   */
+  protected localized(output: typeof Output) {
+    return {
+      transformer: async value => {
+        if (Array.isArray(value)) {
+          const { request } = requestContext();
+
+          if (!request) return value;
+
+          const localeCode = request?.header("locale-code");
+
+          if (!localeCode)
+            return await Promise.all(
+              value.map(async item => {
+                if (item?.value) {
+                  item.value = await new output(item.value).toJSON();
+                }
+
+                return item;
+              }),
+            );
+
+          const singleOutput = value.find(
+            item => item?.localeCode === localeCode,
+          )?.value;
+
+          if (!singleOutput) return value;
+
+          return await new output(singleOutput).toJSON();
+        }
+
+        return await new output(value).toJSON();
+      },
+    } as OutputTransformer;
+  }
+
+  /**
    * Transform resource to object, that's going to be used as the final output
    */
   public async toJSON() {
@@ -245,12 +289,26 @@ export class Output {
         }
       } else if (Is.empty(value)) continue;
 
-      if (Array.isArray(value) && valueType !== "localized") {
+      const customTransformer = async (
+        value: any,
+        valueType: OutputTransformer,
+      ) => {
+        const transformer = valueType.transformer;
+
+        return await transformer(value);
+      };
+
+      if (typeof valueType === "object") {
+        set(this.data, key, await customTransformer(value, valueType));
+      } else if (Array.isArray(value) && valueType !== "localized") {
         set(
           this.data,
           key,
           await Promise.all(
-            value.map(async item => await this.transformValue(item, valueType)),
+            value.map(
+              async item =>
+                await this.transformValue(item, valueType as OutputCastType),
+            ),
           ),
         );
       } else {
@@ -400,7 +458,7 @@ export class Output {
 
     return {
       format: dayjsDate.format(format),
-      timestamp: dayjsDate.unix(),
+      timestamp: dayjsDate.valueOf(),
       humanTime: (dayjsDate as any).fromNow(),
       text: new Intl.DateTimeFormat("en-US", {
         dateStyle: "long",

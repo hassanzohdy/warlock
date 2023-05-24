@@ -170,6 +170,13 @@ export class Request<User extends Auth = any> {
   }
 
   /**
+   * Get current request method
+   */
+  public get method() {
+    return this.baseRequest.method;
+  }
+
+  /**
    * Parse the payload and merge it from the request body, params and query string
    */
   protected parsePayload() {
