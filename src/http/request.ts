@@ -302,6 +302,8 @@ export class Request<User extends Auth = any> {
 
     if (Is.string(data)) return data.trim();
 
+    if (data?.value && data?.fields && data?.type) return data.value;
+
     return data;
   }
 

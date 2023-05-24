@@ -24,8 +24,6 @@ export async function validateAll(
         return response.validationFailed(validator);
       }
     } catch (error) {
-      console.log("Error");
-
       log.error("request", "validation", "Validation error", error);
       throw error;
     }
