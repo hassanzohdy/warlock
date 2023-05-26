@@ -9,7 +9,8 @@ import { getServer } from "./server";
 export async function createHttpApplication() {
   const server = getServer();
 
-  await import("app/bootstrap");
+  // import app/bootstrap.ts file from cwd + /src/app/bootstrap.ts
+  await import(process.cwd() + "/src/app/bootstrap.ts");
 
   await registerHttpPlugins();
 

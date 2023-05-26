@@ -10,7 +10,7 @@ export class Image {
   /**
    * Sharp image object
    */
-  private readonly image: sharp.Sharp;
+  public readonly image: sharp.Sharp;
 
   /**
    * Constructor
@@ -38,6 +38,22 @@ export class Image {
     ]);
 
     return this;
+  }
+
+  /**
+   * Get image dimensions
+   */
+  public async dimensions() {
+    const { width, height } = await this.image.metadata();
+
+    return { width, height };
+  }
+
+  /**
+   * Get image metadata
+   */
+  public async metadata() {
+    return this.image.metadata();
   }
 
   /**
