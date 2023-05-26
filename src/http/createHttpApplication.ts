@@ -10,7 +10,7 @@ export async function createHttpApplication() {
   const server = getServer();
 
   // import app/bootstrap.ts file from cwd + /src/app/bootstrap.ts
-  await import(process.cwd() + "/src/app/bootstrap.ts");
+  await import("appBootstrap");
 
   await registerHttpPlugins();
 
