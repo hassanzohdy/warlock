@@ -6,11 +6,17 @@ import { httpConfig } from "./config";
 import { registerHttpPlugins } from "./plugins";
 import { getServer } from "./server";
 
-export async function createHttpApplication() {
+export type HttpApplicationConfigurations = {
+  bootstrap: () => Promise<any>;
+};
+
+export async function createHttpApplication(
+  configurations: HttpApplicationConfigurations,
+) {
   const server = getServer();
 
   // import app/bootstrap.ts file from cwd + /src/app/bootstrap.ts
-  await import("appBootstrap");
+  await configurations.bootstrap();
 
   await registerHttpPlugins();
 

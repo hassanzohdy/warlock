@@ -1,5 +1,8 @@
 import { Command } from "commander";
-import { prepareConfigurations } from "../load-configurations";
+import {
+  ConfigurationsLoader,
+  prepareConfigurations,
+} from "../load-configurations";
 const program = new Command();
 
 program.name("Warlock Node CLI").description("Warlock CLI").version("0.8.0");
@@ -12,8 +15,14 @@ export function registerCommands(commands: Command[]) {
   commands.forEach(command => registerCommand(command));
 }
 
-export async function startConsoleApplication() {
-  await prepareConfigurations();
+export type ConsoleApplicationConfigurations = {
+  config: ConfigurationsLoader;
+};
+
+export async function startConsoleApplication({
+  config,
+}: ConsoleApplicationConfigurations) {
+  await prepareConfigurations(config);
 
   program.parse(process.argv);
 }

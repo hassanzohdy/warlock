@@ -3,13 +3,17 @@ import { connectToDatabase } from "@mongez/mongodb";
 import chalk from "chalk";
 import { bootstrap } from "./bootstrap";
 import { connectToCache } from "./cache";
-import { createHttpApplication } from "./http";
+import { HttpApplicationConfigurations, createHttpApplication } from "./http";
 import { prepareConfigurations } from "./load-configurations";
 
-export async function startHttpApplication() {
+export type AppConfigurations = HttpApplicationConfigurations & {
+  config: () => Promise<any>;
+};
+
+export async function startHttpApplication(configurations: AppConfigurations) {
   await bootstrap();
 
-  await prepareConfigurations();
+  await prepareConfigurations(configurations.config);
 
   const environment =
     process.env.NODE_ENV === "production"
@@ -24,5 +28,5 @@ export async function startHttpApplication() {
 
   connectToDatabase();
   connectToCache();
-  createHttpApplication();
+  createHttpApplication(configurations);
 }
