@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import { bootstrap } from "../bootstrap";
 import {
   ConfigurationsLoader,
   prepareConfigurations,
@@ -22,6 +23,8 @@ export type ConsoleApplicationConfigurations = {
 export async function startConsoleApplication({
   config,
 }: ConsoleApplicationConfigurations) {
+  bootstrap();
+
   await prepareConfigurations(config);
 
   program.parse(process.argv);

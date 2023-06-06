@@ -704,6 +704,23 @@ export class Request<User extends Auth = any> {
   }
 
   /**
+   * Detect proper ip
+   */
+  public detectIp() {
+    // as the server maybe used behind a proxy
+    // then we need to check first if there is a forwarded ip
+    // check for the real-ip header
+
+    const realIp = this.header("x-real-ip");
+
+    if (realIp) return realIp;
+
+    const forwardedIp = this.header("x-forwarded-for");
+
+    return forwardedIp || this.baseRequest.ip;
+  }
+
+  /**
    * Get request ips
    */
   public get ips() {
