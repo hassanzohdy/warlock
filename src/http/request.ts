@@ -139,19 +139,14 @@ export class Request<User extends Auth = any> {
    * Get the current request domain
    */
   public get domain() {
-    const origin = this.origin;
+    return this.baseRequest.hostname;
+  }
 
-    if (!origin) return "";
-
-    try {
-      const url = new URL(origin);
-
-      return url.hostname;
-    } catch (error) {
-      console.log("Domain Error", error);
-
-      return "";
-    }
+  /**
+   * Get hostname
+   */
+  public get hostname() {
+    return this.baseRequest.hostname;
   }
 
   /**

@@ -1,7 +1,9 @@
 import Fastify from "fastify";
 
 // Instantiate Fastify server
-const server = Fastify();
+const server = Fastify({
+  trustProxy: true,
+});
 
 /**
  * Expose the server to be publicly accessible
