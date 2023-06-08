@@ -1,6 +1,6 @@
 {
     "name": "@mongez/warlock",
-    "version": "1.0.24",
+    "version": "1.0.25",
     "description": "A comprehensive nodejs framework for building nodejs applications",
     "main": "src/index.ts",
     "scripts": {
@@ -37,8 +37,8 @@
         "@types/mime": "^3.0.1",
         "google-auth-library": "^8.8.0",
         "mime": "^3.0.0",
-        "mongodb": "^5.6.0",
         "redis": "^4.6.7",
+        "sharp": "^0.32.1",
         "showdown": "^2.1.0"
     },
     "devDependencies": {

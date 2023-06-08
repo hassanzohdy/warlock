@@ -106,6 +106,13 @@ export class Request<User extends Auth = any> {
   }
 
   /**
+   * Get http protocol
+   */
+  public get protocol() {
+    return this.baseRequest.protocol;
+  }
+
+  /**
    * Validate the given rules
    */
   public async validate(rules: any) {
@@ -359,6 +366,13 @@ export class Request<User extends Auth = any> {
    */
   public get url() {
     return this.baseRequest.url;
+  }
+
+  /**
+   * Get full url
+   */
+  public get fullUrl() {
+    return this.protocol + "://" + this.host + this.path;
   }
 
   /**
