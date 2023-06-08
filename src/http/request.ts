@@ -367,7 +367,7 @@ export class Request<User extends Auth = any> {
    * Get full url
    */
   public get fullUrl() {
-    return this.protocol + "://" + this.host + this.path;
+    return this.protocol + "://" + this.hostname + this.path;
   }
 
   /**
