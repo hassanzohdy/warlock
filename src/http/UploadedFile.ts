@@ -3,6 +3,7 @@ import { Random } from "@mongez/reinforcements";
 import crypto from "crypto";
 import { writeFileSync } from "fs";
 import path from "path";
+import { Image } from "../image";
 import { sanitizePath, uploadsPath } from "../utils/paths";
 
 export class UploadedFile {
@@ -20,6 +21,11 @@ export class UploadedFile {
    * Save path for the file
    */
   protected savePath = "";
+
+  /**
+   * Determine if file is saved
+   */
+  protected isSaved = false;
 
   /**
    * Constructor
@@ -96,7 +102,25 @@ export class UploadedFile {
       .update(fileContent.toString())
       .digest("hex");
 
+    this.isSaved = true;
+
     return relativeFilePath;
+  }
+
+  /**
+   * Check if file is an image
+   */
+  public get isImage() {
+    return this.mimeType.startsWith("image");
+  }
+
+  /**
+   * Get file width and height
+   */
+  public async dimensions() {
+    return new Image(
+      this.isSaved ? this.savePath : await this.buffer(),
+    ).dimensions();
   }
 
   /**

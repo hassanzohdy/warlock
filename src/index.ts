@@ -7,6 +7,7 @@ export * from "./http";
 export * from "./image";
 export * from "./load-configurations";
 export * from "./mail";
+export * from "./modules";
 export * from "./output";
 export * from "./react";
 export * from "./repositories";
