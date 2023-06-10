@@ -464,7 +464,7 @@ export class Response {
   /**
    * Send a file as a response
    */
-  public sendFile(path: string) {
+  public sendFile(path: string, cacheTime?: number) {
     if (!fs.existsSync(path)) {
       throw new Error(`Response Send Failed:  File not found: ${path}`);
     }
@@ -472,11 +472,26 @@ export class Response {
     this.log(`Sending file: ${path}`);
 
     const fileContent = fs.readFileSync(path);
+    if (cacheTime) {
+      // cache the file for 1 year
+      this.header("Cache-Control", "public, max-age=" + cacheTime);
+      // set expires header to 1 year
+      this.header("Expires", new Date(Date.now() + cacheTime).toUTCString());
+    }
 
     this.baseResponse.type(this.getContentType(path));
     this.baseResponse.send(fileContent);
 
     return this;
+  }
+
+  /**
+   * Send file and cache it
+   * Cache time in seconds
+   * Cache time will be one year
+   */
+  public sendCachedFile(path: string, cacheTime = 31536000) {
+    return this.sendFile(path, cacheTime);
   }
 
   /**

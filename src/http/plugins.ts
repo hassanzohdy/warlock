@@ -31,7 +31,9 @@ export async function registerHttpPlugins() {
   });
 
   // 👇🏻 use the jwt plugin with your preferred secret key
-  registerPlugin(fastifyJwt, {
-    secret: config.get("auth.jwt.secret", ""),
-  });
+  if (config.get("auth.jwt.secret", "")) {
+    registerPlugin(fastifyJwt, {
+      secret: config.get("auth.jwt.secret", ""),
+    });
+  }
 }
