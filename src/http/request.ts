@@ -688,6 +688,15 @@ export class Request<User extends Auth = any> {
   }
 
   /**
+   * Get string input value
+   */
+  public string(key: string, defaultValue = "") {
+    const value = this.input(key, defaultValue);
+
+    return String(value);
+  }
+
+  /**
    * Get float input value
    */
   public float(key: string, defaultValue = 0) {

@@ -42,7 +42,7 @@ export type RouteHandler = {
   /**
    * Function Declaration
    */
-  (request: Request, response: Response): ReturnedResponse | undefined;
+  (request: Request, response: Response): ReturnedResponse | void;
 
   /**
    * Validation static object property which can be optional
