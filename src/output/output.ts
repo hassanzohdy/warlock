@@ -4,6 +4,7 @@ import Is from "@mongez/supportive-is";
 import dayjs from "dayjs";
 import { Request } from "../http";
 import { requestContext } from "../http/middleware/inject-request-context";
+import { dateOutput } from "../utils/date-output";
 import { assetsUrl, uploadsUrl, url } from "../utils/urls";
 import {
   FinalOutput,
@@ -451,22 +452,6 @@ export class Output {
    * Parse the given value
    */
   protected parseDate(value: any, format = this.dateFormat) {
-    // if format and timestamp exists, it means that the value is already parsed
-    if (value?.format && value?.timestamp) return value;
-
-    const dayjsDate = dayjs(value);
-
-    return {
-      format: dayjsDate.format(format),
-      timestamp: dayjsDate.valueOf(),
-      humanTime: (dayjsDate as any).fromNow(),
-      text: new Intl.DateTimeFormat("en-US", {
-        dateStyle: "long",
-        timeStyle: "medium",
-      }).format(dayjsDate.toDate()),
-      date: new Intl.DateTimeFormat("en-US", {
-        dateStyle: "long",
-      }).format(dayjsDate.toDate()),
-    };
+    return dateOutput(value, format);
   }
 }
