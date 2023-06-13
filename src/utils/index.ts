@@ -1,3 +1,4 @@
+export * from "./dateOutput";
 export * from "./get-localized";
 export * from "./paths";
 export * from "./sleep";
