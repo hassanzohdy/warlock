@@ -157,6 +157,13 @@ export class Request<User extends Auth = any> {
   }
 
   /**
+   * Get the domain of the origin
+   */
+  public get originDomain() {
+    return this.origin ? new URL(this.origin).hostname : null;
+  }
+
+  /**
    * Get authorization header value
    */
   public authorizationValue() {

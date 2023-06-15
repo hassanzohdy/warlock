@@ -92,6 +92,7 @@ export type FilterOptionType =
   | "int>="
   | "int<"
   | "int<="
+  | "in"
   | "!int"
   | "integer"
   | "inInt"

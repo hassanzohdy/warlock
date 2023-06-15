@@ -18,7 +18,7 @@ export class MinRule extends Rule {
    */
   public error() {
     return this.trans("min", {
-      max: this.options[0],
+      min: this.options[0],
     });
   }
 }

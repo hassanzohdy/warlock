@@ -1,3 +1,3 @@
 export * from "./cache-manager";
-export * from "./redis";
+export * from "./drivers";
 export * from "./types";

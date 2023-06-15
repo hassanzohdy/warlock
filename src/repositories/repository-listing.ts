@@ -288,6 +288,24 @@ export class RepositoryListing<
         continue;
       }
 
+      // in
+      if (filterType === "in") {
+        const value = this.returnAsArray(filterValue);
+
+        if (column) {
+          this.query.whereIn(column, value);
+        } else if (columns) {
+          const columnsAsObject: any = {};
+
+          for (const column of columns) {
+            columnsAsObject[column] = value;
+          }
+
+          this.query.orWhere(columnsAsObject);
+        }
+        continue;
+      }
+
       // where operators
       if (whereOperators.includes(filterType as WhereOperator)) {
         if (column) {
@@ -341,6 +359,8 @@ export class RepositoryListing<
         }
         continue;
       }
+
+      // inInt
 
       // int, integer
 

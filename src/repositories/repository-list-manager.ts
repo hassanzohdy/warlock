@@ -49,6 +49,11 @@ export abstract class RepositoryListManager<
   public isCacheable = true;
 
   /**
+   * Cache driver
+   */
+  protected cacheDriver = cache;
+
+  /**
    * Constructor
    */
   public constructor() {
@@ -60,14 +65,14 @@ export abstract class RepositoryListManager<
    * Prepare  cache
    */
   public prepareCache() {
-    if (!cache.exists || !this.isCacheable) return;
+    if (!this.cacheDriver.exists || !this.isCacheable) return;
 
     setTimeout(() => {
       this.model
         .events()
         .onSaved(async model => {
           this.clearCache();
-          this.cacheModel(model);
+          this.cacheModel(model as T);
           for (const repository of this.clearCacheOnUpdate) {
             repository.clearCache();
           }
@@ -94,7 +99,7 @@ export abstract class RepositoryListManager<
    * Clear the entire cache
    */
   public async clearCache() {
-    await cache.removeByNamespace(this.model.collection);
+    await this.cacheDriver.removeByNamespace(this.model.collection);
   }
 
   /**
@@ -157,7 +162,7 @@ export abstract class RepositoryListManager<
       cacheKeyOptions,
     );
 
-    const cachedModel = await cache.get(cacheKey);
+    const cachedModel = await this.cacheDriver.get(cacheKey);
 
     if (cachedModel) {
       return cachedModel;
@@ -221,7 +226,7 @@ export abstract class RepositoryListManager<
       cacheKeyOptions,
     );
 
-    const cachedModel = await cache.get(cacheKey);
+    const cachedModel = await this.cacheDriver.get(cacheKey);
 
     if (cachedModel) {
       return this.newModel(cachedModel);
@@ -290,10 +295,10 @@ export abstract class RepositoryListManager<
 
     const cacheKey = this.generateCacheKey("list", options);
 
-    const listing = await cache.get(cacheKey);
+    const listing = await this.cacheDriver.get(cacheKey);
 
     if (options?.purgeCache) {
-      cache.remove(cacheKey);
+      this.cacheDriver.remove(cacheKey);
     }
 
     if (listing) {
@@ -373,10 +378,10 @@ export abstract class RepositoryListManager<
 
     const cacheKey = this.generateCacheKey("count", options);
 
-    let count = await cache.get(cacheKey);
+    let count = await this.cacheDriver.get(cacheKey);
 
     if (options?.purgeCache) {
-      cache.remove(cacheKey);
+      this.cacheDriver.remove(cacheKey);
     }
 
     if (count !== undefined) {
@@ -396,9 +401,9 @@ export abstract class RepositoryListManager<
    * Cache the given key and value
    */
   protected async cache(key: string, value: any) {
-    if (!cache.exists || !this.isCacheable) return;
+    if (!this.cacheDriver.exists || !this.isCacheable) return;
 
-    return await cache.set(key, value);
+    return await this.cacheDriver.set(key, value);
   }
 
   /**

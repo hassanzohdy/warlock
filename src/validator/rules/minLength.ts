@@ -10,7 +10,7 @@ export class MinLengthRule extends Rule {
    * Validate the rule
    */
   public async validate() {
-    this.isValid = String(this.value).length >= this.options[0];
+    this.isValid = String(this.value).length >= Number(this.options[0]);
   }
 
   /**
@@ -18,7 +18,7 @@ export class MinLengthRule extends Rule {
    */
   public error() {
     return this.trans("minLength", {
-      max: this.options[0],
+      min: this.options[0],
     });
   }
 }

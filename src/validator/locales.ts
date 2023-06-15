@@ -85,4 +85,8 @@ groupedTranslations("validation", {
     en: ":input must be a valid URL.",
     ar: ":input يجب أن يكون رابط صالح.",
   },
+  length: {
+    en: ":input must be :length characters.",
+    ar: ":input يجب أن يكون :length حرف.",
+  },
 });

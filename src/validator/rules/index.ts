@@ -7,6 +7,7 @@ export * from "./exists";
 export * from "./float";
 export * from "./in";
 export * from "./int";
+export * from "./length";
 export * from "./localized";
 export * from "./max";
 export * from "./maxLength";

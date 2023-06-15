@@ -57,6 +57,8 @@ export abstract class Restful<T extends Model> implements RouteResource {
   public async list(request: Request, response: Response) {
     try {
       // measure performance
+      console.log(request.user);
+
       if (await this.callMiddleware("list", request, response)) return;
 
       const responseDocument: GenericObject = {};
