@@ -42,6 +42,13 @@ export function authMiddleware(allowedUserType?: string) {
       // get user model instance
       const currentUser = await UserModel.find(user.id);
 
+      if (!currentUser) {
+        accessToken.destroy();
+        return response.unauthorized({
+          error: "Unauthorized: Invalid Access Token",
+        });
+      }
+
       // set current user
       request.user = currentUser;
     } catch (err) {
