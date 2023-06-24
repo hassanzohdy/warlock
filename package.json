@@ -1,6 +1,6 @@
 {
     "name": "@mongez/warlock",
-    "version": "1.0.37",
+    "version": "1.0.38",
     "description": "A comprehensive nodejs framework for building nodejs applications",
     "main": "src/index.ts",
     "scripts": {

@@ -36,7 +36,7 @@ export class UploadOutput extends Output {
    * This should be used in a middleware to interrupt the request and define the keys to be removed
    * If it is in a front-office app, it should be removing all of these to reduce the size of the response
    */
-  public static makeItMinimal(
+  public static minimal(
     removingKeys = ["size", "id", "extension", "mimeType", "hash"],
   ) {
     this.disabledKeys = removingKeys;

@@ -14,7 +14,7 @@ export async function uploadFiles(request: Request, response: Response) {
     const hash = Random.string(64);
 
     const fileName = file.name;
-    const filePath = await file.saveAs(date, fileName); // relative to uploadsPath
+    const filePath = await file.saveAs(date + "/" + hash, fileName); // relative to uploadsPath
 
     const fileData: any = {
       name: file.name,
