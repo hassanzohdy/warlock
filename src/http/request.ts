@@ -139,14 +139,14 @@ export class Request<User extends Auth = any> {
    * Get the current request domain
    */
   public get domain() {
-    return this.baseRequest.hostname;
+    return this.baseRequest.hostname.replace(/^www\./, "");
   }
 
   /**
    * Get hostname
    */
   public get hostname() {
-    return this.baseRequest.hostname;
+    return this.domain;
   }
 
   /**
