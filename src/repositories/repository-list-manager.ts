@@ -28,6 +28,7 @@ export abstract class RepositoryListManager<
   protected defaultFilters: FilterByOptions = {
     id: "int",
     ids: ["inInt", "id"],
+    except: (id: any, query) => query.where("id", "!=", Number(id)),
     createdBy: ["int", "createdBy.id"],
     createdAt: "date",
     isActive: "boolean",

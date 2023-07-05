@@ -1,3 +1,4 @@
+import config from "@mongez/config";
 import { FinalOutput, Output } from "../../../output";
 
 export class UploadOutput extends Output {
@@ -32,15 +33,11 @@ export class UploadOutput extends Output {
   protected defaults = {};
 
   /**
-   * Make the output minimal by removing unnecessary keys
-   * This should be used in a middleware to interrupt the request and define the keys to be removed
-   * If it is in a front-office app, it should be removing all of these to reduce the size of the response
+   * {@inheritDoc}
    */
-  public static minimal(
-    removingKeys = ["size", "id", "extension", "mimeType", "hash"],
-  ) {
-    this.disabledKeys = removingKeys;
-
-    return this;
+  protected async extend() {
+    await config.get("uploads.extend", () => {
+      //
+    })(this);
   }
 }

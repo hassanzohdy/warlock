@@ -1,3 +1,4 @@
+import config from "@mongez/config";
 import { sha1 } from "@mongez/encryption";
 import { fileExists } from "@mongez/fs";
 import systemPath from "path";
@@ -5,10 +6,13 @@ import { Request, Response } from "./../../../http";
 import { Image } from "./../../../image";
 import { cachePath, uploadsPath } from "./../../../utils";
 
+// TODO: Add Watermark options
 export async function getUploadedFile(request: Request, response: Response) {
   const path = request.input("*");
 
   const fullPath = uploadsPath(path);
+
+  const cacheTime = config.get("uploads.cacheTime", 31536000); // default is 1 year
 
   if (!fileExists(fullPath)) {
     return response.notFound({
@@ -17,9 +21,12 @@ export async function getUploadedFile(request: Request, response: Response) {
   }
 
   // cache the file for 1 year
-  response.header("Cache-Control", "public, max-age=31536000");
+  response.header("Cache-Control", `public, max-age=${cacheTime}`);
   // set expires header to 1 year
-  response.header("Expires", new Date(Date.now() + 31536000000).toUTCString());
+  response.header(
+    "Expires",
+    new Date(Date.now() + cacheTime * 1000).toUTCString(),
+  );
 
   const height = request.input("h");
   const width = request.input("w");

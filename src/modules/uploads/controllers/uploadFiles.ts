@@ -1,3 +1,4 @@
+import config from "@mongez/config";
 import { Random } from "@mongez/reinforcements";
 import dayjs from "dayjs";
 import { Upload } from "../models";
@@ -12,9 +13,13 @@ export async function uploadFiles(request: Request, response: Response) {
   const addFile = async (file: UploadedFile) => {
     const date = dayjs().format("DD-MM-YYYY");
     const hash = Random.string(64);
+    const directoryPath = config.get("uploads.saveTo", date + "/" + hash);
 
     const fileName = file.name;
-    const filePath = await file.saveAs(date + "/" + hash, fileName); // relative to uploadsPath
+    const filePath = await file.saveAs(
+      typeof directoryPath === "function" ? directoryPath() : directoryPath,
+      fileName,
+    ); // relative to uploadsPath
 
     const fileData: any = {
       name: file.name,
