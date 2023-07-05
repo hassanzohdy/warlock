@@ -13,11 +13,14 @@ export async function uploadFiles(request: Request, response: Response) {
   const addFile = async (file: UploadedFile) => {
     const date = dayjs().format("DD-MM-YYYY");
     const hash = Random.string(64);
-    const directoryPath = config.get("uploads.saveTo", date + "/" + hash);
+    const defaultDirectoryPath = date + "/" + hash;
+    const directoryPath = config.get("uploads.saveTo", defaultDirectoryPath);
 
     const fileName = file.name;
     const filePath = await file.saveAs(
-      typeof directoryPath === "function" ? directoryPath() : directoryPath,
+      typeof directoryPath === "function"
+        ? directoryPath(defaultDirectoryPath)
+        : directoryPath,
       fileName,
     ); // relative to uploadsPath
 

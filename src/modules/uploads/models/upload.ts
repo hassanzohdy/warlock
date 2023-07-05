@@ -1,5 +1,6 @@
 import { Casts, Model } from "@mongez/mongodb";
 import { UploadOutput } from "../output/upload-output";
+import { uploadsPath } from "./../../../utils";
 
 export class Upload extends Model {
   /**
@@ -42,4 +43,11 @@ export class Upload extends Model {
     "width",
     "height",
   ];
+
+  /**
+   * Get file full path
+   */
+  public get path() {
+    return uploadsPath(this.get("path"));
+  }
 }

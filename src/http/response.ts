@@ -398,7 +398,7 @@ export class Response {
   /**
    * Set the response header
    */
-  public header(key: string, value: string) {
+  public header(key: string, value: any) {
     this.baseResponse.header(key, value);
 
     return this;
