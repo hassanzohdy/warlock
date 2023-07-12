@@ -1,1 +1,1 @@
-export * from "./uploads";
+export * from "./uploads/index";

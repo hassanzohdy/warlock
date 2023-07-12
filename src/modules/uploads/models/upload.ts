@@ -1,7 +1,6 @@
 import { Casts, Model } from "@mongez/mongodb";
 import { UploadOutput } from "../output/upload-output";
 import { uploadsPath } from "./../../../utils";
-
 export class Upload extends Model {
   /**
    * Collection name

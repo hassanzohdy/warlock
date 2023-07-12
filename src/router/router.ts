@@ -437,7 +437,13 @@ export class Router {
       const requestMethod = route.method.toLowerCase(); /// post
       const requestMethodFunction = server[requestMethod].bind(server);
 
-      requestMethodFunction(route.path, this.handleRoute(route));
+      requestMethodFunction(
+        route.path,
+        {
+          ...(route.serverOptions || {}),
+        },
+        this.handleRoute(route),
+      );
     });
   }
 

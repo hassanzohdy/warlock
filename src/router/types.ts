@@ -1,3 +1,4 @@
+import { RouteShorthandOptions } from "fastify";
 import type { Request, Response, ReturnedResponse } from "../http";
 
 /**
@@ -59,6 +60,10 @@ export type RouteOptions = {
    * Route name
    */
   name?: string;
+  /**
+   * Request server options
+   */
+  serverOptions?: RouteShorthandOptions;
 };
 
 /**
