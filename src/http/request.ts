@@ -204,90 +204,95 @@ export class Request<User extends Auth = any> {
    * Parse body payload
    */
   private parseBody(data: any) {
-    if (!data) return {};
+    try {
+      if (!data) return {};
 
-    const body: any = {};
+      const body: any = {};
 
-    const arrayOfObjectValues: any = {};
+      const arrayOfObjectValues: any = {};
 
-    for (let key in data) {
-      const value = data[key];
+      for (let key in data) {
+        const value = data[key];
 
-      let isArrayKey = false;
+        let isArrayKey = false;
 
-      if (key.endsWith("[]")) {
-        isArrayKey = true;
-      }
+        if (key.endsWith("[]")) {
+          isArrayKey = true;
+        }
 
-      key = rtrim(key, "[]");
+        key = rtrim(key, "[]");
 
-      // check if the key is has a square brackets, then convert it into object
-      // i.e user[email] => user: {email: "value"}
-      // also check if its an array of objects
+        // check if the key is has a square brackets, then convert it into object
+        // i.e user[email] => user: {email: "value"}
+        // also check if its an array of objects
 
-      if (key.includes("[")) {
-        // check if its an array of objects
-        if (key.includes("][")) {
-          const keyParts = key.split("[");
+        if (key.includes("[")) {
+          // check if its an array of objects
+          if (key.includes("][")) {
+            const keyParts = key.split("[");
 
-          const keyName = keyParts[0];
-          if (!arrayOfObjectValues[keyName]) {
-            arrayOfObjectValues[keyName] = [];
+            const keyName = keyParts[0];
+            if (!arrayOfObjectValues[keyName]) {
+              arrayOfObjectValues[keyName] = [];
+            }
+
+            const keyNameParts = keyParts[1].split("]");
+
+            const index = Number(keyNameParts[0]);
+
+            if (!arrayOfObjectValues[keyName][index]) {
+              arrayOfObjectValues[keyName][index] = {};
+            }
+
+            // now get the key after the index
+            const keyNameParts2 = keyParts[2].split("]");
+            const keyName2 = keyNameParts2[0];
+
+            arrayOfObjectValues[keyName][index][keyName2] =
+              this.parseInputValue(value);
+
+            continue;
           }
-
+          const keyParts = key.split("[");
+          const keyName = keyParts[0];
           const keyNameParts = keyParts[1].split("]");
 
-          const index = Number(keyNameParts[0]);
+          set(
+            body,
+            keyName + "." + keyNameParts[0],
+            Array.isArray(value)
+              ? value.map(this.parseInputValue.bind(this))
+              : this.parseInputValue(value),
+          );
 
-          if (!arrayOfObjectValues[keyName][index]) {
-            arrayOfObjectValues[keyName][index] = {};
+          continue;
+        }
+
+        if (Array.isArray(value)) {
+          body[key] = value.map(this.parseInputValue.bind(this));
+        } else if (isArrayKey) {
+          if (body[key]) {
+            body[key].push(this.parseInputValue(value));
+          } else {
+            body[key] = [this.parseInputValue(value)];
+
+            continue;
           }
-
-          // now get the key after the index
-          const keyNameParts2 = keyParts[2].split("]");
-          const keyName2 = keyNameParts2[0];
-
-          arrayOfObjectValues[keyName][index][keyName2] =
-            this.parseInputValue(value);
-
-          continue;
-        }
-        const keyParts = key.split("[");
-        const keyName = keyParts[0];
-        const keyNameParts = keyParts[1].split("]");
-
-        set(
-          body,
-          keyName + "." + keyNameParts[0],
-          Array.isArray(value)
-            ? value.map(this.parseInputValue.bind(this))
-            : this.parseInputValue(value),
-        );
-
-        continue;
-      }
-
-      if (Array.isArray(value)) {
-        body[key] = value.map(this.parseInputValue.bind(this));
-      } else if (isArrayKey) {
-        if (body[key]) {
-          body[key].push(this.parseInputValue(value));
         } else {
-          body[key] = [this.parseInputValue(value)];
-
-          continue;
+          body[key] = this.parseInputValue(value);
         }
-      } else {
-        body[key] = this.parseInputValue(value);
       }
-    }
 
-    // now merge the array of objects into the body
-    for (const key in arrayOfObjectValues) {
-      body[key] = arrayOfObjectValues[key];
-    }
+      // now merge the array of objects into the body
+      for (const key in arrayOfObjectValues) {
+        body[key] = arrayOfObjectValues[key];
+      }
 
-    return body;
+      return body;
+    } catch (error) {
+      console.log(error);
+      this.log(error, "error");
+    }
   }
 
   /**
@@ -296,7 +301,7 @@ export class Request<User extends Auth = any> {
   private parseInputValue(data: any) {
     // data.value appears only in the multipart form data
     // if it json, then just return the data
-    if (data.file) return data;
+    if (data?.file) return data;
 
     // this should not be considered used because the value key could be used as an actual input key
     // if (data.value !== undefined) return data.value;
