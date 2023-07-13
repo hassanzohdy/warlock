@@ -122,7 +122,7 @@ export abstract class Rule {
   public trans(key: string, attributes: any = {}) {
     attributes = merge(
       {
-        input: this.input,
+        input: this.request.trans(this.input),
         value: this.value,
       },
       attributes,

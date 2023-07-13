@@ -141,6 +141,10 @@ export type RouteResource = {
    */
   delete?: RouteHandler;
   /**
+   * Delete Multiple Records
+   */
+  bulkDelete?: RouteHandler;
+  /**
    * Validation object
    */
   validation?: {

@@ -170,13 +170,45 @@ export abstract class Restful<T extends Model> implements RouteResource {
   }
 
   /**
+   * Bulk delete records
+   */
+  public async bulkDelete(request: Request, response: Response) {
+    const ids = request.input("id");
+
+    if (!Array.isArray(ids)) {
+      return response.badRequest({
+        error: "id must be an array",
+      });
+    }
+
+    const { documents: records } = await this.repository.list({
+      paginate: false,
+      perform: query =>
+        query.whereIn(
+          "id",
+          ids.map(id => parseInt(id)),
+        ),
+    });
+
+    for (const record of records) {
+      await this.beforeDelete(request, record);
+      record.destroy();
+      this.onDelete(request, record);
+    }
+
+    if (this.returnOn.delete === "records") {
+      return this.list(request, response);
+    }
+
+    return response.success({
+      [this.recordsListName]: records,
+    });
+  }
+
+  /**
    * Delete record
    */
   public async delete(request: Request, response: Response) {
-    if (String(request.input("id")).includes(",")) {
-      return this.deleteMany(request, response);
-    }
-
     try {
       const record = await this.repository.find(request.int("id"));
 
@@ -202,37 +234,6 @@ export abstract class Restful<T extends Model> implements RouteResource {
     } catch (error) {
       log.error("restful", "delete", error);
     }
-  }
-
-  /**
-   * Delete bulk records
-   */
-  public async deleteMany(request: Request, response: Response) {
-    const ids = String(request.input("id"))
-      .split(",")
-      .map(id => parseInt(id));
-
-    const records = await this.repository.newQuery().whereIn("id", ids).get();
-
-    if (records.length === 0) {
-      return response.notFound({
-        error: "Record not found",
-      });
-    }
-
-    for (const record of records) {
-      await this.beforeDelete(request, record);
-      record.destroy();
-      this.onDelete(request, record);
-    }
-
-    if (this.returnOn.delete === "records") {
-      return this.list(request, response);
-    }
-
-    return response.success({
-      [this.recordsListName]: records,
-    });
   }
 
   /**

@@ -3,6 +3,7 @@ import Fastify from "fastify";
 // Instantiate Fastify server
 const server = Fastify({
   trustProxy: true,
+  bodyLimit: 3 * 1024 * 1024 * 1024, // 3GB
 });
 
 /**

@@ -181,7 +181,9 @@ export class Router {
     options: RouteOptions & {
       only?: ResourceMethod[];
       except?: ResourceMethod[];
-      replace?: Partial<Record<ResourceMethod, RouteHandler>>;
+      replace?: Partial<Record<ResourceMethod, RouteHandler>> & {
+        bulkDelete?: RouteHandler;
+      };
     } = {},
   ) {
     // get base resource name
@@ -275,6 +277,20 @@ export class Router {
       this.delete(
         path + "/:id",
         options.replace?.delete || routeResource.delete.bind(routeResource),
+        {
+          ...options,
+          name: resourceName,
+        },
+      );
+    }
+
+    if (routeResource.bulkDelete && isAcceptableResource("delete")) {
+      const resourceName = baseResourceName + ".bulkDelete";
+
+      this.delete(
+        path,
+        options.replace?.bulkDelete ||
+          routeResource.bulkDelete.bind(routeResource),
         {
           ...options,
           name: resourceName,
@@ -436,6 +452,8 @@ export class Router {
     this.routes.forEach(route => {
       const requestMethod = route.method.toLowerCase(); /// post
       const requestMethodFunction = server[requestMethod].bind(server);
+
+      route.path.includes("/uploads") && console.log(route.serverOptions);
 
       requestMethodFunction(
         route.path,
