@@ -34,7 +34,7 @@ export async function uploadFiles(request: Request, response: Response) {
       fileHash: file.hash,
       hash: hash,
       path: filePath,
-      size: await file.size(),
+      size: fileSize(uploadsPath(filePath)),
       mimeType: file.mimeType,
       extension: file.extension,
     };
