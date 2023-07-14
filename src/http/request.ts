@@ -641,6 +641,25 @@ export class Request<User extends Auth = any> {
   }
 
   /**
+   * Get all heavy inputs except params
+   */
+  public heavyExceptParams() {
+    const inputs = this.allExceptParams();
+
+    const heavyInputs: any = {};
+
+    for (const key in inputs) {
+      const value = inputs[key];
+
+      if (Is.empty(value) && value !== null) continue;
+
+      heavyInputs[key] = value;
+    }
+
+    return heavyInputs;
+  }
+
+  /**
    * Get only heavy inputs, the input with a value
    */
   public heavy() {

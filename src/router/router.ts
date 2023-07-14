@@ -453,8 +453,6 @@ export class Router {
       const requestMethod = route.method.toLowerCase(); /// post
       const requestMethodFunction = server[requestMethod].bind(server);
 
-      route.path.includes("/uploads") && console.log(route.serverOptions);
-
       requestMethodFunction(
         route.path,
         {

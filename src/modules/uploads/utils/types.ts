@@ -1,3 +1,4 @@
+import type { AWSConfigurations } from "../../../aws";
 import type { UploadOutput } from "../output/upload-output";
 
 export type UploadsConfigurations = {
@@ -18,4 +19,14 @@ export type UploadsConfigurations = {
    * @default 31536000 (1 year)
    */
   cacheTime?: number;
+  /**
+   * Aws Configurations
+   */
+  aws?: AWSConfigurations;
+  /**
+   * Compress images
+   *
+   * @default true
+   */
+  compress?: boolean;
 };

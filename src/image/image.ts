@@ -99,6 +99,13 @@ export class Image {
   }
 
   /**
+   * Convert to webp and save to file
+   */
+  public async saveAsWebp(path: string) {
+    return this.image.toFormat("webp").toFile(path);
+  }
+
+  /**
    * Add watermark
    */
   public async watermark(

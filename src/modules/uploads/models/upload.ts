@@ -25,23 +25,13 @@ export class Upload extends Model {
     mimeType: "string",
     width: "number",
     height: "number",
+    url: "string",
   };
 
   /**
    * {@inheritDoc}
    */
-  public embedded = [
-    "id",
-    "name",
-    "path",
-    "extension",
-    "size",
-    "fileHash",
-    "hash",
-    "mimeType",
-    "width",
-    "height",
-  ];
+  public embedded = Object.keys(this.casts);
 
   /**
    * Get file full path

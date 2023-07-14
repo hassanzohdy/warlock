@@ -254,7 +254,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
       await this.beforePatch(request, record, oldRecord);
       await this.beforeSave(request, record, oldRecord);
 
-      await record.save(request.all());
+      await record.save(request.heavyExceptParams());
 
       this.onPatch(request, record, oldRecord);
       this.onSave(request, record, oldRecord);

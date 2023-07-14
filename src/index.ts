@@ -1,5 +1,6 @@
 export * from "./application";
 export * from "./auth";
+export * from "./aws";
 export * from "./bootstrap";
 export * from "./cache";
 export * from "./console";

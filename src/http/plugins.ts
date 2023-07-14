@@ -26,7 +26,7 @@ export async function registerHttpPlugins() {
     attachFieldsToBody: true,
     limits: {
       // file size could be up to 10MB
-      fileSize: config.get("http.fileSizeLimit", 10 * 1024 * 1024),
+      fileSize: config.get("http.fileUploadLimit", 10 * 1024 * 1024),
     },
   });
 

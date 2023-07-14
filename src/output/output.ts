@@ -380,12 +380,12 @@ export class Output {
   /**
    * Transform and store the transformed value in the final output of the given key
    */
-  public async opt(key: string, type: OutputValue) {
+  public async opt(key: string, type: OutputValue, setAs = key) {
     const value = await this.transform(key, type);
 
     if (value === undefined) return;
 
-    return this.set(key, value);
+    return this.set(setAs, value);
   }
 
   /**
