@@ -26,6 +26,9 @@ export class Upload extends Model {
     width: "number",
     height: "number",
     url: "string",
+    provider: "object",
+    isRemote: "boolean",
+    chunked: "boolean",
   };
 
   /**
@@ -39,4 +42,39 @@ export class Upload extends Model {
   public get path() {
     return uploadsPath(this.get("path"));
   }
+
+  /**
+   * Determine if file is an image
+   */
+  public get isImage() {
+    return this.get("mimeType").startsWith("image/");
+  }
+
+  /**
+   * Determine if file is a video
+   */
+  public get isVideo() {
+    return this.get("mimeType").startsWith("video/");
+  }
+
+  /**
+   * Determine if file is a PDF
+   */
+  public get isPDF() {
+    return this.get("mimeType") === "application/pdf";
+  }
 }
+
+export const UploadBluePrint = Upload.blueprint();
+
+export async function uploadsMigration() {
+  await UploadBluePrint.index("hash");
+  await UploadBluePrint.index("path");
+}
+
+uploadsMigration.down = async function () {
+  await UploadBluePrint.dropIndex("hash");
+  await UploadBluePrint.dropIndex("path");
+};
+
+uploadsMigration.blueprint = UploadBluePrint;

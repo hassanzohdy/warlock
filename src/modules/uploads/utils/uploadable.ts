@@ -1,5 +1,6 @@
 import { copyFile, ensureDirectory, putFile } from "@mongez/fs";
 import Endpoint from "@mongez/http";
+import { Model } from "@mongez/mongodb";
 import { Random, trim } from "@mongez/reinforcements";
 import Is from "@mongez/supportive-is";
 import { AxiosResponse } from "axios";
@@ -48,9 +49,7 @@ export async function uploadFromFile(file: File) {
     (fileData as any)["height"] = height;
   }
 
-  Upload.create(fileData);
-
-  return fileData;
+  return Upload.create(fileData);
 }
 
 async function getUpload(hash: any) {
@@ -64,7 +63,7 @@ async function getUpload(hash: any) {
     return await uploadFromFile(hash);
   }
 
-  return (await Upload.findBy("hash", hash))?.embeddedData;
+  return await Upload.findBy("hash", hash);
 }
 
 export async function downloadFile(
@@ -171,27 +170,67 @@ export async function uploadFromUrl(url: string) {
     (fileData as any)["height"] = height;
   }
 
-  Upload.create(fileData);
-
-  return fileData;
+  return Upload.create(fileData);
 }
 
 /**
  * Casts a value to an uploadable object.
  * If the value is an array, it will return an array of uploadable objects.
  */
-export async function uploadable(hash: any): Promise<any> {
+export async function uploadable(
+  hash: any,
+  column: string,
+  model: Model,
+): Promise<any> {
   if (Array.isArray(hash)) {
     return await Promise.all(
-      hash.map(async (item: any) => await uploadable(item)),
+      hash.map(async (item: any) => await uploadable(item, column, model)),
     );
   }
 
   if (hash?.value) {
-    hash.value = await getUpload(hash.value);
+    hash.value = (await getUpload(hash.value))?.embeddedData;
 
     return hash;
   }
 
-  return await getUpload(hash);
+  const upload = await getUpload(hash);
+
+  // link the model to the upload
+  syncModelWithUpload(model, upload, column);
+
+  if (!upload) return null;
+
+  return upload.embeddedData;
+}
+
+async function syncModelWithUpload(
+  model: Model,
+  upload: Upload | null,
+  column: string,
+) {
+  if (!upload) return;
+
+  const data = {
+    collection: model.getCollection(),
+    id: model.id || (await model.generateNextId()),
+    column,
+  };
+
+  const syncedModels = upload.get("syncedModels") || [];
+
+  if (
+    !syncedModels.find(
+      (item: any) =>
+        item.id === data.id &&
+        item.column === data.column &&
+        item.collection === data.collection,
+    )
+  ) {
+    syncedModels.push(data);
+
+    upload.set("syncedModels", syncedModels);
+
+    await upload.save();
+  }
 }

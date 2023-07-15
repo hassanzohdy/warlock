@@ -1,6 +1,7 @@
 import {
+  DeleteObjectCommand,
+  GetObjectCommand,
   PutObjectCommand,
-  PutObjectCommandInput,
   S3Client,
   S3ClientConfig,
 } from "@aws-sdk/client-s3";
@@ -13,6 +14,7 @@ export type AWSConnectionOptions = {
   accessKeyId: string;
   secretAccessKey: string;
   bucketName: string;
+  providerName: string; // i.e aws | digitalocean
 } & Partial<S3ClientConfig>;
 
 export type AWSConfigurations = {
@@ -23,20 +25,17 @@ export type AWSConfigurations = {
 };
 
 export type AWSUploadOptions = {
-  filePath: string;
+  filePath?: string;
+  fileBuffer?: Buffer;
   fileName: string;
   hash: string;
   mimeType: string;
+  isCachedFile?: boolean;
 } & AWSConfigurations;
 
-export async function uploadToAWS({
-  filePath,
-  fileName,
-  hash,
-  mimeType,
-  parseFileName = ({ fileName, hash }) => hash + "-" + fileName,
-  connectionOptions,
-}: AWSUploadOptions) {
+export async function createAWSClient(
+  connectionOptions: AWSConfigurations["connectionOptions"],
+) {
   if (typeof connectionOptions === "function") {
     connectionOptions = await connectionOptions();
   }
@@ -46,6 +45,7 @@ export async function uploadToAWS({
     accessKeyId,
     bucketName,
     secretAccessKey,
+    providerName,
     region = "us-east-1",
     ...clientOptions
   } = connectionOptions;
@@ -62,16 +62,39 @@ export async function uploadToAWS({
     ...clientOptions,
   });
 
-  const finalFleName = parseFileName({ fileName, hash });
+  return {
+    client: s3Client,
+    bucketName,
+    providerName,
+    endpointUrl,
+    region,
+  };
+}
 
-  const bucketParams: PutObjectCommandInput = {
+export async function uploadToAWS({
+  filePath,
+  fileBuffer,
+  fileName,
+  hash,
+  mimeType,
+  isCachedFile = false,
+  parseFileName = ({ fileName, hash }) => hash + "-" + fileName,
+  connectionOptions,
+}: AWSUploadOptions) {
+  const finalFleName =
+    (isCachedFile ? "cache/" : "") + parseFileName({ fileName, hash });
+
+  const { client, bucketName, endpointUrl, providerName, region } =
+    await createAWSClient(connectionOptions);
+
+  const command = new PutObjectCommand({
     Bucket: bucketName,
     Key: finalFleName,
-    Body: fs.createReadStream(filePath),
+    Body: fileBuffer || fs.createReadStream(filePath as string),
     // make it publicly accessible
     ACL: "public-read",
     ContentType: mimeType,
-  };
+  });
 
   log(
     "aws",
@@ -81,7 +104,7 @@ export async function uploadToAWS({
   );
 
   try {
-    await s3Client.send(new PutObjectCommand(bucketParams));
+    await client.send(command);
 
     log(
       "aws",
@@ -92,7 +115,16 @@ export async function uploadToAWS({
 
     // now we have the URL of the uploaded file
     // let's return it
-    return `https://feather-cdn.sgp1.digitaloceanspaces.com/${finalFleName}`;
+    const providerUrl = endpointUrl.replace(/^https?:\/\//, "");
+
+    return {
+      path: providerUrl,
+      name: providerName,
+      bucket: bucketName,
+      region,
+      fileName: finalFleName,
+      url: `https://${bucketName}.${providerUrl}/${finalFleName}`,
+    };
   } catch (err) {
     console.log("Error", err);
     log(
@@ -101,5 +133,122 @@ export async function uploadToAWS({
       "Error uploading " + finalFleName + " to " + bucketName + "...",
       "error",
     );
+  }
+}
+
+export async function deleteFromAWS({
+  fileName,
+  connectionOptions,
+}: {
+  fileName: string;
+  connectionOptions: AWSConfigurations["connectionOptions"];
+}) {
+  const { client, bucketName } = await createAWSClient(connectionOptions);
+
+  const command = new DeleteObjectCommand({
+    Bucket: bucketName,
+    Key: fileName,
+  });
+
+  log(
+    "aws",
+    "deleting",
+    "Deleting " + fileName + " from " + bucketName + "...",
+    "info",
+  );
+
+  try {
+    await client.send(command);
+
+    log(
+      "aws",
+      "deleted",
+      "Deleted " + fileName + " from " + bucketName + "...",
+      "success",
+    );
+  } catch (err) {
+    console.log("Error", err);
+    log("aws", "deleting", err, "error");
+  }
+}
+
+export async function downloadFromAWS({
+  fileName,
+  connectionOptions,
+}: {
+  fileName: string;
+  connectionOptions: AWSConfigurations["connectionOptions"];
+}) {
+  const { client, bucketName } = await createAWSClient(connectionOptions);
+
+  const command = new GetObjectCommand({
+    Bucket: bucketName,
+    Key: fileName,
+  });
+
+  log(
+    "aws",
+    "downloading",
+    "Downloading " + fileName + " from " + bucketName + "...",
+    "info",
+  );
+
+  try {
+    const content = await client.send(command);
+
+    log(
+      "aws",
+      "downloaded",
+      "Downloaded " + fileName + " from " + bucketName + "...",
+      "success",
+    );
+
+    return content.Body?.transformToByteArray();
+  } catch (err) {
+    console.log("Error", err);
+    log("aws", "downloading", err, "error");
+  }
+}
+
+export async function streamFromAWS({
+  fileName,
+  connectionOptions,
+  start,
+  end,
+}: {
+  fileName: string;
+  connectionOptions: AWSConfigurations["connectionOptions"];
+  start: number;
+  end: number;
+}) {
+  const { client, bucketName } = await createAWSClient(connectionOptions);
+
+  const command = new GetObjectCommand({
+    Bucket: bucketName,
+    Key: fileName,
+    Range: `bytes=${start}-${end}`,
+  });
+
+  log(
+    "aws",
+    "streaming",
+    "Streaming " + fileName + " from " + bucketName + "...",
+    "info",
+  );
+
+  try {
+    const content = await client.send(command);
+
+    log(
+      "aws",
+      "streamed",
+      "Streamed " + fileName + " from " + bucketName + "...",
+      "success",
+    );
+
+    return content.Body?.transformToByteArray();
+  } catch (err) {
+    console.log("Error", err);
+    log("aws", "streaming", err, "error");
   }
 }

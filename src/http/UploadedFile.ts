@@ -135,7 +135,7 @@ export class UploadedFile {
   /**
    * Get save path for the given path and file name
    */
-  protected getSavePath(path: string, fileName: string) {
+  public getSavePath(path: string, fileName: string) {
     const uploadPath = uploadsPath(path);
 
     ensureDirectory(uploadPath);

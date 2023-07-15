@@ -1,5 +1,23 @@
 import type { AWSConfigurations } from "../../../aws";
+import { Request } from "../../../http";
 import type { UploadOutput } from "../output/upload-output";
+
+export type WatermarkOptions = {
+  hash: string;
+  ratio?: number;
+  position?:
+    | "center"
+    | "center-center"
+    | "center-right"
+    | "center-left"
+    | "top-left"
+    | "top-right"
+    | "top-center"
+    | "bottom-left"
+    | "bottom-right"
+    | "bottom-center";
+  opacity?: number;
+};
 
 export type UploadsConfigurations = {
   /**
@@ -29,4 +47,5 @@ export type UploadsConfigurations = {
    * @default true
    */
   compress?: boolean;
+  watermark?: (request: Request) => Promise<WatermarkOptions>;
 };

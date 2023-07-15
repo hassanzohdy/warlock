@@ -1,12 +1,9 @@
 import config from "@mongez/config";
-import { fileSize, removePath } from "@mongez/fs";
-import { Random, removeFirst } from "@mongez/reinforcements";
+import { fileSize } from "@mongez/fs";
+import { Random } from "@mongez/reinforcements";
 import dayjs from "dayjs";
 import { Upload } from "../models";
-import { UploadsConfigurations } from "../utils";
-import { uploadToAWS } from "./../../../aws";
 import { Request, Response, UploadedFile } from "./../../../http";
-import { Image } from "./../../../image";
 import { uploadsPath } from "./../../../utils";
 
 export async function uploadFiles(request: Request, response: Response) {
@@ -39,53 +36,7 @@ export async function uploadFiles(request: Request, response: Response) {
       extension: file.extension,
     };
 
-    if (file.isImage) {
-      const { width, height } = await file.dimensions();
-
-      fileData.width = width;
-      fileData.height = height;
-
-      if (config.get("uploads.compress")) {
-        // convert the image to webp
-        const fullFilePath = uploadsPath(filePath);
-        const image = new Image(fullFilePath);
-
-        // replace the end of the file path with .webp
-        const newPath = fullFilePath.replace(/(\.[a-zA-Z0-9]+)$/, ".webp");
-
-        await image.saveAsWebp(newPath);
-
-        // now update the fileData Object
-        fileData.path = removeFirst(newPath, uploadsPath("/"));
-        fileData.name = fileData.name.replace(/(\.[a-zA-Z0-9]+)$/, ".webp");
-        fileData.mimeType = "image/webp";
-        fileData.extension = "webp";
-        fileData.size = fileSize(newPath);
-      }
-    }
-
     const upload = new Upload(fileData);
-
-    const awsOptions = config.get("uploads.aws") as
-      | UploadsConfigurations["aws"]
-      | undefined;
-
-    if (awsOptions) {
-      const url = await uploadToAWS({
-        filePath: upload.path,
-        fileName: upload.get("name"),
-        hash,
-        mimeType: file.mimeType,
-        ...awsOptions,
-      });
-
-      upload.set("url", url);
-      upload.set("isRemote", true);
-      upload.set("provider", "aws");
-
-      // now remove the file from the server
-      removePath(uploadsPath(fileDirectoryPath));
-    }
 
     await upload.save();
 

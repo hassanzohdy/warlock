@@ -109,10 +109,12 @@ export class Image {
    * Add watermark
    */
   public async watermark(
-    watermarkImage: string | Image,
+    watermarkImage: Parameters<typeof sharp>[0] | Image,
     options: sharp.OverlayOptions = {},
   ) {
-    if (typeof watermarkImage === "string") {
+    // now check if the watermark is an image instance
+    // if not, create a new instance from the image
+    if (!(watermarkImage instanceof Image)) {
       watermarkImage = new Image(watermarkImage);
     }
 

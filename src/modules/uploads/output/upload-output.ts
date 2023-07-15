@@ -21,7 +21,7 @@ export class UploadOutput extends Output {
     mimeType: "string",
     extension: "string",
     size: "number",
-    url: "string",
+    url: ["path", "uploadsUrl"],
     id: ["hash", "string"],
     width: "number",
     height: "number",
@@ -36,12 +36,14 @@ export class UploadOutput extends Output {
    * {@inheritDoc}
    */
   protected async extend() {
+    // this.set("url", url("/uploads/" + this.get("hash")));
+
     await config.get("uploads.extend", () => {
       //
     })(this);
 
-    if (!this.get("url")) {
-      await this.opt("path", "uploadsUrl", "url");
-    }
+    // if (!this.get("url")) {
+    //   await this.opt("path", "uploadsUrl", "url");
+    // }
   }
 }
