@@ -3,9 +3,9 @@ import { ensureDirectory, extension, fileSize, touch } from "@mongez/fs";
 import { Random } from "@mongez/reinforcements";
 import dayjs from "dayjs";
 import fs from "fs";
-import { uploadsPath } from "src/warlock/utils";
 import { Upload } from "../models";
 import { Request, Response, UploadedFile } from "./../../../http";
+import { uploadsPath } from "./../../../utils";
 
 const uploadedFiles = new Map();
 

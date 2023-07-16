@@ -1,6 +1,5 @@
-import { getAWSConfigurations } from "src/warlock/aws/get-aws-configurations";
 import { Upload } from "../models";
-import { deleteFromAWS } from "./../../../aws";
+import { deleteFromAWS, getAWSConfigurations } from "./../../../aws";
 
 export async function removeFromAWSBucket(file: Upload) {
   if (!file.get("isRemote")) return;

@@ -7,6 +7,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { log } from "@mongez/logger";
 import fs from "fs";
+export * from "./get-aws-configurations";
 
 export type AWSConnectionOptions = {
   endpointUrl: string;

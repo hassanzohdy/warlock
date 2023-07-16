@@ -1,8 +1,11 @@
 import { removePath } from "@mongez/fs";
 import path from "path";
-import { getAWSConfigurations } from "src/warlock/aws/get-aws-configurations";
 import { Upload } from "../models";
-import { AWSConnectionOptions, uploadToAWS } from "./../../../aws";
+import {
+  AWSConnectionOptions,
+  getAWSConfigurations,
+  uploadToAWS,
+} from "./../../../aws";
 import { uploadsPath } from "./../../../utils";
 
 export async function uploadFileToAWS(file: Upload) {

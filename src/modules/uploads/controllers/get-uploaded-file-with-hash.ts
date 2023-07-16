@@ -3,10 +3,13 @@ import { sha1 } from "@mongez/encryption";
 import { fileExists } from "@mongez/fs";
 import { log } from "@mongez/logger";
 import systemPath from "path";
-import { downloadFromAWS, uploadToAWS } from "src/warlock/aws";
-import { getAWSConfigurations } from "src/warlock/aws/get-aws-configurations";
 import { Upload } from "../models";
 import { getWatermarkOptions } from "../utils/get-watermark-options";
+import {
+  downloadFromAWS,
+  getAWSConfigurations,
+  uploadToAWS,
+} from "./../../../aws";
 import { Request, Response } from "./../../../http";
 import { Image } from "./../../../image";
 import { cachePath } from "./../../../utils";

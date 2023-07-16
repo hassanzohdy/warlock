@@ -1,5 +1,5 @@
 import config from "@mongez/config";
-import { requestContext } from "src/warlock/http";
+import { requestContext } from "../../../http";
 import { WatermarkOptions } from "./types";
 
 export async function getWatermarkOptions() {
