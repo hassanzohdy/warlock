@@ -1,4 +1,4 @@
-import { Model, ModelAggregate, PaginationListing } from "@mongez/mongodb";
+import { Model, ModelAggregate, PaginationListing } from "@mongez/monpulse";
 import { GenericObject } from "@mongez/reinforcements";
 import Is from "@mongez/supportive-is";
 import { cache } from "../cache";

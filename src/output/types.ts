@@ -1,4 +1,4 @@
-import { Model } from "@mongez/mongodb";
+import { Model } from "@mongez/monpulse";
 import { GenericObject } from "@mongez/reinforcements";
 import { Output } from "./output";
 

@@ -1,4 +1,4 @@
-import { ChildModel, Model } from "@mongez/mongodb";
+import { ChildModel, Model } from "@mongez/monpulse";
 import { verify } from "@mongez/password";
 import { jwt } from "../jwt";
 import { AccessToken } from "./access-token/access-token";

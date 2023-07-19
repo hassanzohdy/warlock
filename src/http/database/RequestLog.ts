@@ -1,4 +1,4 @@
-import { Casts, Model } from "@mongez/mongodb";
+import { Casts, Model } from "@mongez/monpulse";
 
 export class RequestLog extends Model {
   /**

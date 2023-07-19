@@ -1,4 +1,4 @@
-import { Aggregate } from "@mongez/mongodb";
+import { Aggregate } from "@mongez/monpulse";
 import Is from "@mongez/supportive-is";
 import { UniqueRule } from "./unique";
 

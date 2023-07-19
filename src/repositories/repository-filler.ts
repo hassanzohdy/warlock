@@ -1,5 +1,5 @@
 import { log } from "@mongez/logger";
-import { Model } from "@mongez/mongodb";
+import { Model } from "@mongez/monpulse";
 import { GenericObject, get, only, set } from "@mongez/reinforcements";
 import { RepositoryManager } from "./repository-manager";
 import {

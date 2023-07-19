@@ -1,5 +1,5 @@
 import events from "@mongez/events";
-import { Model } from "@mongez/mongodb";
+import { Model } from "@mongez/monpulse";
 import { RepositoryEvent } from "./types";
 
 export class BaseRepositoryManager<

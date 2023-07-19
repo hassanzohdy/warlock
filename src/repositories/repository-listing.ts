@@ -5,7 +5,7 @@ import {
   toOperator,
   WhereOperator,
   whereOperators,
-} from "@mongez/mongodb";
+} from "@mongez/monpulse";
 import { get } from "@mongez/reinforcements";
 import dayjs from "dayjs";
 import { RepositoryManager } from "./repository-manager";
@@ -284,7 +284,7 @@ export class RepositoryListing<
       );
 
       if (typeof filterType === "function") {
-        await filterType(filterValue, this.query);
+        await filterType(filterValue, this.query, this.options);
         continue;
       }
 

@@ -1,4 +1,4 @@
-import { connectToDatabase } from "@mongez/mongodb";
+import { connectToDatabase } from "@mongez/monpulse";
 import { toSnakeCase } from "@mongez/reinforcements";
 import chalk from "chalk";
 import { Command } from "commander";

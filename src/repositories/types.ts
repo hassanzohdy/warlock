@@ -1,4 +1,4 @@
-import { Model, ModelAggregate, WhereOperator } from "@mongez/mongodb";
+import { Model, ModelAggregate, WhereOperator } from "@mongez/monpulse";
 
 export type RepositoryEvent =
   | "listing"
@@ -118,7 +118,11 @@ export type FilterOptionType =
 
 export type FilterByType =
   | FilterOptionType
-  | ((value: any, query: ModelAggregate<any>) => any)
+  | ((
+      value: any,
+      query: ModelAggregate<any>,
+      options: RepositoryOptions,
+    ) => any)
   | [FilterOptionType]
   | [FilterOptionType, string | string[]];
 

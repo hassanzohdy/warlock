@@ -1,4 +1,4 @@
-import { Filter, Model } from "@mongez/mongodb";
+import { Filter, Model } from "@mongez/monpulse";
 import { RepositoryListManager } from "./repository-list-manager";
 
 export abstract class RepositoryDestroyManager<

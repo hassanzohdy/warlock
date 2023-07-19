@@ -1,6 +1,6 @@
 import { copyFile, ensureDirectory, putFile } from "@mongez/fs";
 import Endpoint from "@mongez/http";
-import { Model } from "@mongez/mongodb";
+import { Model } from "@mongez/monpulse";
 import { Random, trim } from "@mongez/reinforcements";
 import Is from "@mongez/supportive-is";
 import { AxiosResponse } from "axios";

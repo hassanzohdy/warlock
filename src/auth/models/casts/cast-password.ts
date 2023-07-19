@@ -1,4 +1,4 @@
-import { Model } from "@mongez/mongodb";
+import { Model } from "@mongez/monpulse";
 import Password from "@mongez/password";
 
 export function castPassword(value: any, column: string, model: Model) {

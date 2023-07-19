@@ -1,4 +1,4 @@
-import { Model } from "@mongez/mongodb";
+import { Model } from "@mongez/monpulse";
 import { Request, Response } from "../http";
 import { RepositoryManager } from "../repositories";
 

@@ -1,5 +1,5 @@
 import { log } from "@mongez/logger";
-import { connectToDatabase } from "@mongez/mongodb";
+import { connectToDatabase } from "@mongez/monpulse";
 import chalk from "chalk";
 import { bootstrap } from "./bootstrap";
 import { connectToCache } from "./cache";

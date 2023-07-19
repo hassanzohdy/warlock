@@ -1,4 +1,4 @@
-import { Aggregate, Model } from "@mongez/mongodb";
+import { Aggregate, Model } from "@mongez/monpulse";
 import { Rule } from "./rule";
 
 export class UniqueRule extends Rule {

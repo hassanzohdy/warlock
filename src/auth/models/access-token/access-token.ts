@@ -1,4 +1,4 @@
-import { Model } from "@mongez/mongodb";
+import { Model } from "@mongez/monpulse";
 
 export class AccessToken extends Model {
   /**

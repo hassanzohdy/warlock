@@ -1,4 +1,4 @@
-import { Model } from "@mongez/mongodb";
+import { Model } from "@mongez/monpulse";
 import { RepositoryFillerManager } from "./repository-filler-manager";
 
 export abstract class RepositoryManager<

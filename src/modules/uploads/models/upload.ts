@@ -1,4 +1,4 @@
-import { Casts, Model } from "@mongez/mongodb";
+import { Casts, Model } from "@mongez/monpulse";
 import { UploadOutput } from "../output/upload-output";
 import { uploadsPath } from "./../../../utils";
 export class Upload extends Model {

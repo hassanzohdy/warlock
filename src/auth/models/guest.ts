@@ -1,4 +1,4 @@
-import { Document } from "@mongez/mongodb";
+import { Document } from "@mongez/monpulse";
 import { Auth } from "./auth";
 
 export class Guest extends Auth {
