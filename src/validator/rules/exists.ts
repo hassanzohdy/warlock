@@ -9,6 +9,11 @@ export class ExistsRule extends UniqueRule {
   public static ruleName = "exists";
 
   /**
+   * Is case sensitive
+   */
+  protected isCaseSensitive = false;
+
+  /**
    * Validate the rule
    */
   public async validate() {
@@ -25,10 +30,10 @@ export class ExistsRule extends UniqueRule {
     }
 
     const value = this.isCaseSensitive
-      ? Is.numeric(this.value)
-        ? Number(this.value)
-        : this.value
-      : this.value.toLowerCase();
+      ? String(this.value).toLowerCase()
+      : Is.numeric(this.value)
+      ? Number(this.value)
+      : this.value;
 
     query.where(this.columnName || this.input, value);
 
