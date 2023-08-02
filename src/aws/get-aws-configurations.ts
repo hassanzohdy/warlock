@@ -12,3 +12,11 @@ export async function getAWSConfigurations(): Promise<
     ? await awsConfigurations()
     : awsConfigurations;
 }
+
+export async function getAWSConfig(key: keyof AWSConnectionOptions) {
+  const configurations = await getAWSConfigurations();
+
+  if (!configurations) return;
+
+  return configurations[key];
+}

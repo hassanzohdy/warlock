@@ -4,9 +4,7 @@ import { Model } from "@mongez/monpulse";
 import { Random, trim } from "@mongez/reinforcements";
 import Is from "@mongez/supportive-is";
 import { AxiosResponse } from "axios";
-import crypto from "crypto";
 import dayjs from "dayjs";
-import { createWriteStream } from "fs";
 import path from "path";
 import { Upload } from "../models";
 import { Image } from "./../../../image";
@@ -66,45 +64,6 @@ async function getUpload(hash: any) {
   return await Upload.findBy("hash", hash);
 }
 
-export async function downloadFile(
-  fileUrl: string,
-  outputLocationPath: string,
-): Promise<AxiosResponse> {
-  const fileName = crypto.randomBytes(16).toString("hex");
-  const fileExtension = fileUrl.split(".").pop();
-  const writer = createWriteStream(
-    outputLocationPath + "/" + fileName + "." + fileExtension,
-  );
-
-  const request = new Endpoint({ baseURL: "" });
-
-  return request
-    .get(fileUrl, {
-      responseType: "stream",
-    })
-    .then(response => {
-      //ensure that the user can call `then()` only when the file has
-      //been downloaded entirely.
-
-      return new Promise((resolve, reject) => {
-        response.data.pipe(writer);
-        let error: any = null;
-        writer.on("error", err => {
-          error = err;
-          writer.close();
-          reject(err);
-        });
-        writer.on("close", () => {
-          if (!error) {
-            resolve(response);
-          }
-          //no need to call the reject here, as it will have been called in the
-          //'error' stream;
-        });
-      });
-    });
-}
-
 export async function uploadFromUrl(url: string) {
   const urlHandler = new URL(url);
   // get file name from url
@@ -142,14 +101,8 @@ export async function uploadFromUrl(url: string) {
 
   putFile(fullPath, fileContent);
 
-  const fileHash = crypto
-    .createHash("sha256")
-    .update(fileContent.toString())
-    .digest("hex");
-
   const fileData = {
     name: fileName,
-    fileHash: fileHash,
     hash: hash,
     path: date + "/" + hash + "/" + filePath,
     size: fileSize,
@@ -231,6 +184,6 @@ async function syncModelWithUpload(
 
     upload.set("syncedModels", syncedModels);
 
-    await upload.save();
+    upload.silentSaving();
   }
 }

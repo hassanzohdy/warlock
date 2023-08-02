@@ -16,6 +16,11 @@ export type AWSConnectionOptions = {
   secretAccessKey: string;
   bucketName: string;
   providerName: string; // i.e aws | digitalocean
+  /**
+   * If you're using cloudfront, then you can specify the cloudfront URL here
+   * Just add the cloudfront URL and it will be used instead of the bucket URL
+   */
+  cloudfront?: string;
 } & Partial<S3ClientConfig>;
 
 export type AWSConfigurations = {
@@ -60,8 +65,9 @@ export async function createAWSClient(
       accessKeyId: accessKeyId,
       secretAccessKey: secretAccessKey, // Secret access key defined through an environment variable.
     },
+    signatureVersion: "v4",
     ...clientOptions,
-  });
+  } as any);
 
   return {
     client: s3Client,

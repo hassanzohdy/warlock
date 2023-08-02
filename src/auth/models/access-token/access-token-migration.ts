@@ -1,11 +1,11 @@
-import { AccessTokenBluePrint } from "./access-token";
+import { AccessTokenBlueprint } from "./access-token";
 
 export async function accessTokenMigration() {
-  await AccessTokenBluePrint.unique("token");
+  await AccessTokenBlueprint.unique("token");
 }
 
 accessTokenMigration.down = async () => {
-  await AccessTokenBluePrint.dropUniqueIndex("token");
+  await AccessTokenBlueprint.dropUniqueIndex("token");
 };
 
-accessTokenMigration.blueprint = AccessTokenBluePrint;
+accessTokenMigration.blueprint = AccessTokenBlueprint;

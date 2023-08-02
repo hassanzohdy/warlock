@@ -73,6 +73,12 @@ export async function uploadChunkedFiles(request: Request, response: Response) {
       chunked: true,
     };
 
+    if (chunkFile.isImage) {
+      const { width, height } = await chunkFile.dimensions();
+      fileData.width = width;
+      fileData.height = height;
+    }
+
     const upload = await Upload.create(fileData);
 
     // now remove the file from the map

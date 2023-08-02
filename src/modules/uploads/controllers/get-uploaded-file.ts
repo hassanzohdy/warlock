@@ -2,9 +2,9 @@ import config from "@mongez/config";
 import { sha1 } from "@mongez/encryption";
 import { fileExists } from "@mongez/fs";
 import systemPath from "path";
-import { Request, Response } from "./../../../http";
-import { Image } from "./../../../image";
-import { cachePath, uploadsPath } from "./../../../utils";
+import { Request, Response } from "../../../http";
+import { Image } from "../../../image";
+import { cachePath, uploadsPath } from "../../../utils";
 
 // TODO: Add Watermark options
 export async function getUploadedFile(request: Request, response: Response) {

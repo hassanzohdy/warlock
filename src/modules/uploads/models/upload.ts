@@ -65,16 +65,16 @@ export class Upload extends Model {
   }
 }
 
-export const UploadBluePrint = Upload.blueprint();
+export const UploadBlueprint = Upload.blueprint();
 
 export async function uploadsMigration() {
-  await UploadBluePrint.index("hash");
-  await UploadBluePrint.index("path");
+  await UploadBlueprint.index("hash");
+  await UploadBlueprint.index("path");
 }
 
 uploadsMigration.down = async function () {
-  await UploadBluePrint.dropIndex("hash");
-  await UploadBluePrint.dropIndex("path");
+  await UploadBlueprint.dropIndex("hash");
+  await UploadBlueprint.dropIndex("path");
 };
 
-uploadsMigration.blueprint = UploadBluePrint;
+uploadsMigration.blueprint = UploadBlueprint;

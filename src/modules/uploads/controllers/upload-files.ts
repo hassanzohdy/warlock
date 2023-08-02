@@ -2,9 +2,9 @@ import config from "@mongez/config";
 import { fileSize } from "@mongez/fs";
 import { Random } from "@mongez/reinforcements";
 import dayjs from "dayjs";
+import { Request, Response, UploadedFile } from "../../../http";
+import { uploadsPath } from "../../../utils";
 import { Upload } from "../models";
-import { Request, Response, UploadedFile } from "./../../../http";
-import { uploadsPath } from "./../../../utils";
 
 export async function uploadFiles(request: Request, response: Response) {
   //
@@ -35,6 +35,12 @@ export async function uploadFiles(request: Request, response: Response) {
       mimeType: file.mimeType,
       extension: file.extension,
     };
+
+    if (file.isImage) {
+      const { width, height } = await file.dimensions();
+      fileData.width = width;
+      fileData.height = height;
+    }
 
     const upload = new Upload(fileData);
 

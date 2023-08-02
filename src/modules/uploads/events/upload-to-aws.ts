@@ -17,8 +17,6 @@ export async function uploadFileToAWS(file: Upload) {
   // in that case use uploadFileToAWSInBackground
   if (file.get("chunked")) return;
 
-  console.log("uploading in foreground");
-
   await toAWS(file, awsOptions);
 }
 
@@ -37,7 +35,6 @@ export async function uploadFileToAWSInBackground(file: Upload) {
 
 async function toAWS(file: Upload, awsOptions: AWSConnectionOptions) {
   try {
-    console.log("Uploading in background");
     const uploadData = await uploadToAWS({
       filePath: file.path,
       fileName: file.get("name"),

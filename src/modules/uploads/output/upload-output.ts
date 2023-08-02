@@ -1,4 +1,5 @@
 import config from "@mongez/config";
+import { getAWSConfig } from "src/warlock/aws";
 import { FinalOutput, Output } from "../../../output";
 
 export class UploadOutput extends Output {
@@ -36,14 +37,17 @@ export class UploadOutput extends Output {
    * {@inheritDoc}
    */
   protected async extend() {
-    // this.set("url", url("/uploads/" + this.get("hash")));
+    if (this.get("provider.url")) {
+      const cloudfront = await getAWSConfig("cloudfront");
+      if (cloudfront) {
+        this.set("url", cloudfront + "/" + this.get("provider.fileName"));
+      } else {
+        this.set("url", this.get("provider.url"));
+      }
+    }
 
     await config.get("uploads.extend", () => {
       //
     })(this);
-
-    // if (!this.get("url")) {
-    //   await this.opt("path", "uploadsUrl", "url");
-    // }
   }
 }
