@@ -1,5 +1,5 @@
 import config from "@mongez/config";
-import { getAWSConfig } from "src/warlock/aws";
+import { getAWSConfig } from "../../../aws";
 import { FinalOutput, Output } from "../../../output";
 
 export class UploadOutput extends Output {
