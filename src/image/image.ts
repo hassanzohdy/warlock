@@ -20,7 +20,7 @@ export class Image {
   }
 
   /**
-   * Set image opacity
+   * Set image opacity (0-100)
    */
   public opacity(opacity: number) {
     if (opacity < 0 || opacity > 100) {
@@ -28,6 +28,7 @@ export class Image {
     }
 
     const alpha = Math.round((opacity / 100) * 255);
+
     const alphaPixel = Buffer.from([255, 255, 255, alpha]);
 
     this.image.composite([
@@ -36,6 +37,15 @@ export class Image {
         input: alphaPixel,
       },
     ]);
+
+    return this;
+  }
+
+  /**
+   * Convert image to black and white
+   */
+  public blackAndWhite() {
+    this.image.toColourspace("b-w");
 
     return this;
   }
