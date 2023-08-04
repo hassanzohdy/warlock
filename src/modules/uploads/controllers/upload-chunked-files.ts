@@ -4,9 +4,9 @@ import { log } from "@mongez/logger";
 import { Random } from "@mongez/reinforcements";
 import dayjs from "dayjs";
 import fs from "fs";
-import { Image } from "src/warlock/image";
 import { Upload } from "../models";
 import { Request, Response, UploadedFile } from "./../../../http";
+import { Image } from "./../../../image";
 import { uploadsPath } from "./../../../utils";
 
 const queuesList = new Map<string, ChunkedFileQueue>();
