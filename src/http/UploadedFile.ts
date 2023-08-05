@@ -1,3 +1,4 @@
+import { MultipartFile } from "@fastify/multipart";
 import { ensureDirectory } from "@mongez/fs";
 import { Random } from "@mongez/reinforcements";
 import crypto from "crypto";
@@ -10,7 +11,7 @@ export class UploadedFile {
   /**
    * File buffered content
    */
-  private bufferedFileContent: any;
+  private bufferedFileContent?: Buffer;
 
   /**
    * Upload File Hash
@@ -30,7 +31,7 @@ export class UploadedFile {
   /**
    * Constructor
    */
-  public constructor(private readonly fileData: any) {
+  public constructor(private readonly fileData: MultipartFile) {
     //
   }
 

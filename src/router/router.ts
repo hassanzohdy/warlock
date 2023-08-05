@@ -9,6 +9,7 @@ import {
   trim,
 } from "@mongez/reinforcements";
 import Is from "@mongez/supportive-is";
+import { FastifyReply, FastifyRequest } from "fastify";
 import { Request } from "../http/request";
 import { Response } from "../http/response";
 import {
@@ -467,7 +468,10 @@ export class Router {
    * Handle the given route
    */
   private handleRoute(route: Route) {
-    return async (fastifyRequest: any, fastifyResponse: any) => {
+    return async (
+      fastifyRequest: FastifyRequest,
+      fastifyResponse: FastifyReply,
+    ) => {
       log.info(
         "route",
         route.method + " " + route.path.replace("/*", ""),

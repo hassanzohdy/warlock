@@ -1,3 +1,5 @@
+/* eslint-disable no-async-promise-executor */
+// Import required modules and classes
 import config from "@mongez/config";
 import { ensureDirectory, extension, fileSize, touch } from "@mongez/fs";
 import { log } from "@mongez/logger";
@@ -9,104 +11,141 @@ import { Request, Response, UploadedFile } from "./../../../http";
 import { Image } from "./../../../image";
 import { uploadsPath } from "./../../../utils";
 
+// Use a Map to store the chunked file queues
 const queuesList = new Map<string, ChunkedFileQueue>();
 
-export async function uploadChunkedFiles(request: Request, response: Response) {
-  const fileId = request.input("fileId");
-  const chunkNumber = request.int("chunkNumber");
-  const chunkFile = request.file("chunk") as UploadedFile | null;
-  const fileName = request.input("fileName");
+const maxTimeToClearQueue = 1000 * 60 * 60 * 24; // 24 hours
 
-  log.info(
-    "upload",
-    "chunking",
-    "Received chunk " +
-      (chunkNumber + 1) +
-      " of " +
-      request.int("totalChunks") +
-      fileId,
-  );
-
-  if (!chunkFile) {
-    return response.badRequest({
-      error: "chunk is required",
+// Create a function that auto clear the queue list after the queue creation with one date
+function cleanupQueuesList() {
+  // use interval
+  setInterval(() => {
+    // make sure only the queue that created before one day will be deleted
+    queuesList.forEach((queue, key) => {
+      if (queue.createdAt < Date.now() - maxTimeToClearQueue) {
+        queuesList.delete(key);
+      }
     });
-  }
+  }, maxTimeToClearQueue);
+}
 
-  if (!queuesList.has(fileId)) {
-    const date = dayjs().format("DD-MM-YYYY");
-    const hash = Random.string(64);
-    const defaultDirectoryPath = date + "/" + hash;
-    const directoryPath = config.get("uploads.saveTo", defaultDirectoryPath);
+// Clear the queue list every 24 hours
+cleanupQueuesList();
 
-    const fileDirectoryPath =
-      typeof directoryPath === "function"
-        ? directoryPath(defaultDirectoryPath)
-        : directoryPath;
+export async function uploadChunkedFiles(request: Request, response: Response) {
+  try {
+    // Extract input data from the request
+    const fileId = request.input("fileId");
+    const chunkNumber = request.int("chunkNumber");
+    const chunkFile = request.file("chunk") as UploadedFile | null;
+    const fileName = request.input("fileName");
 
-    ensureDirectory(uploadsPath(fileDirectoryPath));
-    touch(uploadsPath(fileDirectoryPath) + "/" + fileName);
-
-    const queue = new ChunkedFileQueue(
-      uploadsPath(fileDirectoryPath) + "/" + fileName,
-      request.int("totalChunks"),
-    );
-
-    queuesList.set(fileId, queue);
-  }
-
-  const queue = queuesList.get(fileId) as ChunkedFileQueue;
-
-  if (request.int("totalChunks") > chunkNumber + 1) {
-    response.success();
-  }
-
-  // add the chunk to the queue
-  queue.append(chunkFile);
-
-  // now check if this is the last chunk
-  if (request.int("totalChunks") === chunkNumber + 1) {
-    await queue.waitUntilDone();
-
-    const fileData: any = {
-      hash: Random.string(64),
-      path: queue.filePath.replace(uploadsPath("/"), ""),
-      size: fileSize(queue.filePath),
-      extension: extension(request.input("fileName")),
-      name: request.input("fileName"),
-      mimeType: request.input("fileType"),
-      chunked: true,
-    };
-
-    if (chunkFile.isImage) {
-      const { width, height } = await new Image(queue.filePath).dimensions();
-      fileData.width = width;
-      fileData.height = height;
+    if (!chunkFile) {
+      return response.badRequest({
+        error: "chunk field is required",
+      });
     }
 
-    const upload = await Upload.create(fileData);
+    log.info(
+      "upload",
+      "chunking",
+      `Received chunk ${chunkNumber + 1} of ${request.int(
+        "totalChunks",
+      )} (${request.int("currentChunkSize")} / ${request.number(
+        "chunkSize",
+      )}) ${fileId}`,
+    );
 
-    // remove the queue from the list
-    queuesList.delete(fileId);
+    // Create the file directory if it doesn't exist
+    if (!queuesList.has(fileId)) {
+      const date = dayjs().format("DD-MM-YYYY");
+      const hash = Random.string(64);
+      const defaultDirectoryPath = date + "/" + hash;
+      const directoryPath = config.get("uploads.saveTo", defaultDirectoryPath);
 
-    return response.success({
-      upload,
+      const fileDirectoryPath =
+        typeof directoryPath === "function"
+          ? directoryPath(defaultDirectoryPath)
+          : directoryPath;
+
+      ensureDirectory(uploadsPath(fileDirectoryPath));
+      touch(uploadsPath(fileDirectoryPath) + "/" + fileName);
+
+      // Create a new queue for this file
+      const queue = new ChunkedFileQueue(
+        uploadsPath(fileDirectoryPath) + "/" + fileName,
+        request.int("totalChunks"),
+      );
+
+      queuesList.set(fileId, queue);
+    }
+
+    const queue = queuesList.get(fileId) as ChunkedFileQueue;
+
+    // Add the chunk to the queue
+    await queue.append({
+      chunk: chunkFile,
+      chunkNumber,
+    });
+
+    // Process the last chunk
+    if (request.int("totalChunks") === chunkNumber + 1) {
+      await queue.process();
+
+      const fileData: any = {
+        hash: Random.string(64),
+        path: queue.filePath.replace(uploadsPath("/"), ""),
+        size: fileSize(queue.filePath),
+        extension: extension(request.input("fileName")),
+        name: request.input("fileName"),
+        mimeType: request.input("fileType"),
+        chunked: true,
+      };
+
+      if (chunkFile.isImage) {
+        const { width, height } = await new Image(queue.filePath).dimensions();
+        fileData.width = width;
+        fileData.height = height;
+      }
+
+      const upload = await Upload.create(fileData);
+
+      // Remove the queue from the list after processing
+      queuesList.delete(fileId);
+
+      return response.success({
+        upload,
+      });
+    }
+
+    response.success();
+  } catch (error) {
+    log.error(
+      "upload",
+      "chunking",
+      "Error occurred while processing chunk:",
+      error,
+    );
+    return response.serverError({
+      error: "An error occurred while processing the chunk",
     });
   }
 }
 
 // Create a queue class that receives the chunks and append them to the file
-// we need to append them one by one
 class ChunkedFileQueue {
+  /**
+   * Creation Time
+   */
+  public readonly createdAt = Date.now();
+
   /**
    * The queue
    */
-  private queue: any[] = [];
-
-  /**
-   * Queue state
-   */
-  protected state: "idle" | "processing" = "idle";
+  private queue: {
+    chunk: Buffer;
+    chunkNumber: any;
+  }[] = [];
 
   /**
    * Total chunks that have been processed
@@ -121,86 +160,57 @@ class ChunkedFileQueue {
   }
 
   /**
-   * Check if the queue has finished processing all the chunks
+   * Append a chunk to the queue
    */
-  public get isFinished() {
-    return this.totalChunks === this.processedChunks;
-  }
-
-  /**
-   * Wait for the queue to finish processing
-   */
-  public async waitUntilDone() {
-    if (this.isFinished) {
-      return;
-    }
-
-    return new Promise(resolve => {
-      const interval = setInterval(() => {
-        if (this.isFinished) {
-          clearInterval(interval);
-          resolve(true);
-        }
-      }, 100);
+  public async append(chunk: { chunk: UploadedFile; chunkNumber: number }) {
+    const buffer = await chunk.chunk.buffer();
+    this.queue.push({
+      chunk: buffer,
+      chunkNumber: chunk.chunkNumber,
     });
   }
 
   /**
-   * Append a chunk to the queue
+   * Create the file and append all chunks to it
+   * This method will be called only when the queue is full
+   * and all chunks are received correctly
+   * @private
    */
-  public append(chunk: any) {
-    this.queue.push(chunk);
+  private async createFile() {
+    // Sort the queue by chunk number so we can append them in the right order
 
-    // now we need to check if the queue state is idle
-    if (this.state === "idle") {
-      this.process();
-    }
+    const queue = [...this.queue].sort((a, b) => a.chunkNumber - b.chunkNumber);
+
+    const singleBuffer = Buffer.concat(queue.map(chunk => chunk.chunk));
+
+    await fs.promises.writeFile(this.filePath, singleBuffer);
   }
 
   /**
-   * Start processing the queue
+   * Process the chunks and create the file when all chunks are received
+   * @returns {Promise<void>}
    */
-  public async process() {
-    if (this.state === "processing") {
-      return;
-    }
+  public process(): Promise<void> {
+    return new Promise(resolve => {
+      // Check if all chunks have been received
+      if (this.queue.length < this.totalChunks) {
+        log.info(
+          "upload",
+          "chunked",
+          `Waiting for all chunks to be received... (Received: ${this.queue.length}, Total: ${this.totalChunks})`,
+        );
 
-    // if the queue is empty, then we can stop the process
-    if (!this.queue.length) {
-      this.state = "idle";
-      return;
-    }
+        // Retry after a short delay
+        setTimeout(() => {
+          this.process().then(resolve);
+        }, 100);
+        return;
+      }
 
-    log.info(
-      "upload",
-      "chunking",
-      "Processing chunk " +
-        (this.processedChunks + 1) +
-        " of " +
-        this.totalChunks +
-        "...",
-    );
-
-    // now we need to get the first chunk
-    const chunk = this.queue.shift();
-
-    // now we need to append the chunk to the file
-    await fs.promises.appendFile(this.filePath, await chunk.buffer());
-
-    // now we need to increase the processed chunks
-    this.processedChunks++;
-
-    log.success(
-      "upload",
-      "chunked",
-      "Processed chunk " +
-        this.processedChunks +
-        " of " +
-        this.totalChunks +
-        "...",
-    );
-
-    // now we need to process the next chunk
-    this.process();
+      // Now create the file and resolve the Promise when done
+      this.createFile().then(() => {
+        resolve();
+      });
+    });
   }
 }
