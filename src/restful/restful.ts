@@ -125,8 +125,12 @@ export abstract class Restful<T extends Model> implements RouteResource {
       return response.success({
         [this.recordName]: record,
       });
-    } catch (error) {
+    } catch (error: Error | any) {
       log.error("restful", "create", error);
+
+      return response.badRequest({
+        error: error.message,
+      });
     }
   }
 

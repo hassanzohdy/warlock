@@ -4,9 +4,7 @@ export function getLocalized(values: any[], localeCode?: string) {
   if (!values) return values;
 
   if (!localeCode) {
-    const { request } = requestContext();
-
-    localeCode = request.getLocaleCode();
+    localeCode = requestContext().request?.getLocaleCode();
   }
 
   if (Array.isArray(values)) {

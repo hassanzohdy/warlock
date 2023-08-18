@@ -5,19 +5,6 @@ import { getMailConfigurations } from "./config";
 import { renderReactMail } from "./react-mail";
 import { MailConfigurations } from "./types";
 
-let mailer: nodemailer.Transporter;
-
-/**
- * Get mailer instance
- */
-export function getMailer() {
-  if (!mailer) {
-    newMailer();
-  }
-
-  return mailer;
-}
-
 /**
  * Create new mailer instance
  */
@@ -26,7 +13,8 @@ export function newMailer(
 ) {
   const { auth, username, password, requireTLS, tls, ...config } =
     configurations;
-  mailer = nodemailer.createTransport({
+
+  return nodemailer.createTransport({
     requireTLS: requireTLS ?? tls,
     ...config,
     auth: auth ?? {
@@ -34,15 +22,13 @@ export function newMailer(
       pass: password,
     },
   });
-
-  return mailer;
 }
 
 /**
  * Send mail
  */
-export async function sendMail(options: Options) {
-  return getMailer().sendMail({
+export async function sendMail(options: Options & Partial<MailConfigurations>) {
+  return newMailer(options).sendMail({
     from: parseFrom(options),
     ...options,
   });
@@ -51,7 +37,7 @@ export async function sendMail(options: Options) {
 export async function sendReactMail(
   options: Omit<Options, "html"> & {
     render: React.ReactElement;
-  },
+  } & Partial<MailConfigurations>,
 ) {
   return sendMail({
     ...options,

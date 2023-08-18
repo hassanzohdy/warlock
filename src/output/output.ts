@@ -48,7 +48,7 @@ export class Output {
   /**
    * Original resource data
    */
-  protected originalResource!: OutputResource;
+  public originalResource!: OutputResource;
 
   /**
    * Request object
@@ -61,7 +61,7 @@ export class Output {
   /**
    * Constructor
    */
-  public constructor(protected resource: OutputResource = {}) {
+  public constructor(public resource: OutputResource = {}) {
     //
     if (this.resource instanceof Model) {
       this.resource = this.resource.data;
@@ -441,6 +441,14 @@ export class Output {
         return (
           value.find(item => item.localeCode === localeCode)?.value || value
         );
+      case "location":
+        if (!value) return null;
+
+        return {
+          lat: value.coordinates?.[0],
+          lng: value.coordinates?.[1],
+          address: value.address,
+        };
       case "any":
       case "mixed":
       default:

@@ -64,8 +64,6 @@ export function requestContext<UserType extends Auth = Auth>() {
   return (asyncLocalStorage.getStore() || {}) as Context<UserType>;
 }
 
-export const requestCtx = requestContext;
-
 export function t(keyword: string, placeholders?: any) {
   const { request } = requestContext();
 

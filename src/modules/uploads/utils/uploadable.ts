@@ -1,7 +1,7 @@
 import { copyFile, ensureDirectory, putFile } from "@mongez/fs";
 import Endpoint from "@mongez/http";
 import { Model } from "@mongez/monpulse";
-import { Random, trim } from "@mongez/reinforcements";
+import { GenericObject, Random, trim } from "@mongez/reinforcements";
 import Is from "@mongez/supportive-is";
 import { AxiosResponse } from "axios";
 import dayjs from "dayjs";
@@ -124,6 +124,43 @@ export async function uploadFromUrl(url: string) {
   }
 
   return Upload.create(fileData);
+}
+
+/**
+ * Create an uploadable files but with additional data
+ */
+export function uploadableExtended(options: GenericObject = {}) {
+  return async function uploadable(
+    hash: any,
+    column: string,
+    model: Model,
+  ): Promise<any> {
+    if (Array.isArray(hash)) {
+      return await Promise.all(
+        hash.map(async (item: any) => await uploadable(item, column, model)),
+      );
+    }
+
+    if (hash?.value) {
+      hash.value = (await getUpload(hash.value))?.embeddedData;
+
+      return hash;
+    }
+
+    const upload = await getUpload(hash);
+
+    if (!upload) return null;
+
+    // link the model to the upload
+    syncModelWithUpload(model, upload, column);
+
+    upload.merge(options).silentSaving();
+
+    return {
+      ...upload.embeddedData,
+      ...options,
+    };
+  };
 }
 
 /**

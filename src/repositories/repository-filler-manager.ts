@@ -22,7 +22,7 @@ export abstract class RepositoryFillerManager<
   /**
    * Create new record
    */
-  public async create(data: any): Promise<T> {
+  public create(data: any): Promise<T> {
     const filler = this.makeFiller();
 
     if (data instanceof Request) {

@@ -127,7 +127,8 @@ export async function uploadChunkedFiles(request: Request, response: Response) {
       error,
     );
     return response.serverError({
-      error: "An error occurred while processing the chunk",
+      message: "An error occurred while processing the chunk",
+      error,
     });
   }
 }

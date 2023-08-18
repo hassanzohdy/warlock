@@ -19,6 +19,7 @@ export type OutputCastType =
   | "birthDate"
   | "url"
   | "any"
+  | "location"
   | "mixed"
   | "localized"
   | "uploadsUrl"
