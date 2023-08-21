@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 import { Model } from "@mongez/monpulse";
 import { GenericObject, get, set, unset } from "@mongez/reinforcements";
 import Is from "@mongez/supportive-is";
@@ -438,9 +439,13 @@ export class Output {
 
         if (!Array.isArray(value)) return value;
 
-        return (
-          value.find(item => item.localeCode === localeCode)?.value || value
-        );
+        const localizedValue = value.find(
+          item => item.localeCode === localeCode,
+        )?.value;
+
+        if (localizedValue || localizedValue === "") return localizedValue;
+
+        return value;
       case "location":
         if (!value) return null;
 

@@ -237,7 +237,7 @@ export abstract class RepositoryListManager<
 
     if (!model) return null;
 
-    this.cache(cacheKey, await model.data);
+    this.cache(cacheKey, model.data);
 
     return model;
   }
@@ -303,7 +303,10 @@ export abstract class RepositoryListManager<
     }
 
     if (listing) {
-      return listing as {
+      return {
+        documents: listing.map((document: any) => this.newModel(document)),
+        paginationInfo: listing.paginationInfo,
+      } as {
         documents: T[];
         paginationInfo: PaginationListing<T>["paginationInfo"];
       };
@@ -311,22 +314,17 @@ export abstract class RepositoryListManager<
 
     const { documents, paginationInfo } = await this.list(options);
 
-    const cachedDocuments = await Promise.all(
-      documents.map(async document => await document.toJSON()),
-    );
-
-    const output = {
-      documents: cachedDocuments,
-      paginationInfo: paginationInfo,
-    };
-
     if (!options.purgeCache) {
-      this.cache(cacheKey, output);
+      const cachedDocuments = documents.map(document => document.data);
+      this.cache(cacheKey, {
+        documents: cachedDocuments,
+        paginationInfo,
+      });
     }
 
-    return output as {
-      documents: T[];
-      paginationInfo: PaginationListing<T>["paginationInfo"];
+    return {
+      documents: documents,
+      paginationInfo: paginationInfo,
     };
   }
 
