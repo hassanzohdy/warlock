@@ -201,7 +201,7 @@ export abstract class RepositoryListManager<
   /**
    * Generate cache key
    */
-  protected generateCacheKey(key: string, moreOptions: GenericObject = {}) {
+  public generateCacheKey(key: string, moreOptions: GenericObject = {}) {
     return (
       this.model.collection +
       "." +
@@ -304,7 +304,9 @@ export abstract class RepositoryListManager<
 
     if (listing) {
       return {
-        documents: listing.map((document: any) => this.newModel(document)),
+        documents: listing.documents.map((document: any) =>
+          this.newModel(document),
+        ),
         paginationInfo: listing.paginationInfo,
       } as {
         documents: T[];
