@@ -1,4 +1,4 @@
-import Is from "@mongez/supportive-is";
+import { isEmpty } from "@mongez/supportive-is";
 import { Rule } from "./rule";
 
 export class RequiredRule extends Rule {
@@ -16,7 +16,7 @@ export class RequiredRule extends Rule {
    * Validate the rule
    */
   public async validate() {
-    this.isValid = !Is.empty(this.value);
+    this.isValid = !isEmpty(this.value);
   }
 
   /**

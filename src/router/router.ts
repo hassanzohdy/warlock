@@ -8,7 +8,7 @@ import {
   toCamelCase,
   trim,
 } from "@mongez/reinforcements";
-import Is from "@mongez/supportive-is";
+import { isEmpty } from "@mongez/supportive-is";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { Request } from "../http/request";
 import { Response } from "../http/response";
@@ -164,6 +164,28 @@ export class Router {
     options: RouteOptions = {},
   ) {
     return this.add("PATCH", path, handler, options);
+  }
+
+  /**
+   * Add head request method
+   */
+  public head(
+    path: string,
+    handler: RouteHandler | [GenericObject, string],
+    options: RouteOptions = {},
+  ) {
+    return this.add("HEAD", path, handler, options);
+  }
+
+  /**
+   * Add options request method
+   */
+  public options(
+    path: string,
+    handler: RouteHandler | [GenericObject, string],
+    options: RouteOptions = {},
+  ) {
+    return this.add("OPTIONS", path, handler, options);
   }
 
   /**
@@ -425,7 +447,7 @@ export class Router {
         };
       }
 
-      if (!Is.empty(validation)) {
+      if (!isEmpty(validation)) {
         handler.validation = validation;
       }
     } else {

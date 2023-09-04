@@ -1,4 +1,4 @@
-import Is from "@mongez/supportive-is";
+import { isPlainObject } from "@mongez/supportive-is";
 import { Rule } from "./rule";
 
 export class ObjectRule extends Rule {
@@ -12,7 +12,7 @@ export class ObjectRule extends Rule {
    */
   public async validate() {
     // this.isValid = Is.string(this.value) && !Is.numeric(this.value);
-    this.isValid = Is.plainObject(this.value);
+    this.isValid = isPlainObject(this.value);
   }
 
   /**

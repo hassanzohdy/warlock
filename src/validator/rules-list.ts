@@ -1,5 +1,5 @@
 import config from "@mongez/config";
-import Is from "@mongez/supportive-is";
+import { isEmpty } from "@mongez/supportive-is";
 import chalk from "chalk";
 import { Request } from "../http";
 import { Rule } from "./rules/rule";
@@ -42,7 +42,7 @@ export class RulesList {
     if (
       !this.rules.includes("required") &&
       !!this.rules.includes("requiredIf") &&
-      Is.empty(this.value)
+      isEmpty(this.value)
     )
       return;
 
@@ -84,7 +84,7 @@ export class RulesList {
         .setValue(this.value)
         .setRequest(this.request);
 
-      const hasValue = !Is.empty(this.value);
+      const hasValue = !isEmpty(this.value);
 
       if (rule.requiresValue && !hasValue) continue;
 

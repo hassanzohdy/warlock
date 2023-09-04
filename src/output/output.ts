@@ -1,7 +1,7 @@
 /* eslint-disable no-case-declarations */
 import { Model } from "@mongez/monpulse";
 import { GenericObject, get, set, unset } from "@mongez/reinforcements";
-import Is from "@mongez/supportive-is";
+import { isEmpty, isObject, isPlainObject } from "@mongez/supportive-is";
 import dayjs from "dayjs";
 import { Request } from "../http";
 import { requestContext } from "../http/middleware/inject-request-context";
@@ -285,11 +285,11 @@ export class Output {
         continue;
       }
 
-      if (Is.object(value) && !Array.isArray(value)) {
-        if (!Is.plainObject(value) && !Is.empty(value)) {
+      if (isObject(value) && !Array.isArray(value)) {
+        if (!isPlainObject(value) && !isEmpty(value)) {
           continue;
         }
-      } else if (Is.empty(value)) continue;
+      } else if (isEmpty(value)) continue;
 
       const customTransformer = async (
         value: any,
@@ -324,7 +324,7 @@ export class Output {
    */
   protected isValidResourceValue(value: any) {
     return (
-      (Is.plainObject(value) && !Is.empty(value)) ||
+      (isPlainObject(value) && !isEmpty(value)) ||
       value instanceof Output ||
       value instanceof Model
     );

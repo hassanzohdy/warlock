@@ -1,4 +1,4 @@
-import Is from "@mongez/supportive-is";
+import { isEmail } from "@mongez/supportive-is";
 import { Rule } from "./rule";
 
 export class EmailRule extends Rule {
@@ -11,7 +11,7 @@ export class EmailRule extends Rule {
    * Validate the rule
    */
   public async validate() {
-    this.isValid = Is.email(this.value);
+    this.isValid = isEmail(this.value);
   }
 
   /**

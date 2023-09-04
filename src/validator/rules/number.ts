@@ -1,4 +1,4 @@
-import Is from "@mongez/supportive-is";
+import { isNumeric } from "@mongez/supportive-is";
 import { Rule } from "./rule";
 
 export class NumberRule extends Rule {
@@ -11,7 +11,7 @@ export class NumberRule extends Rule {
    * Validate the rule
    */
   public async validate() {
-    this.isValid = Is.numeric(this.value);
+    this.isValid = isNumeric(this.value);
   }
 
   /**

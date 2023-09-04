@@ -1,7 +1,7 @@
 import config from "@mongez/config";
 import events, { EventSubscription } from "@mongez/events";
 import { log, LogLevel } from "@mongez/logger";
-import Is from "@mongez/supportive-is";
+import { isIterable, isPlainObject, isScalar } from "@mongez/supportive-is";
 import { FastifyReply } from "fastify";
 import fs from "fs";
 import send from "send";
@@ -139,7 +139,7 @@ export class Response {
    */
   protected async parse(value: any): Promise<any> {
     // if it is a falsy value, return it
-    if (!value || Is.scalar(value)) return value;
+    if (!value || isScalar(value)) return value;
 
     // if it has a `toJSON` method, call it and await the result then return it
     if (value.toJSON) {
@@ -148,7 +148,7 @@ export class Response {
     }
 
     // if it is iterable, an array or array-like object then parse each item
-    if (Is.iterable(value)) {
+    if (isIterable(value)) {
       const values = Array.from(value);
 
       return Promise.all(
@@ -159,7 +159,7 @@ export class Response {
     }
 
     // if not plain object, then return it
-    if (!Is.plainObject(value)) {
+    if (!isPlainObject(value)) {
       return value;
     }
 

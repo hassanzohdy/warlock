@@ -2,7 +2,7 @@ import { copyFile, ensureDirectory, putFile } from "@mongez/fs";
 import Endpoint from "@mongez/http";
 import { Model } from "@mongez/monpulse";
 import { GenericObject, Random, trim } from "@mongez/reinforcements";
-import Is from "@mongez/supportive-is";
+import { isUrl } from "@mongez/supportive-is";
 import { AxiosResponse } from "axios";
 import dayjs from "dayjs";
 import path from "path";
@@ -53,7 +53,7 @@ export async function uploadFromFile(file: File) {
 async function getUpload(hash: any) {
   if (!hash) return null;
 
-  if (Is.url(hash)) {
+  if (isUrl(hash)) {
     return await uploadFromUrl(hash);
   }
 

@@ -73,7 +73,7 @@ export type Route = RouteOptions & {
   /**
    * Route method
    */
-  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "OPTIONS" | "HEAD";
   /**
    * Route path
    */

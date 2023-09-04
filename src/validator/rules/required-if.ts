@@ -1,4 +1,4 @@
-import Is from "@mongez/supportive-is";
+import { isEmpty } from "@mongez/supportive-is";
 import { Rule } from "./rule";
 
 export class RequiredIfRule extends Rule {
@@ -16,7 +16,7 @@ export class RequiredIfRule extends Rule {
    * Validate the rule
    */
   public async validate() {
-    const hasValue = !Is.empty(this.value);
+    const hasValue = !isEmpty(this.value);
 
     if (hasValue) {
       this.isValid = true;
@@ -32,7 +32,7 @@ export class RequiredIfRule extends Rule {
     for (const input of otherInputs.split(",")) {
       const otherInputValue = this.request.input(input);
 
-      if (Is.empty(otherInputValue)) {
+      if (isEmpty(otherInputValue)) {
         otherInputsAreValid = false;
         break;
       }

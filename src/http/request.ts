@@ -3,7 +3,7 @@ import events from "@mongez/events";
 import { trans, transFrom } from "@mongez/localization";
 import { LogLevel, log } from "@mongez/logger";
 import { except, get, only, rtrim, set, unset } from "@mongez/reinforcements";
-import Is from "@mongez/supportive-is";
+import { isEmpty, isNumeric } from "@mongez/supportive-is";
 import chalk from "chalk";
 import { FastifyRequest } from "fastify";
 import type { Auth } from "../auth/models/auth";
@@ -312,9 +312,9 @@ export class Request<User extends Auth = any> {
 
     if (data === "null") return null;
 
-    if (Is.numeric(data) && !String(data).startsWith("0")) return Number(data);
+    if (isNumeric(data) && !String(data).startsWith("0")) return Number(data);
 
-    if (Is.string(data)) return data.trim();
+    if (typeof data === "string") return data.trim();
 
     if (data?.value && data?.fields && data?.type) return data.value;
 
@@ -651,7 +651,7 @@ export class Request<User extends Auth = any> {
     for (const key in inputs) {
       const value = inputs[key];
 
-      if (Is.empty(value) && value !== null) continue;
+      if (isEmpty(value) && value !== null) continue;
 
       heavyInputs[key] = value;
     }
@@ -670,7 +670,7 @@ export class Request<User extends Auth = any> {
     for (const key in inputs) {
       const value = inputs[key];
 
-      if (Is.empty(value) && value !== null) continue;
+      if (isEmpty(value) && value !== null) continue;
 
       heavyInputs[key] = value;
     }

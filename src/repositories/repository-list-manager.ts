@@ -1,6 +1,6 @@
 import { Model, ModelAggregate, PaginationListing } from "@mongez/monpulse";
 import { GenericObject } from "@mongez/reinforcements";
-import Is from "@mongez/supportive-is";
+import { isEmpty } from "@mongez/supportive-is";
 import { cache } from "../cache";
 import { requestContext } from "../http/middleware/inject-request-context";
 import { BaseRepositoryManager } from "./base-repository-manager";
@@ -206,7 +206,7 @@ export abstract class RepositoryListManager<
       this.model.collection +
       "." +
       key +
-      (!Is.empty(moreOptions) ? "." + JSON.stringify(moreOptions) : "")
+      (!isEmpty(moreOptions) ? "." + JSON.stringify(moreOptions) : "")
     );
   }
 

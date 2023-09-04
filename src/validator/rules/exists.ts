@@ -1,5 +1,5 @@
 import { Aggregate } from "@mongez/monpulse";
-import Is from "@mongez/supportive-is";
+import { isNumeric } from "@mongez/supportive-is";
 import { UniqueRule } from "./unique";
 
 export class ExistsRule extends UniqueRule {
@@ -31,7 +31,7 @@ export class ExistsRule extends UniqueRule {
 
     const value = this.isCaseSensitive
       ? String(this.value).toLowerCase()
-      : Is.numeric(this.value)
+      : isNumeric(this.value)
       ? Number(this.value)
       : this.value;
 
