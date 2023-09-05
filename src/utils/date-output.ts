@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 
 export function dateOutput(date: Date | any, format = "DD-MM-YYYY hh:mm:ss A") {
   // if format and timestamp exists, it means that the value is already parsed
-  if (date?.format && date?.timestamp) return date;
+  if (!date || (date?.format && date?.timestamp)) return date;
 
   const dayjsDate = dayjs(date);
 

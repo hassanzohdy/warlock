@@ -61,6 +61,19 @@ export abstract class RepositoryListManager<
     super();
     this.prepareCache();
   }
+  /**
+   * List All records
+   */
+  public async all(options?: Omit<RepositoryOptions, "paginate">) {
+    return (await this.list({ ...options, paginate: false })).documents;
+  }
+
+  /**
+   * List All Active records
+   */
+  public async allActive(options?: Omit<RepositoryOptions, "paginate">) {
+    return (await this.listActive({ ...options, paginate: false })).documents;
+  }
 
   /**
    * Prepare  cache
