@@ -27,8 +27,12 @@ export function newMailer(
 /**
  * Send mail
  */
-export async function sendMail(options: Options & Partial<MailConfigurations>) {
-  return newMailer(options).sendMail({
+export async function sendMail(
+  options: Options & {
+    configurations?: Partial<MailConfigurations>;
+  },
+) {
+  return newMailer(options?.configurations).sendMail({
     from: parseFrom(options),
     ...options,
   });
@@ -37,7 +41,9 @@ export async function sendMail(options: Options & Partial<MailConfigurations>) {
 export async function sendReactMail(
   options: Omit<Options, "html"> & {
     render: React.ReactElement;
-  } & Partial<MailConfigurations>,
+  } & {
+    configurations?: Partial<MailConfigurations>;
+  },
 ) {
   return sendMail({
     ...options,
