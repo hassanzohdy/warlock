@@ -279,7 +279,7 @@ export abstract class RepositoryListManager<
    * List records
    */
   public async list(options?: RepositoryOptions) {
-    const repositoryListing = this.newListing(options);
+    const repositoryListing = this.newList(options);
 
     await repositoryListing.list();
 
@@ -346,7 +346,7 @@ export abstract class RepositoryListManager<
   /**
    * Get new repository listing instance
    */
-  public newListing(options?: RepositoryOptions) {
+  public newList(options?: RepositoryOptions) {
     if (!this.filterBy.id) {
       this.filterBy.id = "int";
     }
@@ -371,7 +371,7 @@ export abstract class RepositoryListManager<
    * Count total records based on the given options
    */
   public async count(options: RepositoryOptions = {}) {
-    const repositoryListing = this.newListing(options);
+    const repositoryListing = this.newList(options);
 
     return await repositoryListing.count();
   }

@@ -21,6 +21,10 @@ export class ExistsRule extends UniqueRule {
       this.exceptValue = this.request.input(this.exceptColumn);
     }
 
+    if (!this.columnName) {
+      this.columnName = "id";
+    }
+
     let query: Aggregate;
 
     if (this.model) {

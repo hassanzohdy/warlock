@@ -18,7 +18,7 @@ export class RepositoryListing<
   /**
    * Aggregate query
    */
-  protected query!: ModelAggregate<T>;
+  public query!: ModelAggregate<T>;
 
   /**
    * Pagination info
@@ -876,6 +876,13 @@ export class RepositoryListing<
     if (!Array.isArray(value)) return [value];
 
     return value;
+  }
+
+  /**
+   * Sum the value of the given column
+   */
+  public sum(column: string) {
+    return this.query.sum(column);
   }
 
   /**

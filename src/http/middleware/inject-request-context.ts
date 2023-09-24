@@ -51,8 +51,11 @@ export function createRequestContext(
 
           // call executedAction event
           request.trigger("executedAction", request.route);
-        } catch (error) {
+        } catch (error: any) {
           reject(error);
+          return response.badRequest({
+            error: error.message,
+          });
         }
       },
     );
