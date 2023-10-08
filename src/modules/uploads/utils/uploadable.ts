@@ -129,7 +129,9 @@ export async function uploadFromUrl(url: string) {
 /**
  * Create an uploadable files but with additional data
  */
-export function uploadableExtended(options: GenericObject = {}) {
+export function uploadableExtended(
+  options: GenericObject | ((model: Model) => GenericObject) = {},
+) {
   return async function uploadable(
     hash: any,
     column: string,
@@ -154,7 +156,11 @@ export function uploadableExtended(options: GenericObject = {}) {
     // link the model to the upload
     syncModelWithUpload(model, upload, column);
 
-    upload.merge(options).silentSaving();
+    if (typeof options === "function") {
+      options = options(model);
+    }
+
+    upload.merge(options as GenericObject).silentSaving();
 
     return {
       ...upload.embeddedData,
