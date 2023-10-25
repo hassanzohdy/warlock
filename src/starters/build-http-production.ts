@@ -5,7 +5,7 @@ import { getWarlockConfig } from "../config/get-warlock-config";
 import { HttpLoader } from "../loaders/http-loader";
 import { nativeNodeModulesPlugin } from "./esbuild/plugins";
 
-export async function buildHttpForProductionSever() {
+export async function buildHttpForProduction() {
   const httpLoader = new HttpLoader();
   const config = await getWarlockConfig();
 
