@@ -9,7 +9,7 @@ export async function bootstrap() {
       ? chalk.cyan("production")
       : chalk.green("development");
 
-  console.log(`Bootstrapping Application in ${environment} mode`);
+  console.log(`Application is running in ${environment} mode`);
 
   loadEnv();
   initializeDayjs();

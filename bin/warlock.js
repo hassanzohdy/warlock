@@ -75,7 +75,7 @@ function startHttpDevelopmentServer() {
 }
 
 function buildForProduction() {
-  require("./../cjs/starters/build-http-production.js");
+  require("./../cjs/starters/start-building-http-production.js");
 }
 
 function startProductionServer() {

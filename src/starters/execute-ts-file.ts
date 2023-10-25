@@ -1,11 +1,11 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import { ensureDirectory, putFile, unlink } from "@mongez/fs";
 import esbuild from "esbuild";
-import { pathToFileURL } from "url";
 import { warlockPath } from "../utils";
 
 export async function executeTsFile(filePath: string) {
   ensureDirectory(warlockPath());
-  const tempFilePath = warlockPath(`warlock.${Date.now()}.tmp.mjs`);
+  const tempFilePath = warlockPath(`warlock.${Date.now()}.tmp.js`);
 
   const result = await esbuild.build({
     platform: "node",
@@ -15,16 +15,14 @@ export async function executeTsFile(filePath: string) {
     minify: false,
     write: false,
     packages: "external",
-    format: "esm",
+    format: "cjs",
     target: ["node18"],
     sourcemap: "inline",
   });
 
-  const fileUrl = `${pathToFileURL(tempFilePath)}`;
-
   try {
     putFile(tempFilePath, result.outputFiles[0].text);
-    const output = await import(fileUrl);
+    const output = require(tempFilePath);
     unlink(tempFilePath);
 
     return output;

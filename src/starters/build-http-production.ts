@@ -1,5 +1,5 @@
-import { typecheckPlugin } from "@jgoz/esbuild-plugin-typecheck";
 import chalk from "chalk";
+import { spawnSync } from "child_process";
 import esbuild from "esbuild";
 import path from "path";
 import { getWarlockConfig } from "../config/get-warlock-config";
@@ -19,7 +19,11 @@ export async function buildHttpForProduction() {
 
   console.log(chalk.magenta("Bundling project files..."));
 
-  esbuild.build({
+  spawnSync("tsc", ["--noEmit", "--color"], {
+    stdio: "inherit",
+  });
+
+  await esbuild.build({
     platform: "node",
     entryPoints: [httpLoader.httpDevelopmentPath],
     bundle: true,
@@ -28,12 +32,16 @@ export async function buildHttpForProduction() {
     legalComments: "linked",
     target: ["esnext"],
     outfile: path.resolve(config.build.outputDir, config.build.entryFileName),
-    plugins: [typecheckPlugin(), nativeNodeModulesPlugin],
+    plugins: [nativeNodeModulesPlugin],
   });
 
   console.log(
     chalk.green(
-      `HTTP server bundle has been built in ${performance.now() - now}ms`,
+      `Project has been built in ${Math.floor(performance.now() - now)}ms`,
     ),
+  );
+
+  console.log(
+    chalk.cyan('You can now run "warlock start" to start the server.'),
   );
 }
