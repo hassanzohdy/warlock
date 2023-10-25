@@ -15,6 +15,5 @@ export * from "./react";
 export * from "./repositories";
 export * from "./restful";
 export * from "./router";
-export * from "./starters";
 export * from "./utils";
 export * from "./validator";

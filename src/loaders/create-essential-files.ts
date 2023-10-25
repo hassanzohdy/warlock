@@ -1,5 +1,5 @@
 import { ensureDirectory, putFile } from "@mongez/fs";
-import { warlockPath } from "./../utils";
+import { warlockPath } from "../utils";
 
 export function createEssentialFiles() {
   ensureDirectory(warlockPath());

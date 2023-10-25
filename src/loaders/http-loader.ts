@@ -2,9 +2,9 @@ import { fileExists, putFile } from "@mongez/fs";
 import { srcPath } from "@mongez/node";
 import { rtrim, trim } from "@mongez/reinforcements";
 import path from "path";
+import { warlockPath } from "../utils";
 import { createEssentialFiles } from "./../loaders/create-essential-files";
 import { HttpModulesLoader } from "./../loaders/http-modules-loader";
-import { warlockPath } from "./../utils";
 
 export class HttpLoader {
   public paths: string[] = [];

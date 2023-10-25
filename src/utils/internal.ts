@@ -5,5 +5,5 @@ export function internalWarlockPath(relativePath = "") {
 }
 
 export function internalWarlockConfigPath() {
-    return internalWarlockPath("warlock.config.js");
+  return internalWarlockPath("warlock.config.js");
 }
