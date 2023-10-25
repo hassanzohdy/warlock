@@ -9,7 +9,7 @@ export async function getWarlockConfig() {
 
   configurations = (
     await executeTsFile(path.resolve(process.cwd(), "warlock.config.ts"))
-  ).default as ResolvedWarlockConfig;
+  ).default;
 
-  return configurations;
+  return configurations as ResolvedWarlockConfig;
 }

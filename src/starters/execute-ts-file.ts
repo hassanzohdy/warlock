@@ -1,9 +1,10 @@
-import { putFile, unlink } from "@mongez/fs";
+import { ensureDirectory, putFile, unlink } from "@mongez/fs";
 import esbuild from "esbuild";
 import { pathToFileURL } from "url";
 import { warlockPath } from "../utils";
 
 export async function executeTsFile(filePath: string) {
+  ensureDirectory(warlockPath());
   const tempFilePath = warlockPath(`warlock.${Date.now()}.tmp.mjs`);
 
   const result = await esbuild.build({
@@ -23,8 +24,11 @@ export async function executeTsFile(filePath: string) {
 
   try {
     putFile(tempFilePath, result.outputFiles[0].text);
-    return await import(fileUrl);
-  } finally {
+    const output = await import(fileUrl);
     unlink(tempFilePath);
+
+    return output;
+  } finally {
+    //
   }
 }
