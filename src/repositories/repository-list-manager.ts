@@ -633,7 +633,7 @@ export abstract class RepositoryListManager<
    * Find By id
    */
   public async find(id: string | number | T) {
-    if (id instanceof this.model) return id as T;
+    if (this.model && id instanceof this.model) return id as T;
 
     return await this.findBy("id", Number(id));
   }

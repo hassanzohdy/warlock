@@ -139,6 +139,8 @@ export abstract class Restful<T extends Model> implements RouteResource {
    */
   public async update(request: Request, response: Response) {
     try {
+      console.log(this);
+      // Find record
       const record = await this.repository.find(request.int("id"));
 
       if (!record) {
@@ -278,7 +280,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
   /**
    * Before create
    */
-  protected beforeCreate(_request: Request) {
+  protected async beforeCreate(_request: Request) {
     //
   }
 
@@ -334,7 +336,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
   /**
    * Before save
    */
-  protected beforeSave(_request: Request, _record?: T, _oldRecord?: T) {
+  protected async beforeSave(_request: Request, _record?: T, _oldRecord?: T) {
     //
   }
 

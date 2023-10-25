@@ -148,7 +148,7 @@ export type RepositoryOptions = {
         [key: string]: "asc" | "desc";
       };
   [key: string]: any;
-  perform?: (query: any) => void;
+  perform?: (query: ModelAggregate<any>) => void;
 };
 
 export type CachedRepositoryOptions = RepositoryOptions & {

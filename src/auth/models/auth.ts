@@ -82,6 +82,6 @@ export abstract class Auth extends Model {
    * Confirm password
    */
   public confirmPassword(password: string) {
-    return verify(this.get("password"), password);
+    return verify(String(this.get("password")), String(password));
   }
 }

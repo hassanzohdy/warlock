@@ -58,3 +58,11 @@ const invalidCharsRegex = /[<>:"/\\|?*]/g; // Regex to match invalid characters
 export function sanitizePath(filePath: string) {
   return filePath.replace(invalidCharsRegex, ""); // Replace invalid characters with an empty string
 }
+
+/**
+ * Warlock path
+ * PLEASE DO NOT add any files in this directory as it may be deleted
+ */
+export function warlockPath(...path: string[]) {
+  return rootPath(".warlock", ...path);
+}

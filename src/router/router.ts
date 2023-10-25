@@ -252,46 +252,39 @@ export class Router {
     if (routeResource.create && isAcceptableResource("create")) {
       const resourceName = baseResourceName + ".create";
 
-      this.manageValidation(routeResource, "create");
+      const handler =
+        options.replace?.create ||
+        this.manageValidation(routeResource, "create");
 
-      this.post(
-        path,
-        options.replace?.create || routeResource.create.bind(routeResource),
-        {
-          ...options,
-          name: resourceName,
-        },
-      );
+      this.post(path, handler, {
+        ...options,
+        name: resourceName,
+      });
     }
 
     if (routeResource.update && isAcceptableResource("update")) {
       const resourceName = baseResourceName + ".update";
 
-      this.manageValidation(routeResource, "update");
+      const handler =
+        options.replace?.update ||
+        this.manageValidation(routeResource, "update");
 
-      this.put(
-        path + "/:id",
-        options.replace?.update || routeResource.update.bind(routeResource),
-        {
-          ...options,
-          name: resourceName,
-        },
-      );
+      this.put(path + "/:id", handler, {
+        ...options,
+        name: resourceName,
+      });
     }
 
     if (routeResource.patch && isAcceptableResource("patch")) {
       const resourceName = baseResourceName + ".patch";
 
-      this.manageValidation(routeResource, "patch");
+      const handler =
+        options.replace?.patch || this.manageValidation(routeResource, "patch");
 
-      this.patch(
-        path + "/:id",
-        options.replace?.patch || routeResource.patch.bind(routeResource),
-        {
-          ...options,
-          name: resourceName,
-        },
-      );
+      this.patch(path + "/:id", handler, {
+        ...options,
+        name: resourceName,
+      });
     }
 
     if (routeResource.delete && isAcceptableResource("delete")) {
@@ -407,14 +400,12 @@ export class Router {
     resource: RouteResource,
     method: "create" | "update" | "patch",
   ) {
-    const handler = resource[method]?.bind(resource);
-
-    if (!handler) return;
+    const handler = resource[method]?.bind(resource) as RouteHandler;
 
     const methodValidation = resource?.validation?.[method];
 
     if (!resource.validation || (!methodValidation && !resource.validation.all))
-      return;
+      return handler;
 
     if (resource.validation.all) {
       const validationMethods = {
@@ -434,13 +425,21 @@ export class Router {
       if (validationMethods.all || validationMethods[method]) {
         validation.validate = async (request: Request, response: Response) => {
           if (validationMethods.all) {
-            const output = await validationMethods.all(request, response);
+            const output = await validationMethods.all.call(
+              resource,
+              request,
+              response,
+            );
 
             if (output) return output;
           }
 
           if (validationMethods[method]) {
-            return await validationMethods[method]?.(request, response);
+            return await validationMethods[method]?.call(
+              resource,
+              request,
+              response,
+            );
           }
 
           return;
@@ -452,13 +451,14 @@ export class Router {
       }
     } else {
       handler.validation = resource.validation[method];
+
+      if (handler.validation?.validate) {
+        handler.validation.validate =
+          handler.validation.validate.bind(resource);
+      }
     }
 
-    if (handler.validation?.validate) {
-      handler.validation.validate = handler.validation.validate.bind(resource);
-    }
-
-    resource[method] = handler;
+    return handler;
   }
 
   /**
