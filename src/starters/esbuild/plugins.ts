@@ -1,7 +1,7 @@
 import { getJsonFile, putJsonFile } from "@mongez/fs";
 import { ChildProcess, spawn } from "child_process";
 import type { PluginBuild } from "esbuild";
-import { warlockPath } from "src/warlock/utils";
+import { warlockPath } from "./../../utils";
 
 // Keep track of the active server process.
 let serverProcess: ChildProcess | null = null;
