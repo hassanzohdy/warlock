@@ -182,7 +182,7 @@ export async function responseFromAWS(
 
   const watermark = await getWatermarkOptions();
 
-  const watermarkHash = sha1(JSON.stringify(watermark || {}));
+  // const watermarkHash = sha1(JSON.stringify(watermark || {}));
 
   const fileContent = await downloadFromAWS({
     fileName: provider.fileName,

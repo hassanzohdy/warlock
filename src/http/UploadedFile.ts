@@ -82,6 +82,22 @@ export class UploadedFile {
   }
 
   /**
+   * Check if file is an image
+   */
+  public get isImage() {
+    return this.mimeType.startsWith("image");
+  }
+
+  /**
+   * Get file width and height
+   */
+  public async dimensions() {
+    return new Image(
+      this.isSaved ? this.savePath : await this.buffer(),
+    ).dimensions();
+  }
+
+  /**
    * Save file to the given path
    */
   public async saveTo(path: string) {
@@ -106,22 +122,6 @@ export class UploadedFile {
     this.isSaved = true;
 
     return relativeFilePath;
-  }
-
-  /**
-   * Check if file is an image
-   */
-  public get isImage() {
-    return this.mimeType.startsWith("image");
-  }
-
-  /**
-   * Get file width and height
-   */
-  public async dimensions() {
-    return new Image(
-      this.isSaved ? this.savePath : await this.buffer(),
-    ).dimensions();
   }
 
   /**

@@ -1,21 +1,20 @@
-import { fileExists, listDirectories } from "@mongez/fs";
+import {
+  directoryExists,
+  fileExists,
+  listDirectories,
+  listFiles,
+} from "@mongez/fs";
 import path from "path";
 
 export class HttpModulesLoader {
   /**
    * files paths that would be fetched from the each module
    */
-  protected files: string[] = [
-    "main.ts",
-    "utils/locales.ts",
-    "routes.ts",
-    "events/index.ts",
-  ];
+  protected files: string[] = ["main.ts", "utils/locales.ts", "routes.ts"];
 
   /**
    * Constructor
    */
-
   public constructor(protected appPath: string) {
     //
   }
@@ -46,6 +45,7 @@ export class HttpModulesLoader {
       // merge all paths
       pathsList.push(...paths);
     }
+
     return pathsList;
   }
 
@@ -60,6 +60,27 @@ export class HttpModulesLoader {
 
       if (fileExists(filePath)) {
         paths.push(filePath);
+      }
+    }
+
+    // check the events directory
+    // if it contains the index.ts file
+    // then add it
+    // otherwise, add all files in the directory
+    if (directoryExists(path.resolve(modulePath, "events"))) {
+      const eventsIndexFile = path.resolve(modulePath, "events/index.ts");
+
+      if (fileExists(eventsIndexFile)) {
+        paths.push(eventsIndexFile);
+      } else {
+        // now fetch all files in the events directory
+        const eventsFiles = listFiles(path.resolve(modulePath, "events"));
+
+        for (const file of eventsFiles) {
+          const eventFilePath = path.resolve(modulePath, "events", file);
+
+          paths.push(eventFilePath);
+        }
       }
     }
 

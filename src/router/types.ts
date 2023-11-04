@@ -61,10 +61,24 @@ export type RouteOptions = {
    */
   name?: string;
   /**
+   * Route description
+   * Could be used for generating documentation
+   */
+  description?: string;
+  /**
    * Request server options
    */
   serverOptions?: RouteShorthandOptions;
 };
+
+export type RequestMethod =
+  | "GET"
+  | "POST"
+  | "PUT"
+  | "DELETE"
+  | "PATCH"
+  | "OPTIONS"
+  | "HEAD";
 
 /**
  * Route Object
@@ -73,7 +87,7 @@ export type Route = RouteOptions & {
   /**
    * Route method
    */
-  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "OPTIONS" | "HEAD";
+  method: RequestMethod;
   /**
    * Route path
    */

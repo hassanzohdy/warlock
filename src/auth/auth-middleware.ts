@@ -11,7 +11,7 @@ export function authMiddleware(allowedUserType?: string) {
 
       // use our own jwt verify to verify the token
       const accessToken = await AccessToken.first({
-        token: request.authorizationValue(),
+        token: request.authorizationValue,
       });
 
       if (!accessToken) {

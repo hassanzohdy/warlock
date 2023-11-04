@@ -47,5 +47,8 @@ export type UploadsConfigurations = {
    * @default true
    */
   compress?: boolean;
+  /**
+   * Add watermark to images
+   */
   watermark?: (request: Request) => Promise<WatermarkOptions>;
 };

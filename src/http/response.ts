@@ -43,6 +43,11 @@ export class Response {
   public request!: Request;
 
   /**
+   * Internal events related to this particular response object
+   */
+  protected events = new Map<string, any[]>();
+
+  /**
    * Get Current response body
    */
   public get body() {
@@ -54,6 +59,27 @@ export class Response {
    */
   public set body(body: any) {
     this.currentBody = body;
+  }
+
+  /**
+   * Add event on sending response
+   */
+  public onSending(callback: any) {
+    this.events.set("sending", [
+      ...(this.events.get("sending") || []),
+      callback,
+    ]);
+
+    return this;
+  }
+
+  /**
+   * Add event on sent response
+   */
+  public onSent(callback: any) {
+    this.events.set("sent", [...(this.events.get("sent") || []), callback]);
+
+    return this;
   }
 
   /**
@@ -88,6 +114,15 @@ export class Response {
    */
   public get contentType() {
     return this.baseResponse.getHeader("Content-Type");
+  }
+
+  /**
+   * Set the content type
+   */
+  public setContentType(contentType: string) {
+    this.baseResponse.header("Content-Type", contentType);
+
+    return this;
   }
 
   /**
@@ -188,6 +223,13 @@ export class Response {
   }
 
   /**
+   * Check if returning response is json
+   */
+  public get isJson() {
+    return this.getHeader("Content-Type") === "application/json";
+  }
+
+  /**
    * Send the response
    */
   public async send(data?: any, statusCode?: number) {
@@ -196,10 +238,13 @@ export class Response {
     if (data) {
       this.currentBody = data;
     }
-
     this.log("Sending response");
     // trigger the sending event
     await Response.trigger("sending", this);
+
+    for (const callback of this.events.get("sending") || []) {
+      await callback(this);
+    }
 
     // parse the body and make sure it is transformed to sync data instead of async data
     if (typeof this.currentBody !== "string") {
@@ -220,6 +265,10 @@ export class Response {
 
     // trigger the sent event
     Response.trigger("sent", this);
+
+    for (const callback of this.events.get("sent") || []) {
+      callback(this);
+    }
 
     // trigger the success event if the status code is 2xx
     if (this.currentStatusCode >= 200 && this.currentStatusCode < 300) {
@@ -330,15 +379,6 @@ export class Response {
   }
 
   /**
-   * Set the content type
-   */
-  public setContentType(contentType: string) {
-    this.baseResponse.header("Content-Type", contentType);
-
-    return this;
-  }
-
-  /**
    * Set the status code
    */
   public setStatusCode(statusCode: number) {
@@ -352,6 +392,15 @@ export class Response {
    */
   public redirect(url: string, statusCode = 302) {
     this.baseResponse.redirect(statusCode, url);
+
+    return this;
+  }
+
+  /**
+   * Permanent redirect
+   */
+  public permanentRedirect(url: string) {
+    this.baseResponse.redirect(301, url);
 
     return this;
   }
@@ -402,6 +451,13 @@ export class Response {
     this.baseResponse.header(key, value);
 
     return this;
+  }
+
+  /**
+   * Alias to header method
+   */
+  public setHeader(key: string, value: any) {
+    return this.header(key, value);
   }
 
   /**
@@ -476,7 +532,7 @@ export class Response {
       this.header("Expires", new Date(Date.now() + cacheTime).toUTCString());
     }
 
-    this.baseResponse.type(this.getContentType(path));
+    this.baseResponse.type(this.getFileContentType(path));
     this.baseResponse.send(fileContent);
     return this;
   }
@@ -493,7 +549,7 @@ export class Response {
   /**
    * Get content type of the given path
    */
-  public getContentType(path: string) {
+  public getFileContentType(path: string) {
     const type = send.mime.lookup(path);
     const charset = send.mime.charsets.lookup(type, "");
     if (!charset) {

@@ -1,25 +1,25 @@
-import chalk from "chalk";
+import { colors } from "@mongez/copper";
 import { spawnSync } from "child_process";
 import esbuild from "esbuild";
 import path from "path";
 import { getWarlockConfig } from "../config/get-warlock-config";
 import { HttpLoader } from "../loaders/http-loader";
-import { nativeNodeModulesPlugin } from "./esbuild/plugins";
+import { nativeNodeModulesPlugin } from "./../esbuild";
 
 export async function buildHttpForProduction() {
   const now = performance.now();
-  console.log(chalk.cyan("Building HTTP server for production..."));
+  console.log(colors.cyan("Building HTTP server for production..."));
 
-  console.log(chalk.yellow("Scanning project files..."));
+  console.log(colors.yellow("Scanning project files..."));
 
   const httpLoader = new HttpLoader();
   const config = await getWarlockConfig();
 
   httpLoader.build();
 
-  console.log(chalk.magenta("Bundling project files..."));
+  console.log(colors.magenta("Bundling project files..."));
 
-  spawnSync("tsc", ["--noEmit", "--color"], {
+  spawnSync("tsc", ["--noEmit"], {
     stdio: "inherit",
   });
 
@@ -36,12 +36,12 @@ export async function buildHttpForProduction() {
   });
 
   console.log(
-    chalk.green(
+    colors.green(
       `Project has been built in ${Math.floor(performance.now() - now)}ms`,
     ),
   );
 
   console.log(
-    chalk.cyan('You can now run "warlock start" to start the server.'),
+    colors.cyan('You can now run "warlock start" to start the server.'),
   );
 }

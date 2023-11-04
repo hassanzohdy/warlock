@@ -4,7 +4,7 @@ import { trans, transFrom } from "@mongez/localization";
 import { LogLevel, log } from "@mongez/logger";
 import { except, get, only, rtrim, set, unset } from "@mongez/reinforcements";
 import { isEmpty, isNumeric } from "@mongez/supportive-is";
-import chalk from "chalk";
+import { colors} from "@mongez/copper";
 import { FastifyRequest } from "fastify";
 import type { Auth } from "../auth/models/auth";
 import type { Middleware, Route } from "../router";
@@ -92,7 +92,8 @@ export class Request<User extends Auth = any> {
     return (
       this.header("translation-locale-code") ||
       this.header("locale-code") ||
-      this.header("locale")
+      this.header("locale") ||
+      this.input("locale")
     );
   }
 
@@ -166,7 +167,7 @@ export class Request<User extends Auth = any> {
   /**
    * Get authorization header value
    */
-  public authorizationValue() {
+  public get authorizationValue() {
     const authorization = this.header("authorization");
 
     if (!authorization) return null;
@@ -176,6 +177,13 @@ export class Request<User extends Auth = any> {
     if (!["bearer", "key"].includes(type.toLowerCase())) return null;
 
     return value;
+  }
+
+  /**
+   * Get the authorization header
+   */
+  public get authorization() {
+    return this.header("authorization");
   }
 
   /**
@@ -203,7 +211,7 @@ export class Request<User extends Auth = any> {
   /**
    * Parse body payload
    */
-  private parseBody(data: any) {
+  protected parseBody(data: any) {
     try {
       if (!data) return {};
 
@@ -298,7 +306,7 @@ export class Request<User extends Auth = any> {
   /**
    * Parse the given data
    */
-  private parseInputValue(data: any) {
+  protected parseInputValue(data: any) {
     // data.value appears only in the multipart form data
     // if it json, then just return the data
     if (data?.file) return data;
@@ -451,14 +459,14 @@ export class Request<User extends Auth = any> {
     this.trigger("executingMiddleware", middlewares, this.route);
 
     for (const middleware of middlewares) {
-      this.log("Executing middleware " + chalk.yellowBright(middleware.name));
+      this.log("Executing middleware " + colors.yellowBright(middleware.name));
       const output = await middleware(this, this.response);
-      this.log("Executed middleware " + chalk.yellowBright(middleware.name));
+      this.log("Executed middleware " + colors.yellowBright(middleware.name));
 
       if (output !== undefined) {
         this.log(
-          chalk.yellow("request intercepted by middleware ") +
-            chalk.cyanBright(middleware.name),
+          colors.yellow("request intercepted by middleware ") +
+            colors.cyanBright(middleware.name),
           "warn",
         );
 
@@ -607,6 +615,18 @@ export class Request<User extends Auth = any> {
         ? file.map(file => new UploadedFile(file))
         : new UploadedFile(file)
       : null;
+  }
+
+  /**
+   * Get uploaded files from the request for the given name
+   * If the given name is not present in the request, return an empty array
+   */
+  public files(name: string) {
+    const files = this.input(name);
+
+    return Array.isArray(files)
+      ? files.map(file => new UploadedFile(file))
+      : [];
   }
 
   /**
@@ -767,6 +787,13 @@ export class Request<User extends Auth = any> {
     const forwardedIp = this.header("x-forwarded-for");
 
     return forwardedIp || this.baseRequest.ip;
+  }
+
+  /**
+   * An alias to detectIp
+   */
+  public get realIp() {
+    return this.detectIp();
   }
 
   /**

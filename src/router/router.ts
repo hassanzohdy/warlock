@@ -112,6 +112,17 @@ export class Router {
   }
 
   /**
+   * Add a request that accepts all methods
+   */
+  public any(
+    path: string,
+    handler: RouteHandler | [GenericObject, string],
+    options: RouteOptions = {},
+  ) {
+    return this.add("all" as Route["method"], path, handler, options);
+  }
+
+  /**
    * Add get request method
    */
   public get(
@@ -237,7 +248,7 @@ export class Router {
     }
 
     if (routeResource.get && isAcceptableResource("get")) {
-      const resourceName = baseResourceName + ".get";
+      const resourceName = baseResourceName + ".single";
 
       this.get(
         path + "/:id",
@@ -473,7 +484,7 @@ export class Router {
    */
   public scan(server: any) {
     this.routes.forEach(route => {
-      const requestMethod = route.method.toLowerCase(); /// post
+      const requestMethod = route.method.toLowerCase();
       const requestMethodFunction = server[requestMethod].bind(server);
 
       requestMethodFunction(
@@ -484,6 +495,27 @@ export class Router {
         this.handleRoute(route),
       );
     });
+  }
+
+  /**
+   * Get the route path for the given route name
+   */
+  public route(name: string, params: any = {}) {
+    const route = this.routes.find(route => route.name === name);
+
+    if (!route) {
+      throw new Error(`Route name "${name}" not found`);
+    }
+
+    let path = route.path;
+
+    if (route.path.includes(":")) {
+      Object.keys(params).forEach(key => {
+        path = path.replace(":" + key, params[key]);
+      });
+    }
+
+    return path;
   }
 
   /**

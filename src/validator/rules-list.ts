@@ -1,6 +1,6 @@
 import config from "@mongez/config";
+import { colors } from "@mongez/copper";
 import { isEmpty } from "@mongez/supportive-is";
-import chalk from "chalk";
 import { Request } from "../http";
 import { Rule } from "./rules/rule";
 
@@ -65,10 +65,10 @@ export class RulesList {
 
         if (!RuleClass) {
           throw new Error(
-            chalk.bold(
-              `Missing Validation Rule: ${chalk.redBright(
+            colors.bold(
+              `Missing Validation Rule: ${colors.redBright(
                 ruleName + " rule",
-              )} is not listed under the configurations of ${chalk.cyan(
+              )} is not listed under the configurations of ${colors.cyan(
                 "validation.rules",
               )} list`,
             ),

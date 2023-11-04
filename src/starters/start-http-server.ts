@@ -4,7 +4,7 @@ import { srcPath } from "@mongez/node";
 import esbuild from "esbuild";
 import { HttpLoader } from "../loaders/http-loader";
 import { warlockPath } from "../utils";
-import { nativeNodeModulesPlugin, startServerPlugin } from "./esbuild/plugins";
+import { nativeNodeModulesPlugin, startServerPlugin } from "./../esbuild";
 
 export async function startHttpApp() {
   const httpLoader = new HttpLoader();

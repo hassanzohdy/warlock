@@ -1,6 +1,6 @@
 import { connectToDatabase } from "@mongez/monpulse";
 import { toSnakeCase } from "@mongez/reinforcements";
-import chalk from "chalk";
+import { colors} from "@mongez/copper";
 import { Command } from "commander";
 import glob from "fast-glob";
 import path from "path";
@@ -47,7 +47,7 @@ export function seedDatabase(seedsPath: string, once = false) {
         .relative(process.cwd(), file)
         .replaceAll("\\", "/");
 
-      console.log(`Collecting Seeds from ${chalk.magentaBright(relativePath)}`);
+      console.log(`Collecting Seeds from ${colors.magentaBright(relativePath)}`);
 
       const fileExports = await import(file);
 
@@ -66,10 +66,10 @@ export function seedDatabase(seedsPath: string, once = false) {
           seeder: functionName,
         });
 
-        console.log(`Seeding ${chalk.blueBright(seederName)}`);
+        console.log(`Seeding ${colors.blueBright(seederName)}`);
 
         if (seed && (once || functionCallback.once)) {
-          console.log(`${chalk.yellowBright(seederName)} already seeded.`);
+          console.log(`${colors.yellowBright(seederName)} already seeded.`);
           completedFunctions++;
 
           if (completedFunctions === exportedFunctions) {
@@ -96,7 +96,7 @@ export function seedDatabase(seedsPath: string, once = false) {
               await seed.save();
             }
 
-            console.log(`Seeded ${chalk.greenBright(seederName)}`);
+            console.log(`Seeded ${colors.greenBright(seederName)}`);
             completedFunctions++;
 
             if (completedFunctions === exportedFunctions) {
@@ -110,7 +110,7 @@ export function seedDatabase(seedsPath: string, once = false) {
             }
           })
           .catch((error: any) => {
-            console.log(`Failed to seed ${chalk.redBright(seederName)}`);
+            console.log(`Failed to seed ${colors.redBright(seederName)}`);
             console.log(error);
           });
       }

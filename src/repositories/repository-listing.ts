@@ -3,6 +3,7 @@ import {
   ModelAggregate,
   PaginationListing,
   toOperator,
+  WhereExpression,
   WhereOperator,
   whereOperators,
 } from "@mongez/monpulse";
@@ -314,11 +315,14 @@ export class RepositoryListing<
           const columnsAsObject: any = {};
 
           for (const column of columns) {
-            columnsAsObject[column] = {
-              [toOperator(filterType as WhereOperator)]: filterValue,
-            };
-          }
+            const filterExpression = WhereExpression.parse.apply(null, [
+              column,
+              filterType as WhereOperator,
+              filterValue,
+            ]);
 
+            columnsAsObject[column] = filterExpression[column];
+          }
           this.query.orWhere(columnsAsObject);
         }
 

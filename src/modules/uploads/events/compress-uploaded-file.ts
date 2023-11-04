@@ -7,8 +7,6 @@ import { uploadsPath } from "./../../../utils";
 import { Upload } from "./../models";
 
 export async function compressUploadingFile(file: Upload) {
-  if (!config.get("uploads.compress")) return;
-
   if (file.get("mimeType").startsWith("image/") === false) return;
 
   // skip if file is webp
@@ -40,5 +38,6 @@ export async function compressUploadingFile(file: Upload) {
 }
 
 export function compressImageWhileUploading() {
+  if (!config.get("uploads.compress")) return;
   Upload.events().onSaving(compressUploadingFile);
 }

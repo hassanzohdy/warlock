@@ -89,12 +89,11 @@ export abstract class Restful<T extends Model> implements RouteResource {
    */
   public async get(request: Request, response: Response) {
     try {
+      if (await this.callMiddleware("get", request, response)) return;
       const record = await this.find(request.int("id"));
 
       if (!record) {
-        return response.notFound({
-          error: "Record not found",
-        });
+        return response.notFound();
       }
 
       return response.success({
@@ -122,7 +121,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
         return this.list(request, response);
       }
 
-      return response.success({
+      return response.successCreate({
         [this.recordName]: record,
       });
     } catch (error: Error | any) {
@@ -139,7 +138,6 @@ export abstract class Restful<T extends Model> implements RouteResource {
    */
   public async update(request: Request, response: Response) {
     try {
-      console.log(this);
       // Find record
       const record = await this.repository.find(request.int("id"));
 
@@ -176,73 +174,6 @@ export abstract class Restful<T extends Model> implements RouteResource {
   }
 
   /**
-   * Bulk delete records
-   */
-  public async bulkDelete(request: Request, response: Response) {
-    const ids = request.input("id");
-
-    if (!Array.isArray(ids)) {
-      return response.badRequest({
-        error: "id must be an array",
-      });
-    }
-
-    const { documents: records } = await this.repository.list({
-      paginate: false,
-      perform: query =>
-        query.whereIn(
-          "id",
-          ids.map(id => parseInt(id)),
-        ),
-    });
-
-    for (const record of records) {
-      await this.beforeDelete(request, record);
-      record.destroy();
-      this.onDelete(request, record);
-    }
-
-    if (this.returnOn.delete === "records") {
-      return this.list(request, response);
-    }
-
-    return response.success({
-      [this.recordsListName]: records,
-    });
-  }
-
-  /**
-   * Delete record
-   */
-  public async delete(request: Request, response: Response) {
-    try {
-      const record = await this.repository.find(request.int("id"));
-
-      if (!record) {
-        return response.notFound({
-          error: "Record not found",
-        });
-      }
-
-      await this.beforeDelete(request, record);
-
-      await record.destroy();
-
-      this.onDelete(request, record);
-
-      if (this.returnOn.delete === "records") {
-        return this.list(request, response);
-      }
-
-      return response.success({
-        [this.recordName]: record,
-      });
-    } catch (error) {
-      log.error("restful", "delete", error);
-    }
-  }
-
-  /**
    * Patch record
    */
   public async patch(request: Request, response: Response) {
@@ -275,6 +206,69 @@ export abstract class Restful<T extends Model> implements RouteResource {
     } catch (error) {
       log.error("restful", "patch", error);
     }
+  }
+
+  /**
+   * Delete record
+   */
+  public async delete(request: Request, response: Response) {
+    try {
+      const record = await this.repository.find(request.int("id"));
+
+      if (!record) {
+        return response.notFound();
+      }
+
+      await this.beforeDelete(request, record);
+
+      await record.destroy();
+
+      this.onDelete(request, record);
+
+      if (this.returnOn.delete === "records") {
+        return this.list(request, response);
+      }
+
+      return response.success();
+    } catch (error) {
+      log.error("restful", "delete", error);
+    }
+  }
+
+  /**
+   * Bulk delete records
+   */
+  public async bulkDelete(request: Request, response: Response) {
+    const ids = request.input("id");
+
+    if (!Array.isArray(ids)) {
+      return response.badRequest({
+        error: "id must be an array",
+      });
+    }
+
+    const { documents: records } = await this.repository.list({
+      paginate: false,
+      perform: query =>
+        query.whereIn(
+          "id",
+          ids.map(id => parseInt(id)),
+        ),
+    });
+
+    for (const record of records) {
+      await this.beforeDelete(request, record);
+      record.destroy();
+      this.onDelete(request, record);
+    }
+
+    if (this.returnOn.delete === "records") {
+      return this.list(request, response);
+    }
+
+    return response.success({
+      deleted: records.length,
+    });
   }
 
   /**

@@ -1,3 +1,4 @@
+import { except } from "@mongez/reinforcements";
 import type { Request } from "./../request";
 import { Response } from "./../response";
 
@@ -29,10 +30,28 @@ export type CacheMiddlewareOptions = {
    * @default true
    */
   withLocale?: boolean;
+  /**
+   * Cache tags that would be used to clear the cache
+   */
+  tags?: string[];
+  /**
+   * List of keys from the response object to omit from the cached response
+   *
+   * @default ['user']
+   */
+  omit?: string[];
+  /**
+   * Expires after number of seconds
+   */
+  expiresAfter?: number;
 };
 
 const defaultCacheOptions: Partial<CacheMiddlewareOptions> = {
   withLocale: true,
+};
+
+type ParsedCacheOptions = CacheMiddlewareOptions & {
+  cacheKey: string;
 };
 
 async function parseCacheOptions(
@@ -53,7 +72,7 @@ async function parseCacheOptions(
   const finalCacheOptions = {
     ...defaultCacheOptions,
     ...cacheOptions,
-  };
+  } as ParsedCacheOptions;
 
   if (finalCacheOptions.withLocale) {
     const locale = request.getLocaleCode();
@@ -61,12 +80,7 @@ async function parseCacheOptions(
     finalCacheOptions.cacheKey = `${finalCacheOptions.cacheKey}:${locale}`;
   }
 
-  return {
-    ...defaultCacheOptions,
-    ...cacheOptions,
-  } as CacheMiddlewareOptions & {
-    cacheKey: string;
-  };
+  return finalCacheOptions;
 }
 
 export function cacheMiddleware(
@@ -75,24 +89,39 @@ export function cacheMiddleware(
     | CacheMiddlewareOptions["cacheKey"],
 ) {
   return async function (request: Request, response: Response) {
-    const { cacheKey } = await parseCacheOptions(responseCacheOptions, request);
+    const {
+      expiresAfter,
+      omit = ["user", "settings"],
+      cacheKey,
+    } = await parseCacheOptions(responseCacheOptions, request);
 
     const content = responseCache.get(cacheKey);
+    console.log(cacheKey, content);
 
     if (content) {
-      const output = content?.data || content;
-
-      delete output.user;
+      const output = content.data;
 
       return response.baseResponse.send(output);
     }
 
-    Response.on("sent", (response: Response) => {
+    if (expiresAfter) {
+      response.onSending((response: Response) => {
+        response.header("Cache-Control", `max-age=${expiresAfter}`);
+      });
+    }
+
+    response.onSent((response: Response) => {
       if (response.statusCode > 299 || response.request.path !== request.path) {
         return;
       }
 
-      responseCache.set(cacheKey, response.body);
+      const content = {
+        data: except(response.body, omit),
+      };
+
+      responseCache.set(cacheKey, content);
+
+      console.log(responseCache);
     });
   };
 }

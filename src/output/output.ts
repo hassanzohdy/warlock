@@ -214,7 +214,7 @@ export class Output {
 
           if (!request) return value;
 
-          const localeCode = request?.header("locale-code");
+          const localeCode = request?.locale;
 
           if (!localeCode)
             return await Promise.all(
@@ -433,7 +433,7 @@ export class Output {
         const { request } = requestContext();
 
         // eslint-disable-next-line no-case-declarations
-        const localeCode = request?.header("locale-code");
+        const localeCode = request?.locale;
 
         if (!localeCode) return value;
 

@@ -1,13 +1,13 @@
 import { loadEnv } from "@mongez/dotenv";
 import { captureAnyUnhandledRejection } from "@mongez/logger";
 import { initializeDayjs } from "@mongez/time-wizard";
-import chalk from "chalk";
+import { colors} from "@mongez/copper";
 
 export async function bootstrap() {
   const environment =
     process.env.NODE_ENV === "production"
-      ? chalk.cyan("production")
-      : chalk.green("development");
+      ? colors.cyan("production")
+      : colors.green("development");
 
   console.log(`Application is running in ${environment} mode`);
 

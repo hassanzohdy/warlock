@@ -36,7 +36,7 @@ export async function downloadFileFromUrl(
           if (!error) {
             resolve(response);
           }
-          //no need to call the reject here, as it will have been called in the
+          //no need to call the reject here, as it will be called in the
           //'error' stream;
         });
       });
