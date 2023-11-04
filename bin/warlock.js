@@ -71,15 +71,15 @@ function main() {
 }
 
 function startHttpDevelopmentServer() {
-  require("./../cjs/starters/start-http-development-server.js");
+  require("./../cjs/cli/start-http-development-server.js");
 }
 
 function buildForProduction() {
-  require("./../cjs/starters/start-building-http-production.js");
+  require("./../cjs/cli/start-building-http-production.js");
 }
 
 function startProductionServer() {
-  require("./../cjs/starters/start-http-production-server.js");
+  require("./../cjs/cli/start-http-production-server.js");
 }
 
 main();
