@@ -1,7 +1,13 @@
-import fastifyJwt from "@fastify/jwt";
+import { FastifyCorsOptions } from "@fastify/cors";
+import fastifyJwt, { FastifyJWTOptions } from "@fastify/jwt";
 import fastifyMultipart from "@fastify/multipart";
 import config from "@mongez/config";
 import { registerPlugin } from "./server";
+
+const defaultCorsOptions: FastifyCorsOptions = {
+  origin: "*",
+  methods: "*",
+};
 
 export async function registerHttpPlugins() {
   // 👇🏻 register rate-limit plugin
@@ -13,13 +19,12 @@ export async function registerHttpPlugins() {
   });
 
   // 👇🏻 register cors plugin
-  await registerPlugin(import("@fastify/cors"), {
-    // options list
-    origin: config.get("cors.origin", "*"),
-    methods: config.get("cors.methods", "*"),
-    // preflight: false,
-    // strictPreflight: false,
-  });
+  const corsOptions: FastifyCorsOptions | undefined = {
+    ...config.get("http.cors", {}),
+    ...defaultCorsOptions,
+  };
+
+  await registerPlugin(import("@fastify/cors"), corsOptions);
 
   // 👇🏻 import multipart plugin
   registerPlugin(fastifyMultipart, {
@@ -31,9 +36,9 @@ export async function registerHttpPlugins() {
   });
 
   // 👇🏻 use the jwt plugin with your preferred secret key
-  if (config.get("auth.jwt.secret", "")) {
-    registerPlugin(fastifyJwt, {
-      secret: config.get("auth.jwt.secret", ""),
-    });
+  const jwtOptions: FastifyJWTOptions | undefined = config.get("auth.jwt");
+
+  if (jwtOptions) {
+    registerPlugin(fastifyJwt, jwtOptions);
   }
 }

@@ -118,7 +118,9 @@ export async function uploadChunkedFiles(request: Request, response: Response) {
       });
     }
 
-    response.success();
+    response.success({
+      chunkNumber,
+    });
   } catch (error) {
     log.error(
       "upload",
@@ -144,8 +146,7 @@ class ChunkedFileQueue {
    * The queue
    */
   private queue: {
-    chunk: Buffer;
-    chunkNumber: any;
+    chunkNumber: number;
   }[] = [];
 
   /**
@@ -164,11 +165,14 @@ class ChunkedFileQueue {
    * Append a chunk to the queue
    */
   public async append(chunk: { chunk: UploadedFile; chunkNumber: number }) {
-    const buffer = await chunk.chunk.buffer();
     this.queue.push({
-      chunk: buffer,
       chunkNumber: chunk.chunkNumber,
     });
+
+    const buffer = await chunk.chunk.buffer();
+    const temporaryFilePath = this.filePath + ".part" + chunk.chunkNumber;
+
+    await fs.promises.writeFile(temporaryFilePath, buffer);
   }
 
   /**
@@ -178,18 +182,47 @@ class ChunkedFileQueue {
    * @private
    */
   private async createFile() {
-    // Sort the queue by chunk number so we can append them in the right order
+    const temporaryFilePaths = Array.from(
+      { length: this.totalChunks },
+      (_, i) => this.filePath + ".part" + i,
+    );
 
-    const queue = [...this.queue].sort((a, b) => a.chunkNumber - b.chunkNumber);
+    // Create a writable stream for the final file
+    const writeStream = fs.createWriteStream(this.filePath);
 
-    const singleBuffer = Buffer.concat(queue.map(chunk => chunk.chunk));
+    // Create an array to hold promises for the stream pipeline
+    const pipelinePromises = temporaryFilePaths.map(tempFile => {
+      const readStream = fs.createReadStream(tempFile);
+      return new Promise((resolve, reject) => {
+        readStream
+          .pipe(writeStream, { end: false })
+          .on("error", reject)
+          .on("end", resolve);
+      });
+    });
 
-    await fs.promises.writeFile(this.filePath, singleBuffer);
+    // Use Promise.all to wait for all stream pipelines to complete
+    return Promise.all(pipelinePromises)
+      .then(async () => {
+        // Close the write stream to ensure everything is flushed and saved
+        writeStream.end();
+
+        // Remove temporary files
+        await Promise.all(
+          temporaryFilePaths.map(async tempFile => {
+            await fs.promises.unlink(tempFile);
+          }),
+        );
+      })
+      .catch(error => {
+        // Handle any errors that occurred during stream pipeline
+        console.error("Error during stream pipeline:", error);
+        throw error; // Rethrow the error to indicate failure
+      });
   }
 
   /**
    * Process the chunks and create the file when all chunks are received
-   * @returns {Promise<void>}
    */
   public process(): Promise<void> {
     return new Promise(resolve => {

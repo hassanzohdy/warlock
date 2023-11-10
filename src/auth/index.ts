@@ -1,4 +1,5 @@
 export * from "./auth-middleware";
+export * from "./contracts";
 export * from "./contracts/AuthInterface";
 export * from "./current-user";
 export * from "./guest-login";

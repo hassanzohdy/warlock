@@ -1,16 +1,21 @@
-import { getServer, Request } from "../http";
+import type { SignOptions, SignPayloadType } from "@fastify/jwt";
+import { Request, getServer } from "../http";
 
 export const jwt = {
   /**
    * Generate a new JWT token for the user
    */
-  async generate(payload: any, options?: any) {
+  async generate(payload: SignPayloadType, options?: SignOptions) {
     return getServer().jwt.sign(payload, options);
   },
   /**
    * Verify Current token from request which will be in the `Authorization` header
    */
-  async verify(request: Request) {
-    return await request.baseRequest.jwtVerify();
+  async verify(data: Request | string) {
+    if (typeof data === "string") {
+      return getServer().jwt.verify(data);
+    }
+
+    return await data.baseRequest.jwtVerify();
   },
 };

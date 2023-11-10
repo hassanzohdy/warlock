@@ -1,6 +1,11 @@
 import { isEmpty } from "@mongez/supportive-is";
 import { Rule } from "./rule";
 
+/**
+ * The field under validation must be present and not empty if the another field field is equal to any value.
+ *
+ * @example creditCardNumber: ["requiredIf:paymentType,card"]
+ */
 export class RequiredIfRule extends Rule {
   /**
    * Rule name
@@ -23,22 +28,13 @@ export class RequiredIfRule extends Rule {
       return;
     }
 
-    const otherInputs = this.options[0];
+    const [otherInput, expectedValue] = this.options;
 
-    if (!otherInputs) return;
+    const otherInputValue = this.request.input(otherInput);
 
-    let otherInputsAreValid = true;
+    if (isEmpty(otherInputValue)) return;
 
-    for (const input of otherInputs.split(",")) {
-      const otherInputValue = this.request.input(input);
-
-      if (isEmpty(otherInputValue)) {
-        otherInputsAreValid = false;
-        break;
-      }
-    }
-
-    this.isValid = otherInputsAreValid;
+    this.isValid = otherInputValue === expectedValue;
   }
 
   /**

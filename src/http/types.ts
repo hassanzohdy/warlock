@@ -1,3 +1,4 @@
+import { FastifyCorsOptions } from "@fastify/cors";
 import { Middleware } from "../router";
 import { Response } from "./response";
 
@@ -118,6 +119,10 @@ export interface HttpConfigurations {
    * Log requests
    */
   log?: boolean;
+  /**
+   * Cors configurations
+   */
+  cors?: FastifyCorsOptions;
   /**
    * File upload limit in bytes
    *

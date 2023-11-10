@@ -13,11 +13,13 @@ export async function createHttpApplication() {
 
   router.scan(server);
 
+  const port = httpConfig("port");
+
   try {
     log.info("http", "server", "Connecting to the server");
     // 👇🏻 We can use the url of the server
     const baseUrl = await server.listen({
-      port: httpConfig("port"),
+      port,
       host: httpConfig("host"),
     });
 

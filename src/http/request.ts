@@ -1,10 +1,10 @@
 import config from "@mongez/config";
+import { colors } from "@mongez/copper";
 import events from "@mongez/events";
 import { trans, transFrom } from "@mongez/localization";
 import { LogLevel, log } from "@mongez/logger";
 import { except, get, only, rtrim, set, unset } from "@mongez/reinforcements";
-import { isEmpty, isNumeric } from "@mongez/supportive-is";
-import { colors} from "@mongez/copper";
+import { isEmpty } from "@mongez/supportive-is";
 import { FastifyRequest } from "fastify";
 import type { Auth } from "../auth/models/auth";
 import type { Middleware, Route } from "../router";
@@ -320,7 +320,7 @@ export class Request<User extends Auth = any> {
 
     if (data === "null") return null;
 
-    if (isNumeric(data) && !String(data).startsWith("0")) return Number(data);
+    // if (isNumeric(data) && !String(data).startsWith("0")) return Number(data);
 
     if (typeof data === "string") return data.trim();
 

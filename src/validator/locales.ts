@@ -25,6 +25,14 @@ groupedTranslations("validation", {
     en: ":input must be at least :min.",
     ar: ":input يجب أن يكون على الأقل :min.",
   },
+  file: {
+    en: ":input must be a file.",
+    ar: ":input يجب أن يكون ملف.",
+  },
+  files: {
+    en: ":input must be an array of files.",
+    ar: ":input يجب أن يكون مجموعة من الملفات.",
+  },
   max: {
     en: ":input must be at most :max.",
     ar: ":input يجب أن يكون على الأكثر :max.",
@@ -88,5 +96,13 @@ groupedTranslations("validation", {
   length: {
     en: ":input must be :length characters.",
     ar: ":input يجب أن يكون :length حرف.",
+  },
+  scalar: {
+    en: ":input must be a string, number or boolean",
+    ar: ":input يجب أن يكون رقم أو نص أو قيمة منطقية",
+  },
+  stringify: {
+    en: ":input must be number, string",
+    ar: ":input يجب أن يكون رقم أو نص ",
   },
 });

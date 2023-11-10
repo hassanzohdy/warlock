@@ -6,31 +6,48 @@ import { Request, Response, UploadedFile } from "../../../http";
 import { uploadsPath } from "../../../utils";
 import { Upload } from "../models";
 
+async function getDirectory(directoryInput?: string) {
+  if (directoryInput) return directoryInput;
+
+  const configDirectory = config.get("uploads.saveTo");
+
+  if (configDirectory) {
+    if (typeof configDirectory === "function") {
+      return await configDirectory();
+    }
+
+    return configDirectory;
+  }
+
+  return dayjs().format("DD-MM-YYYY");
+}
+
 export async function uploadFiles(request: Request, response: Response) {
-  //
   const files = request.file("uploads");
+
+  const directory = request.input("directory");
 
   const uploads: Upload[] = [];
 
-  const addFile = async (file: UploadedFile) => {
-    const date = dayjs().format("DD-MM-YYYY");
-    const hash = Random.string(64);
-    const defaultDirectoryPath = date + "/" + hash;
-    const directoryPath = config.get("uploads.saveTo", defaultDirectoryPath);
+  const isRandom = request.bool("random");
 
-    const fileDirectoryPath =
-      typeof directoryPath === "function"
-        ? directoryPath(defaultDirectoryPath)
-        : directoryPath;
+  const baseDirectoryPath = getDirectory(directory);
+
+  const addFile = async (file: UploadedFile) => {
+    const hash = Random.string(64);
+    const fileDirectoryPath = baseDirectoryPath + "/" + hash;
 
     const fileName = file.name;
-    const filePath = await file.saveAs(fileDirectoryPath, fileName); // relative to uploadsPath
+    const filePath = isRandom
+      ? await file.save(fileDirectoryPath)
+      : await file.saveAs(fileDirectoryPath, fileName); // relative to uploadsPath
 
     const fileData: any = {
       name: file.name,
       fileHash: file.hash,
       hash: hash,
       path: filePath,
+      directory: fileDirectoryPath,
       size: fileSize(uploadsPath(filePath)),
       mimeType: file.mimeType,
       extension: file.extension,
@@ -47,9 +64,11 @@ export async function uploadFiles(request: Request, response: Response) {
     await upload.save();
 
     uploads.push(upload);
+
+    return upload;
   };
 
-  const uploadedFiles: any[] = [];
+  const uploadedFiles: Promise<Upload>[] = [];
 
   if (Array.isArray(files)) {
     for (const file of files) {
@@ -68,6 +87,8 @@ export async function uploadFiles(request: Request, response: Response) {
 
 uploadFiles.validation = {
   rules: {
-    uploads: ["required"],
+    uploads: ["required", "file"],
+    directory: ["string"],
+    random: ["boolean"],
   },
 };

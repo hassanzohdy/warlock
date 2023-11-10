@@ -11,6 +11,7 @@ export * from "./loaders";
 export * from "./mail";
 export * from "./modules";
 export * from "./output";
+export * from "./pool";
 export * from "./react";
 export * from "./repositories";
 export * from "./restful";

@@ -45,11 +45,6 @@ export abstract class Rule {
   protected errorMessage = "";
 
   /**
-   * Error message attributes
-   */
-  protected errorMessageAttributes: any = {};
-
-  /**
    * Set rule options
    */
   public setOptions(options: any[]) {
@@ -70,9 +65,7 @@ export abstract class Rule {
   /**
    * Validate the rule
    */
-  public async validate() {
-    //
-  }
+  public abstract validate(): Promise<void>;
 
   /**
    * Set input name
@@ -120,18 +113,17 @@ export abstract class Rule {
    * Translate the given key and its attributes
    */
   public trans(key: string, attributes: any = {}) {
+    const inputName = this.request.trans("inputs." + this.input);
     attributes = merge(
       {
-        input: this.request.trans(this.input),
+        input: inputName === `inputs.${this.input}` ? this.input : inputName,
         value: this.value,
       },
       attributes,
-      this.errorMessageAttributes,
     );
 
-    return this.request.trans(
-      this.errorMessage || `validation.${key}`,
-      attributes,
+    return (
+      this.errorMessage || this.request.trans(`validation.${key}`, attributes)
     );
   }
 

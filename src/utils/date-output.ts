@@ -1,11 +1,19 @@
+import config from "@mongez/config";
 import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(timezone);
 
 export function dateOutput(date: Date | any, format = "DD-MM-YYYY hh:mm:ss A") {
   // if format and timestamp exists, it means that the value is already parsed
   if (!date || (date?.format && date?.timestamp)) return date;
 
   try {
-    const dayjsDate = dayjs(date);
+    let dayjsDate = dayjs(date);
+    const timezone = config.get("app.timezone");
+
+    if (timezone) {
+      dayjsDate = dayjsDate.tz(timezone);
+    }
 
     const dateObject = dayjsDate.toDate();
 

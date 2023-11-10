@@ -1,20 +1,13 @@
 import { ChildModel, Model } from "@mongez/monpulse";
 import { verify } from "@mongez/password";
 import { jwt } from "../jwt";
-import { AccessToken } from "./access-token/access-token";
+import { AccessToken } from "./access-token";
 
 export abstract class Auth extends Model {
   /**
    * Get user type
    */
   public abstract get userType(): string;
-
-  /**
-   * Get tokens relationship
-   */
-  public get tokens() {
-    return this.hasMany<AccessToken>(AccessToken, "tokens");
-  }
 
   /**
    * Generate jwt token
@@ -47,8 +40,9 @@ export abstract class Auth extends Model {
    * Remove current access token
    */
   public async removeAccessToken(token: string) {
-    AccessToken.first({
+    AccessToken.delete({
       token: token,
+      "user.id": this.id,
     });
   }
 
@@ -62,18 +56,16 @@ export abstract class Auth extends Model {
     // find first user with the given data, but exclude from it the password
     const { password, ...otherData } = data;
 
-    const user = await this.first<T>(otherData);
+    const user = (await this.first<T>(otherData)) as Auth | null;
 
     if (!user) {
       return null;
     }
 
     // now verify the password
-    if (!(user as any).confirmPassword(password)) {
+    if (!user.confirmPassword(password)) {
       return null;
     }
-
-    // if (!user.get("isActive")) return null;
 
     return user as T;
   }

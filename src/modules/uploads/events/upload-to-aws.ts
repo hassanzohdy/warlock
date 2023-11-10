@@ -34,26 +34,22 @@ export async function uploadFileToAWSInBackground(file: Upload) {
 }
 
 async function toAWS(file: Upload, awsOptions: AWSConnectionOptions) {
-  try {
-    const uploadData = await uploadToAWS({
-      filePath: file.path,
-      fileName: file.get("name"),
-      hash: file.get("hash"),
-      mimeType: file.get("mimeType"),
-      connectionOptions: awsOptions,
-    });
+  const uploadData = await uploadToAWS({
+    filePath: file.path,
+    fileName: file.get("name"),
+    hash: file.get("hash"),
+    mimeType: file.get("mimeType"),
+    connectionOptions: awsOptions,
+  });
 
-    if (uploadData) {
-      file.set("isRemote", true);
-      file.set("provider", uploadData);
+  if (uploadData) {
+    file.set("isRemote", true);
+    file.set("provider", uploadData);
 
-      // now remove the file from the server
+    // now remove the file from the server
 
-      const directoryPath = path.dirname(String(file.get("path")));
+    const directoryPath = path.dirname(String(file.get("path")));
 
-      removePath(uploadsPath(directoryPath));
-    }
-  } catch (error) {
-    console.log(error);
+    removePath(uploadsPath(directoryPath));
   }
 }

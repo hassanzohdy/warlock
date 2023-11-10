@@ -1,5 +1,6 @@
 import { Aggregate } from "@mongez/monpulse";
 import { isNumeric } from "@mongez/supportive-is";
+import { pool } from "../../pool";
 import { UniqueRule } from "./unique";
 
 export class ExistsRule extends UniqueRule {
@@ -28,6 +29,27 @@ export class ExistsRule extends UniqueRule {
     let query: Aggregate;
 
     if (this.model) {
+      const modelsList = pool().list(this.model);
+
+      const potentialModel = modelsList.find(model => {
+        const value = model.get(this.columnName as string);
+        if (this.exceptValue) {
+          return (
+            value === this.value &&
+            model.get(this.exceptColumn) !== this.exceptValue
+          );
+        }
+
+        return value === this.value;
+      });
+
+      if (potentialModel) {
+        this.isValid = true;
+        return;
+      }
+    }
+
+    if (this.model) {
       query = (this.model as any).aggregate();
     } else {
       query = new Aggregate(this.tableName as string);
@@ -39,13 +61,23 @@ export class ExistsRule extends UniqueRule {
       ? Number(this.value)
       : this.value;
 
-    query.where(this.columnName || this.input, value);
+    const column = this.columnName || this.input;
+
+    query.where(column, value);
 
     if (this.exceptValue) {
       query.where(this.exceptColumn, "!=", this.exceptValue);
     }
 
-    this.isValid = (await query.count()) > 0;
+    const document = await query.first();
+
+    if (document && this.model) {
+      pool().add({
+        model: document,
+      });
+    }
+
+    this.isValid = Boolean(document);
   }
 
   /**

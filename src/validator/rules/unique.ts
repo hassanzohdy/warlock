@@ -1,4 +1,5 @@
 import { Aggregate, Model } from "@mongez/monpulse";
+import { pool } from "../../pool";
 import { Rule } from "./rule";
 
 export class UniqueRule extends Rule {
@@ -109,22 +110,43 @@ export class UniqueRule extends Rule {
       this.exceptValue = this.request.input(this.exceptColumn);
     }
 
-    let query: Aggregate;
+    const column = this.columnName || this.input;
 
+    const value = this.isCaseSensitive
+      ? String(this.value || "").toLowerCase()
+      : this.value;
+
+    if (this.model) {
+      const models = pool().list(this.model);
+      const potentialModel = models.find(model => {
+        const columnValue = model.get(column);
+        if (this.exceptValue) {
+          return (
+            columnValue === value &&
+            model.get(this.exceptColumn) !== this.exceptValue
+          );
+        }
+
+        return columnValue === value;
+      });
+
+      if (potentialModel) {
+        this.isValid = false;
+        return;
+      }
+    }
+
+    let query: Aggregate;
     if (this.model) {
       query = (this.model as any).aggregate();
     } else {
       query = new Aggregate(this.tableName as string);
     }
 
-    const value = this.isCaseSensitive
-      ? String(this.value || "").toLowerCase()
-      : this.value;
-
     if (Array.isArray(value)) {
-      query.whereIn(this.columnName || this.input, value);
+      query.whereIn(column, value);
     } else {
-      query.where(this.columnName || this.input, value);
+      query.where(column, value);
     }
 
     if (this.exceptValue) {
@@ -135,7 +157,15 @@ export class UniqueRule extends Rule {
       this._query(query);
     }
 
-    this.isValid = (await query.count()) === 0;
+    const document = await query.first();
+
+    if (document && this.model) {
+      pool().add({
+        model: document,
+      });
+    }
+
+    this.isValid = !document;
   }
 
   /**
