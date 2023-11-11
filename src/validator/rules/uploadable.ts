@@ -1,4 +1,4 @@
-import { Upload } from "../../modules";
+import { Upload } from "../../modules/uploads/models/upload";
 import { Rule } from "./rule";
 
 export class UploadableRule extends Rule {

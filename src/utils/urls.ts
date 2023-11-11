@@ -1,5 +1,3 @@
-import { router } from "../router";
-
 let baseUrl = "";
 
 /**
@@ -35,11 +33,4 @@ export function publicUrl(path = "") {
  */
 export function assetsUrl(path = "") {
   return publicUrl("/assets/" + path);
-}
-
-/**
- * Generate a url for the given route name
- */
-export function route(name: string, params: any = {}) {
-  return url(router.route(name, params));
 }

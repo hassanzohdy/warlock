@@ -3,7 +3,7 @@ import { sha1 } from "@mongez/encryption";
 import { fileExists } from "@mongez/fs";
 import { log } from "@mongez/logger";
 import systemPath from "path";
-import { Upload } from "../models";
+import { Upload } from "../models/upload";
 import { getWatermarkOptions } from "../utils/get-watermark-options";
 import {
   downloadFromAWS,

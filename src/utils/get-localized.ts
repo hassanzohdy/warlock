@@ -1,4 +1,4 @@
-import { requestContext } from "../http";
+import { requestContext } from "../http/middleware/inject-request-context";
 
 export function getLocalized(values: any[], localeCode?: string) {
   if (!values) return values;
@@ -8,7 +8,7 @@ export function getLocalized(values: any[], localeCode?: string) {
   }
 
   if (Array.isArray(values)) {
-    return values.find(value => value.localeCode === localeCode)?.value;
+    return values.find((value) => value.localeCode === localeCode)?.value;
   }
 
   return values;

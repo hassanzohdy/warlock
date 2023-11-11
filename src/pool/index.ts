@@ -1,5 +1,5 @@
 import type { Model } from "@mongez/monpulse";
-import { requestContext } from "../http";
+import { requestContext } from "../http/middleware/inject-request-context";
 
 export class Pool {
   /**

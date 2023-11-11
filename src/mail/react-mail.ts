@@ -1,3 +1,4 @@
+import React from "react";
 import { renderReact } from "./../react";
 
 function createHtmlPage(html: string): string {
