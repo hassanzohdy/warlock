@@ -10,10 +10,10 @@ export class HttpLoader {
 
   public httpDevelopmentPath = warlockPath("http.ts");
 
-  public init() {
+  public async init() {
     this.paths = [];
 
-    createEssentialFiles();
+    await createEssentialFiles();
 
     if (fileExists(srcPath("main.ts"))) {
       this.paths.push("src/main");
@@ -46,7 +46,7 @@ export class HttpLoader {
   }
 
   public async build() {
-    this.init();
+    await this.init();
 
     putFile(
       this.httpDevelopmentPath,

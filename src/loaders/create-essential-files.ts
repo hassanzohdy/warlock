@@ -3,7 +3,7 @@ import { ucfirst } from "@mongez/reinforcements";
 import prettier from "prettier";
 import { configPath, warlockPath } from "../utils";
 
-export function createEssentialFiles() {
+export async function createEssentialFiles() {
   ensureDirectory(warlockPath());
 
   putFile(
@@ -11,7 +11,7 @@ export function createEssentialFiles() {
     `import { bootstrap } from "@mongez/warlock";\n bootstrap();`,
   );
 
-  createConfigLoader();
+  await createConfigLoader();
 
   // putFile(
   //   warlockPath("config-loader.ts"),
@@ -24,7 +24,7 @@ export function createEssentialFiles() {
   );
 }
 
-export function createConfigLoader() {
+export async function createConfigLoader() {
   // first, get all files from the config directory
   const files = listFiles(configPath(""));
 
@@ -108,7 +108,7 @@ export function createConfigLoader() {
   // now create the file
   putFile(
     warlockPath("config-loader.ts"),
-    prettier.format(
+    await prettier.format(
       imports.join("\n") +
         fileContents.join("\n") +
         (hasIndex ? "\nloadConfigurations();" : ""),
