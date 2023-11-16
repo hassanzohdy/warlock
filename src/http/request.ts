@@ -89,11 +89,14 @@ export class Request<User extends Auth = any> {
    * Get current locale code
    */
   public get locale() {
+    return this.header("translation-locale-code") || this.localized;
+  }
+
+  public get localized() {
     return (
-      this.header("translation-locale-code") ||
       this.header("locale-code") ||
       this.header("locale") ||
-      this.input("locale")
+      this.query["locale"]
     );
   }
 
@@ -101,7 +104,7 @@ export class Request<User extends Auth = any> {
    * Get current locale code or return default locale code
    */
   public getLocaleCode(
-    defaultLocaleCode: string = config.get("app.localeCode"),
+    defaultLocaleCode: string = config.get("app.localeCode") || "en",
   ) {
     return this.locale || defaultLocaleCode;
   }

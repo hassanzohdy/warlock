@@ -1,82 +1,175 @@
 import {
-  ensureDirectory,
-  getJsonFile,
-  putJsonFile,
-  removeDirectory,
-  unlinkAsync,
+  ensureDirectoryAsync,
+  getJsonFileAsync,
+  putJsonFileAsync,
+  removeDirectoryAsync,
 } from "@mongez/fs";
-import { log } from "@mongez/logger";
-import { trim } from "@mongez/reinforcements";
+import { GenericObject } from "@mongez/reinforcements";
+import path from "path";
 import { storagePath } from "../../utils";
-import { CacheDriver } from "./../types";
+import { CacheDriver } from "../types";
+import { BaseCacheDriver } from "./base-cache-driver";
 
-export const fileCacheDriver: CacheDriver<any, any> = {
-  options: {},
-  setOptions: _options => {
-    //
-  },
-  set: async (key: string, value: any) => {
-    //
-    const cacheKey = fileCacheDriver.parseKey(key);
+export type FileCacheOptions = {
+  /**
+   * The global prefix for the cache key
+   */
+  globalPrefix?: string | (() => string);
+  /**
+   * The default TTL for the cache in seconds
+   *
+   * @default 0
+   */
+  ttl?: number;
+  /**
+   * Storage cache directory
+   *
+   * @default storagePath("cache")
+   */
+  directory?: string | (() => string);
+  /**
+   * File name
+   *
+   * @default cache.json
+   */
+  fileName?: string | (() => string);
+};
 
-    log.info("cache.file", "caching", cacheKey);
+export class FileCacheDriver
+  extends BaseCacheDriver<FileCacheDriver, FileCacheOptions>
+  implements CacheDriver<FileCacheDriver, FileCacheOptions>
+{
+  /**
+   * {@inheritdoc}
+   */
+  public name = "file";
 
-    const cacheDirectoryPath = storagePath("cache/" + cacheKey);
+  /**
+   * Get the cache directory
+   */
+  public get directory() {
+    const directory = this.options.directory;
 
-    ensureDirectory(cacheDirectoryPath);
-    putJsonFile(cacheDirectoryPath + "/data.json", JSON.stringify(value));
-
-    log.success("cache.file", "cached", cacheKey);
-  },
-  get: async (key: string) => {
-    //
-    const cacheKey = fileCacheDriver.parseKey(key);
-    log.info("cache.file", "fetching", cacheKey);
-    try {
-      const data = getJsonFile(storagePath("cache/" + cacheKey + "/data.json"));
-
-      log.success("cache.file", "fetched", cacheKey);
-
-      return data;
-    } catch (error) {
-      log.info("cache.file", "not-found", cacheKey);
-      return;
+    if (typeof directory === "function") {
+      return directory();
     }
-  },
-  async flush() {
-    removeDirectory(storagePath("cache"));
-  },
-  async remove(key: string) {
-    //
-    unlinkAsync(
-      storagePath("cache/" + fileCacheDriver.parseKey(key) + "/data.json"),
-    );
-  },
-  connect: async () => {
-    //
-  },
-  parseKey(key) {
-    // make sure the key is a valid file path syntax using regex.
-    // replace double dash or more with a single dash.
-    // replace any . with / to make it a directory.
-    return key
-      .replace(/\./g, "/")
-      .split("/")
-      .map((part: string) =>
-        trim(part.replace(/[^a-z0-9-/]/gi, "-").replace(/-+/g, "-"), "-"),
-      )
-      .join("/");
-  },
-  async removeByNamespace(namespace: string) {
-    const cacheDirectoryPath = storagePath(
-      "cache/" + fileCacheDriver.parseKey(namespace),
-    );
+
+    return storagePath("cache");
+  }
+
+  /**
+   * Get file name
+   */
+  public get fileName() {
+    const fileName = this.options.fileName;
+
+    if (typeof fileName === "function") {
+      return fileName();
+    }
+
+    return "cache.json";
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public async removeNamespace(namespace: string) {
+    this.log("cleared", namespace);
 
     try {
-      removeDirectory(cacheDirectoryPath);
+      await removeDirectoryAsync(path.resolve(this.directory, namespace));
+
+      this.log("cleared", namespace);
     } catch (error) {
       //
-      console.log(error);
     }
-  },
-};
+
+    return this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public async set(key: string | GenericObject, value: any, ttl?: number) {
+    key = this.parseKey(key);
+
+    this.log("caching", key);
+
+    const data = this.prepareDataForStorage(value, ttl);
+
+    const fileDirectory = path.resolve(this.directory, key);
+
+    await ensureDirectoryAsync(fileDirectory);
+
+    await putJsonFileAsync(path.resolve(fileDirectory, this.fileName), data);
+
+    this.log("cached", key);
+
+    return this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public async get(key: string | GenericObject) {
+    const parsedKey = this.parseKey(key);
+
+    this.log("fetching", parsedKey);
+
+    const fileDirectory = path.resolve(this.directory, parsedKey);
+
+    try {
+      const value = await getJsonFileAsync(
+        path.resolve(fileDirectory, this.fileName),
+      );
+
+      return this.parseCachedData(parsedKey, value);
+    } catch (error) {
+      this.log("notFound", parsedKey);
+      this.remove(key);
+      return null;
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public async remove(key: string | GenericObject) {
+    const parsedKey = this.parseKey(key);
+    this.log("removing", parsedKey);
+
+    const fileDirectory = path.resolve(this.directory, parsedKey);
+
+    try {
+      await removeDirectoryAsync(fileDirectory);
+
+      this.log("removed", parsedKey);
+    } catch (error) {
+      //
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public async flush() {
+    this.log("flushing");
+
+    if (this.options.globalPrefix) {
+      await this.removeNamespace("");
+    } else {
+      await removeDirectoryAsync(this.directory);
+    }
+
+    this.log("flushed");
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public async connect() {
+    this.log("connecting");
+    await ensureDirectoryAsync(this.directory);
+    this.log("connected");
+  }
+}

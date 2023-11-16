@@ -11,7 +11,6 @@ export class ObjectRule extends Rule {
    * Validate the rule
    */
   public async validate() {
-    // this.isValid = Is.string(this.value) && !Is.numeric(this.value);
     this.isValid = isPlainObject(this.value);
   }
 

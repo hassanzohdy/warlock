@@ -79,9 +79,9 @@ export class RepositoryListing<
   }
 
   /**
-   * perform listing
+   * Prepare the query
    */
-  public async list() {
+  public async prepareQuery() {
     this.query = this.repositoryManager.newQuery();
 
     await this.repositoryManager.beforeListing(this.query, this.options);
@@ -89,14 +89,6 @@ export class RepositoryListing<
     await this.parseFilterBy();
 
     await this.repositoryManager.filter(this.query, this.options);
-
-    let orderByOptions = this.repositoryManager.orderBy?.(this.options);
-
-    if (!orderByOptions) {
-      orderByOptions = this.options.orderBy;
-    }
-
-    this.parseOrderBy(orderByOptions);
 
     if (this.options.select) {
       this.query.select(this.options.select);
@@ -107,8 +99,25 @@ export class RepositoryListing<
     }
 
     if (this.options.perform) {
-      this.options.perform(this.query);
+      this.options.perform(this.query, this.options);
     }
+
+    return this.query;
+  }
+
+  /**
+   * perform listing
+   */
+  public async list() {
+    await this.prepareQuery();
+
+    let orderByOptions = this.repositoryManager.orderBy?.(this.options);
+
+    if (!orderByOptions) {
+      orderByOptions = this.options.orderBy;
+    }
+
+    this.parseOrderBy(orderByOptions);
 
     let records: T[] = [];
 
@@ -137,6 +146,20 @@ export class RepositoryListing<
   }
 
   /**
+   * Chunk the documents by the given callback
+   */
+  public async chunk(
+    callback: (
+      documents: T[],
+      paginationInfo: PaginationListing<T>["paginationInfo"],
+    ) => Promise<false | any>,
+  ) {
+    await this.prepareQuery();
+
+    return this.query.chunk(this.option("limit", 15), callback);
+  }
+
+  /**
    * Count records only
    */
   public async count() {
@@ -157,7 +180,7 @@ export class RepositoryListing<
     }
 
     if (this.options.perform) {
-      this.options.perform(this.query);
+      this.options.perform(this.query, this.options);
     }
 
     // NO need to order by when counting
@@ -942,12 +965,11 @@ export class RepositoryListing<
     if (Array.isArray(orderBy)) {
       const [column, direction] = orderBy;
 
-      this.query.orderBy(column, direction);
-      return;
+      return this.query.orderBy(column, direction);
     }
 
     if (orderBy === "random") {
-      this.query.random(this.options.limit || this.options.defaultLimit);
+      return this.query.random(this.options.limit || this.options.defaultLimit);
     }
 
     this.query.sortBy(orderBy);

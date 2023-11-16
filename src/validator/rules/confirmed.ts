@@ -16,7 +16,8 @@ export class ConfirmedRule extends Rule {
    * Validate the rule
    */
   public async validate() {
-    this.confirmationInput = `confirm${toStudlyCase(this.input)}`;
+    this.confirmationInput =
+      this.options[0] ?? `confirm${toStudlyCase(this.input)}`;
     const confirmedInputValue = this.request.input(this.confirmationInput);
 
     this.isValid = this.value === confirmedInputValue;

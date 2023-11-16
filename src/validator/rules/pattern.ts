@@ -1,3 +1,4 @@
+import { t } from "../../http/middleware/inject-request-context";
 import { Rule } from "./rule";
 
 export class PatternRule extends Rule {
@@ -9,7 +10,10 @@ export class PatternRule extends Rule {
   /**
    * Constructor
    */
-  public constructor(public pattern: RegExp) {
+  public constructor(
+    public pattern: RegExp,
+    protected patternTranslationKey = pattern.toString(),
+  ) {
     super();
   }
 
@@ -25,7 +29,7 @@ export class PatternRule extends Rule {
    */
   public error() {
     return this.trans("pattern", {
-      pattern: this.pattern.toString(),
+      pattern: t(this.patternTranslationKey),
     });
   }
 }

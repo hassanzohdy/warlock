@@ -33,6 +33,14 @@ groupedTranslations("validation", {
     en: ":input must be an array of files.",
     ar: ":input يجب أن يكون مجموعة من الملفات.",
   },
+  image: {
+    en: ":input must be an image.",
+    ar: ":input يجب أن يكون صورة.",
+  },
+  images: {
+    en: ":input must be an array of images.",
+    ar: ":input يجب أن يكون مجموعة من الصور.",
+  },
   max: {
     en: ":input must be at most :max.",
     ar: ":input يجب أن يكون على الأكثر :max.",

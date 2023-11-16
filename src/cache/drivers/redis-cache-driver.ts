@@ -1,101 +1,160 @@
-import { log } from "@mongez/logger";
-import { GenericObject, rtrim } from "@mongez/reinforcements";
-import { createClient } from "redis";
-import { CacheDriver } from "../types";
+import { GenericObject } from "@mongez/reinforcements";
+import { RedisClientOptions, createClient } from "redis";
+import { CacheData, CacheDriver } from "../types";
+import { parseCacheKey } from "../utils";
+import { BaseCacheDriver } from "./base-cache-driver";
 
 export type RedisOptions = {
+  /**
+   * Redis Port
+   *
+   * @default 6379
+   */
   port?: number;
+  /**
+   * Redis Host
+   */
   host?: string;
-  password?: string;
+  /**
+   * Redis Username
+   */
   username?: string;
+  /**
+   * Redis Password
+   */
+  password?: string;
+  /**
+   * Redis URL
+   *
+   * If used, it will override the host and port options
+   */
   url?: string;
+  /**
+   * Global prefix for the cache key
+   */
   globalPrefix?: string | (() => string);
+  /**
+   * Time to live in seconds
+   *
+   * @default Infinity
+   */
+  ttl?: number;
+  /**
+   * Redis client options
+   */
+  clientOptions?: RedisClientOptions;
 };
 
-export const redisCache: CacheDriver<
-  ReturnType<typeof createClient>,
-  RedisOptions
-> = {
-  client: undefined,
-  options: {},
-  setOptions(options) {
-    this.options = options;
-    return this;
-  },
-  async removeByNamespace(namespace: string) {
+export class RedisCacheDriver
+  extends BaseCacheDriver<ReturnType<typeof createClient>, RedisOptions>
+  implements CacheDriver<ReturnType<typeof createClient>, RedisOptions>
+{
+  /**
+   * Cache driver name
+   */
+  public name = "redis";
+
+  /**
+   * {@inheritDoc}
+   */
+  public async removeNamespace(namespace: string) {
     namespace = this.parseKey(namespace);
 
-    log.info("redis", "clearing namespace", namespace);
+    this.log("clearing", namespace);
 
     const keys = await this.client?.keys(`${namespace}*`);
 
     if (!keys || keys.length === 0) {
-      log.info("redis", "empty namespace", namespace);
+      this.log("notFound", namespace);
       return;
     }
 
     await this.client?.del(keys);
 
-    log.success("redis", "namespace cleared", namespace);
+    this.log("cleared", namespace);
 
     return keys;
-  },
-  parseKey(key: string | GenericObject) {
-    if (typeof key === "object") {
-      key = JSON.stringify(key);
-      // remove any curly braces and double quotes
-    }
+  }
 
-    key = key.replace(/[{}"]/g, "").replaceAll(":", ".").replaceAll(",", ".");
+  /**
+   * {@inheritdoc}
+   */
+  public parseKey(key: string | GenericObject) {
+    return parseCacheKey(key, this.options);
+  }
 
-    const cachePrefix =
-      typeof this.options.globalPrefix === "function"
-        ? this.options.globalPrefix()
-        : this.options.globalPrefix;
-
-    return cachePrefix ? rtrim(cachePrefix, ".") + "." + key : key;
-  },
-  async set(key: string | GenericObject, value: any) {
+  /**
+   * {@inheritDoc}
+   */
+  public async set(key: string | GenericObject, value: any, ttl?: number) {
     key = this.parseKey(key);
-    log.info("redis", "caching", key);
 
-    await this.client?.set(key, JSON.stringify(value));
+    this.log("caching", key);
 
-    log.success("redis", "cached", key);
+    ttl = this.getTtl(ttl);
+
+    const data = this.prepareDataForStorage(value, ttl);
+
+    await this.client?.set(key, JSON.stringify(data));
+
+    this.log("cached", key);
 
     return value;
-  },
-  async get(key: string | GenericObject) {
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public async get(key: string | GenericObject) {
     key = this.parseKey(key);
-    log.info("redis", "fetching", key);
+
+    this.log("fetching", key);
+
     const value = await this.client?.get(key);
 
     if (!value) {
-      log.info("redis", "not found", key);
+      this.log("notFound", key);
       return null;
     }
 
-    log.success("redis", "fetched", key);
+    const data: CacheData = JSON.parse(value);
 
-    return JSON.parse(value);
-  },
-  async remove(key: string | GenericObject) {
+    return this.parseCachedData(key, data);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public async remove(key: string | GenericObject) {
     key = this.parseKey(key);
-    log.info("redis", "removing", key);
+
+    this.log("removing", key);
+
     await this.client?.del(key);
-    log.success("redis", "removed", key);
-  },
-  async flush() {
-    log.info("redis", "flushing");
+
+    this.log("removed", key);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public async flush() {
+    this.log("flushing");
+
     if (this.options.globalPrefix) {
-      await this.removeByNamespace("");
+      await this.removeNamespace("");
     } else {
       await this.client?.flushAll();
     }
-    log.success("redis", "flushed");
-  },
-  async connect() {
-    if (this.client) return this.client;
+
+    this.log("flushed");
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public async connect() {
+    if (this.clientDriver) return;
 
     const options = this.options;
 
@@ -106,25 +165,30 @@ export const redisCache: CacheDriver<
           : "";
 
       if (!options.url) {
-        options.url = `redis://${auth}${options.host}:${options.port || 6379}`;
+        const host = options.host || "localhost";
+        const port = options.port || 6379;
+        options.url = `redis://${auth}${host}:${port}`;
       }
     }
 
-    log.info("redis", "connection", "Connecting to Redis...");
+    const clientOptions = {
+      ...options,
+      ...(this.options.clientOptions || {}),
+    };
 
-    this.client = createClient(options);
+    this.log("connecting");
+
+    this.client = createClient(clientOptions);
 
     this.client.on("error", error => {
-      log.error("cache", "redis", error);
+      this.log("error", error.message);
     });
     try {
       await this.client.connect();
 
-      log.success("redis", "connection", "Connected Successfully");
-
-      return this.client;
+      this.log("connected");
     } catch (error) {
       //
     }
-  },
-};
+  }
+}

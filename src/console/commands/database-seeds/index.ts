@@ -1,6 +1,6 @@
+import { colors } from "@mongez/copper";
 import { connectToDatabase } from "@mongez/monpulse";
 import { toSnakeCase } from "@mongez/reinforcements";
-import { colors} from "@mongez/copper";
 import { Command } from "commander";
 import glob from "fast-glob";
 import path from "path";
@@ -47,7 +47,9 @@ export function seedDatabase(seedsPath: string, once = false) {
         .relative(process.cwd(), file)
         .replaceAll("\\", "/");
 
-      console.log(`Collecting Seeds from ${colors.magentaBright(relativePath)}`);
+      console.log(
+        `Collecting Seeds from ${colors.magentaBright(relativePath)}`,
+      );
 
       const fileExports = await import(file);
 

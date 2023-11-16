@@ -1,4 +1,18 @@
-import { rootPath } from "@mongez/node";
+import path from "path";
+
+/**
+ * Get root path or join the given paths to the root path
+ */
+export function rootPath(...paths: string[]) {
+  return path.resolve(process.cwd(), ...paths);
+}
+
+/**
+ * Get src directory path or join the given paths to the src directory path
+ */
+export function srcPath(...paths: string[]) {
+  return rootPath("src", ...paths);
+}
 
 /**
  * Get the absolute path to the storage folder to the given path
@@ -51,6 +65,13 @@ export function consolePath(relativePath = "") {
 }
 
 /**
+ * Get a temp path
+ */
+export function tempPath(relativePath = "") {
+  return rootPath("storage/temp", relativePath);
+}
+
+/**
  * Remove any invalid characters from the file path using regex
  * It should accept any language character, numbers, and the following characters: _ - .
  */
@@ -65,4 +86,11 @@ export function sanitizePath(filePath: string) {
  */
 export function warlockPath(...path: string[]) {
   return rootPath(".warlock", ...path);
+}
+
+/**
+ * Get config directory path
+ */
+export function configPath(...path: string[]) {
+  return rootPath("src/config", ...path);
 }

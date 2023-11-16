@@ -3,17 +3,17 @@ import { Rule } from "./rule";
 
 /**
  * Required with rule
- * The field under validation must be present and not empty only if any of the other specified fields are present and not empty.
+ * The field under validation must be present and not empty only if all of the other specified fields are present and not empty.
  *
  * @Example {
  *  name: ['requiredIf:email,phone']
  * }
  */
-export class RequiredWithRule extends Rule {
+export class RequiredWithAllRule extends Rule {
   /**
    * Rule name
    */
-  public static ruleName = "requiredWith";
+  public static ruleName = "requiredWithAll";
 
   /**
    * {@inheritdoc}
@@ -36,8 +36,8 @@ export class RequiredWithRule extends Rule {
     if (otherInputs.length === 0) return;
 
     // the  input will be marked as valid
-    // if any of the other inputs has a value
-    this.isValid = otherInputs.some(otherInput => {
+    // if all of the other inputs has a value
+    this.isValid = otherInputs.every(otherInput => {
       const otherInputValue = this.request.input(otherInput);
 
       return !isEmpty(otherInputValue);

@@ -7,7 +7,7 @@ async function main() {
 
   spawn(
     "node",
-    [path.resolve(config.build.outputDir, config.build.entryFileName)],
+    [path.resolve(config.build.outDirectory, config.build.outFile)],
     {
       stdio: "inherit",
       cwd: process.cwd(),

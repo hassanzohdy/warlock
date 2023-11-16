@@ -1,7 +1,6 @@
 import { Model, ModelAggregate, PaginationListing } from "@mongez/monpulse";
 import { GenericObject } from "@mongez/reinforcements";
-import { isEmpty } from "@mongez/supportive-is";
-import { cache } from "../cache";
+import { CacheDriver, cache } from "../cache";
 import { requestContext } from "../http/middleware/inject-request-context";
 import { BaseRepositoryManager } from "./base-repository-manager";
 import { RepositoryListing } from "./repository-listing";
@@ -30,7 +29,6 @@ export abstract class RepositoryListManager<
     ids: ["inInt", "id"],
     except: (id: any, query) => query.where("id", "!=", Number(id)),
     createdBy: ["int", "createdBy.id"],
-    createdAt: "date",
     isActive: "boolean",
   };
 
@@ -52,7 +50,13 @@ export abstract class RepositoryListManager<
   /**
    * Cache driver
    */
-  protected cacheDriver = cache;
+  protected cacheDriver: CacheDriver<any, any> = cache;
+
+  /**
+   * Set the cache driver name
+   * If set, then it will be used instead of the default value in this.cacheDriver
+   */
+  protected cacheDriverName = "";
 
   /**
    * Constructor
@@ -61,11 +65,35 @@ export abstract class RepositoryListManager<
     super();
     this.prepareCache();
   }
+
+  /**
+   * Set cache driver
+   */
+  public setCacheDriver(driver: CacheDriver<any, any>) {
+    this.cacheDriver = driver;
+
+    return this;
+  }
+
+  /**
+   * Get cache driver
+   */
+  public getCacheDriver() {
+    return this.cacheDriver;
+  }
+
   /**
    * List All records
    */
   public async all(options?: Omit<RepositoryOptions, "paginate">) {
     return (await this.list({ ...options, paginate: false })).documents;
+  }
+
+  /**
+   * Get all cached data
+   */
+  public async allCached(options?: Omit<RepositoryOptions, "paginate">) {
+    return await this.cacheAll({ options, purge: options?.purgeCache });
   }
 
   /**
@@ -76,10 +104,24 @@ export abstract class RepositoryListManager<
   }
 
   /**
+   * List all active cached records
+   */
+  public async allActiveCached(options?: Omit<RepositoryOptions, "paginate">) {
+    return await this.cacheAll({
+      options: { ...options, isActive: true },
+      purge: options?.purgeCache,
+    });
+  }
+
+  /**
    * Prepare  cache
    */
-  public prepareCache() {
-    if (!this.cacheDriver.exists || !this.isCacheable) return;
+  public async prepareCache() {
+    if (!this.cacheDriver || !this.isCacheable) return;
+
+    if (this.cacheDriverName) {
+      this.cacheDriver = await cache.driver(this.cacheDriverName);
+    }
 
     setTimeout(() => {
       this.model
@@ -104,7 +146,7 @@ export abstract class RepositoryListManager<
    * Cache the given model
    */
   public async cacheModel(model: T) {
-    const cacheKey = this.generateCacheKey(`id.${model.id}`);
+    const cacheKey = this.cacheKey(`id.${model.id}`);
 
     await this.cache(cacheKey, model.data);
   }
@@ -113,7 +155,7 @@ export abstract class RepositoryListManager<
    * Clear the entire cache
    */
   public async clearCache() {
-    await this.cacheDriver.removeByNamespace(this.model.collection);
+    await this.cacheDriver.removeNamespace(this.cacheKey(""));
   }
 
   /**
@@ -157,6 +199,13 @@ export abstract class RepositoryListManager<
   }
 
   /**
+   * An alias to newQuery
+   */
+  public get query() {
+    return (this.model as any).aggregate() as ModelAggregate<T>;
+  }
+
+  /**
    * Get cached model
    */
   public async getCachedModel(id: number) {
@@ -171,7 +220,7 @@ export abstract class RepositoryListManager<
     value: any,
     cacheKeyOptions?: GenericObject,
   ) {
-    const cacheKey = this.generateCacheKey(
+    const cacheKey = this.cacheKey(
       "data." + column + "." + value,
       cacheKeyOptions,
     );
@@ -214,13 +263,18 @@ export abstract class RepositoryListManager<
   /**
    * Generate cache key
    */
-  public generateCacheKey(key: string, moreOptions: GenericObject = {}) {
-    return (
-      this.model.collection +
-      "." +
-      key +
-      (!isEmpty(moreOptions) ? "." + JSON.stringify(moreOptions) : "")
-    );
+  public cacheKey(key: string, moreOptions?: GenericObject) {
+    let cacheKey = "repositories." + this.model.collection;
+
+    if (key) {
+      cacheKey += "." + key;
+    }
+
+    if (moreOptions) {
+      cacheKey += "." + JSON.stringify(moreOptions);
+    }
+
+    return cacheKey;
   }
 
   /**
@@ -235,7 +289,7 @@ export abstract class RepositoryListManager<
 
     const localeCode = request.locale ? `locale.${request.locale}.` : "";
 
-    const cacheKey = this.generateCacheKey(
+    const cacheKey = this.cacheKey(
       `data.${localeCode}${column}.${value}`,
       cacheKeyOptions,
     );
@@ -290,11 +344,51 @@ export abstract class RepositoryListManager<
   }
 
   /**
+   * Find latest records
+   */
+  public async latest(options?: RepositoryOptions) {
+    return await this.list({
+      ...options,
+      orderBy: ["id", "desc"],
+    });
+  }
+
+  /**
+   * Get latest and active records
+   */
+  public async latestActive(options?: RepositoryOptions) {
+    return await this.list({
+      isActive: true,
+      ...options,
+      orderBy: ["id", "desc"],
+    });
+  }
+
+  /**
+   * Get oldest records
+   */
+  public async oldest(options?: RepositoryOptions) {
+    return await this.list({
+      ...options,
+      orderBy: ["id", "asc"],
+    });
+  }
+
+  /**
+   * Get oldest and active records
+   */
+  public async oldestActive(options?: RepositoryOptions) {
+    return await this.list({
+      isActive: true,
+      ...options,
+      orderBy: ["id", "asc"],
+    });
+  }
+
+  /**
    * List cached records
    */
   public async listCached(options: CachedRepositoryOptions = {}) {
-    if (!this.isCacheable) return this.list(options);
-
     if (options.cacheCurrentLocale !== false) {
       const localeCode = requestContext()?.request?.locale;
 
@@ -307,19 +401,40 @@ export abstract class RepositoryListManager<
       }
     }
 
-    const cacheKey = this.generateCacheKey("list", options);
+    return this.cacheList({
+      options,
+      purge: options.purgeCache,
+    });
+  }
 
+  /**
+   * Fetch cached records or cache new ones
+   */
+  public async cacheList({
+    key = "list",
+    options,
+    purge,
+    expiresAfter,
+  }: {
+    key?: string;
+    purge?: boolean;
+    expiresAfter?: number;
+    options?: CachedRepositoryOptions;
+  }) {
+    if (!this.isCacheable) return this.list(options);
+
+    // generate cache key for the list method
+    const cacheKey = this.cacheKey(key, options);
+
+    // check if the data is already cached
     const listing = await this.cacheDriver.get(cacheKey);
 
-    if (options?.purgeCache) {
-      this.cacheDriver.remove(cacheKey);
-    }
-
     if (listing) {
+      if (purge) {
+        this.cacheDriver.remove(cacheKey);
+      }
       return {
-        documents: listing.documents.map((document: any) =>
-          this.newModel(document),
-        ),
+        documents: this.mapModels(listing.documents),
         paginationInfo: listing.paginationInfo,
       } as {
         documents: T[];
@@ -327,20 +442,67 @@ export abstract class RepositoryListManager<
       };
     }
 
+    // if we reached here then the data is not cached yet, so we need to fetch it from database first
     const { documents, paginationInfo } = await this.list(options);
 
-    if (!options.purgeCache) {
+    if (!purge) {
       const cachedDocuments = documents.map(document => document.data);
-      this.cache(cacheKey, {
-        documents: cachedDocuments,
-        paginationInfo,
-      });
+      // cache the data
+      // please note that models can not be serialized, thus we need to store only the document data itself
+      this.cacheDriver.set(
+        cacheKey,
+        {
+          documents: cachedDocuments,
+          paginationInfo,
+        },
+        expiresAfter,
+      );
     }
 
     return {
       documents: documents,
       paginationInfo: paginationInfo,
     };
+  }
+
+  /**
+   * Fetch cached records or cache new ones
+   */
+  public async cacheAll({
+    key = "all",
+    options,
+    expiresAfter,
+    purge,
+  }: {
+    key?: string;
+    purge?: boolean;
+    expiresAfter?: number;
+    options?: CachedRepositoryOptions;
+  }) {
+    // generate cache key for the list method
+    const cacheKey = this.cacheKey(key, options);
+
+    // check if the data is already cached
+    const listing = await this.cacheDriver.get(cacheKey);
+
+    if (listing) {
+      if (purge) {
+        this.cacheDriver.remove(cacheKey);
+      }
+      return this.mapModels(listing.documents) as T[];
+    }
+
+    // if we reached here then the data is not cached yet, so we need to fetch it from database first
+    const documents = await this.all(options);
+
+    if (!purge) {
+      const cachedDocuments = documents.map(document => document.data);
+      // cache the data
+      // please note that models can not be serialized, thus we need to store only the document data itself
+      this.cacheDriver.set(cacheKey, cachedDocuments, expiresAfter);
+    }
+
+    return documents;
   }
 
   /**
@@ -368,12 +530,29 @@ export abstract class RepositoryListManager<
   }
 
   /**
+   * Map the given documents into models
+   */
+  public mapModels(documents: any[]) {
+    return documents.map(document => this.newModel(document));
+  }
+
+  /**
    * Count total records based on the given options
    */
   public async count(options: RepositoryOptions = {}) {
     const repositoryListing = this.newList(options);
 
     return await repositoryListing.count();
+  }
+
+  /**
+   * Count total active records
+   */
+  public async countActive(options: RepositoryOptions = {}) {
+    return await this.count({
+      isActive: true,
+      ...options,
+    });
   }
 
   /**
@@ -390,7 +569,7 @@ export abstract class RepositoryListManager<
       options.locale = localeCode;
     }
 
-    const cacheKey = this.generateCacheKey("count", options);
+    const cacheKey = this.cacheKey("count", options);
 
     let count = await this.cacheDriver.get(cacheKey);
 
@@ -412,11 +591,19 @@ export abstract class RepositoryListManager<
   }
 
   /**
+   * Count active records and cache it
+   */
+  public async countActiveCached(options: RepositoryOptions = {}) {
+    return await this.countCached({
+      isActive: true,
+      ...options,
+    });
+  }
+
+  /**
    * Cache the given key and value
    */
   protected async cache(key: string, value: any) {
-    if (!this.cacheDriver.exists || !this.isCacheable) return;
-
     return await this.cacheDriver.set(key, value);
   }
 
@@ -425,8 +612,8 @@ export abstract class RepositoryListManager<
    */
   public async listActiveCached(options: CachedRepositoryOptions = {}) {
     return this.listCached({
-      ...options,
       isActive: true,
+      ...options,
     });
   }
 
@@ -435,9 +622,54 @@ export abstract class RepositoryListManager<
    */
   public async listActive(options: RepositoryOptions = {}) {
     return this.list({
-      ...options,
       isActive: true,
+      ...options,
     });
+  }
+
+  /**
+   * Chunk records
+   */
+  public async chunk(
+    options: RepositoryOptions,
+    callback: (
+      documents: T[],
+      paginationInfo: PaginationListing<T>["paginationInfo"],
+    ) => Promise<false | any>,
+  ) {
+    //
+    if (
+      !options.limit &&
+      !this.defaultOptions.defaultLimit &&
+      !this.defaultOptions.limit
+    ) {
+      throw new Error(
+        "limit is missing in the chunk method, please pass it to the options or define it in this.options object",
+      );
+    }
+
+    const query = this.newList(options);
+
+    return await query.chunk(callback);
+  }
+
+  /**
+   * Chunk active records
+   */
+  public async chunkActive(
+    options: RepositoryOptions,
+    callback: (
+      documents: T[],
+      paginationInfo: PaginationListing<T>["paginationInfo"],
+    ) => Promise<false | any>,
+  ) {
+    return await this.chunk(
+      {
+        isActive: true,
+        ...options,
+      },
+      callback,
+    );
   }
 
   /**
@@ -445,9 +677,11 @@ export abstract class RepositoryListManager<
    */
   public async getActive(id: number | string, options: RepositoryOptions = {}) {
     return this.first({
-      id,
-      ...options,
       isActive: true,
+      perform(query) {
+        query.where("id", Number(id));
+      },
+      ...options,
     });
   }
 
@@ -456,7 +690,9 @@ export abstract class RepositoryListManager<
    */
   public async get(id: number, options: RepositoryOptions = {}) {
     return this.first({
-      id,
+      perform(query) {
+        query.where("id", Number(id));
+      },
       ...options,
     });
   }
@@ -465,13 +701,14 @@ export abstract class RepositoryListManager<
    * Get owned record
    */
   public async getOwned(userId: number, id: number, column = "createdBy") {
-    const record = await this.find(id);
-
-    if (!record) return null;
-
-    if (record.get(`${column}.id`) !== userId) return null;
-
-    return record;
+    return await this.first({
+      perform(query) {
+        query.where({
+          id: Number(id),
+          [`${column}.id`]: userId,
+        });
+      },
+    });
   }
 
   /**
@@ -485,7 +722,7 @@ export abstract class RepositoryListManager<
     return await this.list({
       ...options,
       perform(query) {
-        query.where(`${column}.id`, userId);
+        query.where(`${column}.id`, Number(userId));
       },
     });
   }
@@ -539,9 +776,9 @@ export abstract class RepositoryListManager<
   public async firstActive(options?: RepositoryOptions) {
     const { documents } = await this.list({
       orderBy: ["id", "asc"],
+      isActive: true,
       ...options,
       limit: 1,
-      isActive: true,
     });
 
     return documents[0] ?? null;
@@ -553,9 +790,9 @@ export abstract class RepositoryListManager<
   public async firstActiveCached(options?: RepositoryOptions) {
     const { documents } = await this.listCached({
       orderBy: ["id", "asc"],
+      isActive: true,
       ...options,
       limit: 1,
-      isActive: true,
     });
 
     return documents[0] ?? null;
@@ -593,9 +830,9 @@ export abstract class RepositoryListManager<
   public async lastActive(options?: RepositoryOptions) {
     const { documents } = await this.list({
       orderBy: ["id", "desc"],
+      isActive: true,
       ...options,
       limit: 1,
-      isActive: true,
     });
 
     return documents[0];
@@ -607,9 +844,9 @@ export abstract class RepositoryListManager<
   public async lastActiveCached(options?: RepositoryOptions) {
     const { documents } = await this.listCached({
       orderBy: ["id", "desc"],
+      isActive: true,
       ...options,
       limit: 1,
-      isActive: true,
     });
 
     return documents[0];
@@ -639,10 +876,37 @@ export abstract class RepositoryListManager<
   }
 
   /**
+   * Find active document
+   */
+  public async findActive(id: string | number | T) {
+    if (this.model && id instanceof this.model) return id as T;
+
+    return await this.findBy("id", Number(id));
+  }
+
+  /**
    * Find by the given column
    */
-  public async findBy(column: string, value: any): Promise<null | T> {
-    return await (this.model as any).findBy(column, value);
+  public async findBy(column: string, value: any) {
+    return this.first({
+      perform(query) {
+        query.where(column, value);
+      },
+    });
+  }
+
+  /**
+   * Find by the given column and make sure it is active
+   */
+  public async findByActive(column: string, value: any) {
+    return this.first({
+      perform(query) {
+        query.where({
+          isActive: true,
+          [column]: value,
+        });
+      },
+    });
   }
 
   /**
@@ -659,7 +923,7 @@ export abstract class RepositoryListManager<
    * Find by the given column and cache it
    * @alias getCachedBy
    */
-  public async findByCached(column: string, value: any): Promise<null | T> {
+  public async findByCached(column: string, value: any) {
     return await this.getCachedBy(column, value);
   }
 }

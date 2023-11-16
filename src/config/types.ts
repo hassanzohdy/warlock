@@ -8,13 +8,19 @@ export type WarlockConfigBuild = {
    *
    * @default "dist"
    */
-  outputDir?: string;
+  outDirectory?: string;
   /**
    * Output file name for the application entry point.
    *
    * @default "main.js"
    */
-  entryFileName?: string;
+  outFile?: string;
+  /**
+   * Whether to bundle the dependencies or not.
+   *
+   * @default false
+   */
+  bundle?: boolean;
 };
 
 export type WarlockConfig = {

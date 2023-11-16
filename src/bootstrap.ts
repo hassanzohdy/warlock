@@ -1,15 +1,16 @@
+import { colors } from "@mongez/copper";
 import { loadEnv } from "@mongez/dotenv";
 import { captureAnyUnhandledRejection } from "@mongez/logger";
 import { initializeDayjs } from "@mongez/time-wizard";
-import { colors} from "@mongez/copper";
+import { environment } from "./utils/environment";
 
 export async function bootstrap() {
-  const environment =
-    process.env.NODE_ENV === "production"
+  const environmentMode =
+    environment() === "production"
       ? colors.cyan("production")
       : colors.green("development");
 
-  console.log(`Application is running in ${environment} mode`);
+  console.log(`Application is running in ${environmentMode} mode`);
 
   loadEnv();
   initializeDayjs();

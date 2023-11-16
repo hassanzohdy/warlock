@@ -8,6 +8,7 @@ export * from "./console";
 export * from "./http";
 export * from "./image";
 export * from "./loaders";
+export * from "./logger";
 export * from "./mail";
 export * from "./modules";
 export * from "./output";

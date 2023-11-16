@@ -133,22 +133,68 @@ export type FilterByOptions = {
 export type SaveMode = "create" | "update" | "patch";
 
 export type RepositoryOptions = {
+  /**
+   * Default limit for listing
+   *
+   * @default 15
+   */
   defaultLimit?: number;
+  /**
+   * Whether to paginate the results or not
+   *
+   * @default true
+   */
   paginate?: boolean;
+  /**
+   * If passed, it will be used instead of the default limit
+   *
+   * @default undefined
+   */
   limit?: number;
-  owned?: boolean;
+  /**
+   * Page number
+   *
+   * @default 1
+   */
   page?: number;
+  /**
+   * Select only the passed columns, useful for performance
+   *
+   * @default *
+   */
   select?: string[];
+  /**
+   * Deselect the given array of columns, useful when need to hide some columns
+   * especially when dealing with conditional data
+   */
   deselect?: string[];
+  /**
+   * Whether to clear cache, works only when cache is enabled
+   */
   purgeCache?: boolean;
+  /**
+   * Order the documents.
+   * It can be an object, the key is the column name and the value is the order direction it can be asc or desc
+   * It could also be an array, first item is the column name and the second is the order direction
+   * If set to `random` the documents will be ordered randomly
+   *
+   * @default {id: 'desc'}
+   */
   orderBy?:
+    | "random"
     | string
     | [string, "asc" | "desc"]
     | {
         [key: string]: "asc" | "desc";
       };
+  /**
+   * Perform a query by using the query aggregate, useful for advanced queries
+   */
+  perform?: (query: ModelAggregate<any>, options: RepositoryOptions) => void;
+  /**
+   * Any additional options to be passed to the list method
+   */
   [key: string]: any;
-  perform?: (query: ModelAggregate<any>) => void;
 };
 
 export type CachedRepositoryOptions = RepositoryOptions & {

@@ -27,11 +27,11 @@ export async function buildHttpForProduction() {
     platform: "node",
     entryPoints: [httpLoader.httpDevelopmentPath],
     bundle: true,
-    packages: "external",
+    packages: config.build.bundle ? undefined : "external",
     minify: true,
     legalComments: "linked",
     target: ["esnext"],
-    outfile: path.resolve(config.build.outputDir, config.build.entryFileName),
+    outfile: path.resolve(config.build.outDirectory, config.build.outFile),
     plugins: [nativeNodeModulesPlugin],
   });
 

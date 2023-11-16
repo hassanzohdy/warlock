@@ -53,6 +53,7 @@ export class LocalizedRule extends Rule {
       type,
       placeholders,
     };
+
     this.isValid = false;
   }
 

@@ -10,13 +10,14 @@ export class FloatRule extends Rule {
    * Validate the rule
    */
   public async validate() {
-    this.isValid = Number.isFinite(Number(this.value));
+    const value = Number(this.value);
+    this.isValid = !isNaN(value) && !Number.isInteger(value);
   }
 
   /**
    * Get error message
    */
   public error() {
-    return this.trans("integer");
+    return this.trans("float");
   }
 }

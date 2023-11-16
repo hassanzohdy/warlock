@@ -1,14 +1,18 @@
 import { GenericObject } from "@mongez/reinforcements";
 
-export type CacheDriver<ClientType, Options> = {
+export interface CacheDriver<ClientType, Options> {
   /**
    * The cache driver options
    */
   options: Options;
   /**
+   * Cache driver name
+   */
+  name: string;
+  /**
    *  Remove all cached items by namespace
    */
-  removeByNamespace(namespace: string): Promise<any>;
+  removeNamespace(namespace: string): Promise<any>;
   /**
    * Set the cache driver options
    */
@@ -19,12 +23,16 @@ export type CacheDriver<ClientType, Options> = {
   parseKey(key: string | GenericObject): string;
   /**
    * Set a value in the cache
+   *
+   * @param key The cache key, could be an object or string
+   * @param value The value to be stored in the cache
+   * @param ttl The time to live in seconds
    */
-  set(key: string | GenericObject, value: any): Promise<any>;
+  set(key: string | GenericObject, value: any, ttl?: number): Promise<any>;
   /**
    * Get a value from the cache
    */
-  get(key: string | GenericObject): Promise<any>;
+  get(key: string | GenericObject): Promise<any | null>;
   /**
    * Remove a value from the cache
    */
@@ -41,8 +49,36 @@ export type CacheDriver<ClientType, Options> = {
    * The cache client
    */
   client?: ClientType;
+}
+
+export type CacheData = {
   /**
-   * Any other properties
+   * Value stored in the cache
    */
-  [key: string]: any;
+  data: any;
+  /**
+   * The expiration date in milliseconds
+   */
+  expiresAt?: number;
+};
+
+export type DriverClass = new () => CacheDriver<any, any>;
+
+export type CacheConfigurations = {
+  /**
+   * The default cache driver name
+   */
+  default?: string;
+  /**
+   * The cache drivers list
+   */
+  drivers: {
+    [name: string]: DriverClass;
+  };
+  /**
+   * The cache driver options
+   */
+  options: {
+    [name: string]: any;
+  };
 };
