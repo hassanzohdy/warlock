@@ -3,7 +3,7 @@ export * from "./auth";
 export * from "./aws";
 export * from "./bootstrap";
 export * from "./cache";
-export * from "./config";
+export * from "./config/index";
 export * from "./console";
 export * from "./http";
 export * from "./image";
