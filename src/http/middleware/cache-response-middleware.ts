@@ -1,19 +1,11 @@
 import { except } from "@mongez/reinforcements";
+import { cache } from "../../cache";
 import type { Request } from "./../request";
 import { Response } from "./../response";
 
-export type ResponseCache = {
-  set: (key: string, value: any) => void;
-  get: (key: string) => any;
-  has: (key: string) => boolean;
-  delete: (key: string) => void;
-  clear: () => void;
-};
-
-export const responseCache = new Map<string, any>() as ResponseCache;
-
 // TODO: Add option to determine whether to cache the response or not
 // TODO: add option to determine what to be cached from the response
+// TODO: add cache middleware config options for example to set the default driver, ttl, etc
 
 export type CacheMiddlewareOptions = {
   /**
@@ -31,10 +23,6 @@ export type CacheMiddlewareOptions = {
    */
   withLocale?: boolean;
   /**
-   * Cache tags that would be used to clear the cache
-   */
-  tags?: string[];
-  /**
    * List of keys from the response object to omit from the cached response
    *
    * @default ['user']
@@ -44,6 +32,13 @@ export type CacheMiddlewareOptions = {
    * Expires after number of seconds
    */
   expiresAfter?: number;
+  /**
+   * Cache driver
+   *
+   * @see config/cache.ts: drivers object
+   * @default memory
+   */
+  driver?: string;
 };
 
 const defaultCacheOptions: Partial<CacheMiddlewareOptions> = {
@@ -93,10 +88,12 @@ export function cacheMiddleware(
       expiresAfter,
       omit = ["user", "settings"],
       cacheKey,
+      driver = "memory",
     } = await parseCacheOptions(responseCacheOptions, request);
 
-    const content = responseCache.get(cacheKey);
-    console.log(cacheKey, content);
+    const cacheDriver = await cache.use(driver);
+
+    const content = await cacheDriver.get(cacheKey);
 
     if (content) {
       const output = content.data;
@@ -105,9 +102,9 @@ export function cacheMiddleware(
     }
 
     if (expiresAfter) {
-      response.onSending((response: Response) => {
-        response.header("Cache-Control", `max-age=${expiresAfter}`);
-      });
+      // response.onSending((response: Response) => {
+      //   response.header("Cache-Control", `max-age=${expiresAfter}`);
+      // });
     }
 
     response.onSent((response: Response) => {
@@ -119,9 +116,7 @@ export function cacheMiddleware(
         data: except(response.body, omit),
       };
 
-      responseCache.set(cacheKey, content);
-
-      console.log(responseCache);
+      cacheDriver.set(cacheKey, content, expiresAfter);
     });
   };
 }

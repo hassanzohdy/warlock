@@ -71,8 +71,8 @@ export class CacheManager implements CacheDriver<any, any> {
   /**
    * {@inheritdoc}
    */
-  public async set(key: string, value: any) {
-    return this.currentDriver?.set(key, value);
+  public async set(key: string, value: any, ttl?: number) {
+    return this.currentDriver?.set(key, value, ttl);
   }
 
   /**

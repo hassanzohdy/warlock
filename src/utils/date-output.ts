@@ -33,15 +33,27 @@ export type DateOutputOptions = {
    */
   text?: boolean;
   /**
-   * If set to true, it will return the date in UTC timestamp
+   * If set to true, it will return the date in timestamp
+   *
+   * @default true
    */
-  utcTime?: boolean;
+  timestamp?: boolean;
   /**
    * If set to true, it will return a text representation of the date only
    *
    * @default true
    */
   date?: boolean;
+  /**
+   * Return ony the time
+   *
+   * @default true
+   */
+  time?: boolean;
+  /**
+   * Return the offset from the UTC time
+   */
+  offset?: boolean;
 };
 
 export type DateOutputReturn = {
@@ -50,15 +62,18 @@ export type DateOutputReturn = {
   text?: string;
   date?: string;
   timestamp?: number;
-  utcTime?: number;
+  time?: string;
+  offset?: number;
 };
 
 const defaultOptions: DateOutputOptions = {
   format: "DD-MM-YYYY hh:mm:ss A",
   humanTime: true,
   text: true,
-  utcTime: true,
   date: true,
+  timestamp: true,
+  time: true,
+  offset: true,
 };
 
 export function dateOutput(
@@ -83,16 +98,19 @@ export function dateOutput(
       dayjsDate = dayjsDate.tz(timezone);
     }
 
-    const dateObject = dayjsDate.toDate();
-
     const outputObject: DateOutputReturn = {};
 
     if (optionsData.format) {
       outputObject.format = dayjsDate.format(optionsData.format);
     }
 
-    if (optionsData.utcTime) {
-      outputObject.timestamp = dayjsDate.valueOf();
+    if (optionsData.timestamp) {
+      outputObject.timestamp = date.getTime();
+    }
+
+    // if there is a timezone, we need to return the offset from the UTC time
+    if (timezone) {
+      outputObject.offset = dayjsDate.utcOffset();
     }
 
     if (optionsData.humanTime) {
@@ -100,20 +118,17 @@ export function dateOutput(
     }
 
     if (optionsData.text) {
-      outputObject.text = new Intl.DateTimeFormat("en-US", {
-        dateStyle: "long",
-        timeStyle: "medium",
-      }).format(dateObject);
+      outputObject.text = dayjsDate.format(
+        "dddd, MMMM DD, YYYY [at] h:mm:ss A",
+      );
     }
 
     if (optionsData.date) {
-      outputObject.date = new Intl.DateTimeFormat("en-US", {
-        dateStyle: "long",
-      }).format(dateObject);
+      outputObject.date = dayjsDate.format("dddd, MMMM DD, YYYY");
     }
 
-    if (optionsData.utcTime) {
-      outputObject.utcTime = dayjsDate.tz("UTC").valueOf();
+    if (optionsData.time) {
+      outputObject.time = dayjsDate.format("h:mm:ss A");
     }
 
     return outputObject;
