@@ -50,18 +50,17 @@ type ParsedCacheOptions = CacheMiddlewareOptions & {
 };
 
 async function parseCacheOptions(
-  cacheOptions: CacheMiddlewareOptions | CacheMiddlewareOptions["cacheKey"],
+  cacheOptions: CacheMiddlewareOptions | string,
   request: Request,
 ) {
-  if (typeof cacheOptions === "string" || typeof cacheOptions === "function") {
-    const cacheKey =
-      typeof cacheOptions === "function"
-        ? await cacheOptions(request)
-        : cacheOptions;
-
+  if (typeof cacheOptions === "string") {
     cacheOptions = {
-      cacheKey,
+      cacheKey: cacheOptions,
     };
+  }
+
+  if (typeof cacheOptions.cacheKey === "function") {
+    cacheOptions.cacheKey = await cacheOptions.cacheKey(request);
   }
 
   const finalCacheOptions = {
@@ -79,9 +78,7 @@ async function parseCacheOptions(
 }
 
 export function cacheMiddleware(
-  responseCacheOptions:
-    | CacheMiddlewareOptions
-    | CacheMiddlewareOptions["cacheKey"],
+  responseCacheOptions: CacheMiddlewareOptions | string,
 ) {
   return async function (request: Request, response: Response) {
     const {
