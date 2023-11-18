@@ -10,7 +10,7 @@ import { nativeNodeModulesPlugin, startServerPlugin } from "./../esbuild";
 
 export async function startHttpApp() {
   const httpLoader = new HttpLoader();
-  httpLoader.build();
+  await httpLoader.build();
 
   // watch for any changes in the src directory, .env and tsconfig.json
   // if any change happens, we will restart the child process
@@ -43,13 +43,13 @@ export async function startHttpApp() {
   builder.rebuild();
   watcher.on(
     "all",
-    debounce((e, path) => {
+    debounce(async (e, path) => {
       if (e === "addDir") return;
 
       if (e === "unlink") {
         cachedFiles.delete(path);
 
-        httpLoader.build();
+        await httpLoader.build();
 
         builder.rebuild();
 
@@ -64,7 +64,7 @@ export async function startHttpApp() {
 
       cachedFiles.set(path, contents);
 
-      httpLoader.build();
+      await httpLoader.build();
 
       builder.rebuild();
     }, 10),

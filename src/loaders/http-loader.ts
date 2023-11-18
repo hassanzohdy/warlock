@@ -1,4 +1,4 @@
-import { fileExists, putFile } from "@mongez/fs";
+import { fileExists, putFileAsync } from "@mongez/fs";
 import { rtrim, trim } from "@mongez/reinforcements";
 import path from "path";
 import { srcPath, warlockPath } from "../utils";
@@ -48,7 +48,7 @@ export class HttpLoader {
   public async build() {
     await this.init();
 
-    putFile(
+    await putFileAsync(
       this.httpDevelopmentPath,
       this.paths.map(path => `import "${path}"`).join(";"),
     );

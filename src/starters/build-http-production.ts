@@ -15,7 +15,7 @@ export async function buildHttpForProduction() {
   const httpLoader = new HttpLoader();
   const config = await getWarlockConfig();
 
-  httpLoader.build();
+  await httpLoader.build();
 
   console.log(colors.magenta("Bundling project files..."));
 
