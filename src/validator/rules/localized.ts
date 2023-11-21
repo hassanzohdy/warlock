@@ -35,7 +35,7 @@ export class LocalizedRule extends Rule {
         });
       }
 
-      if (!value.value) {
+      if (value.value === undefined) {
         return this.markError("required", {
           input: `${this.input}.${index}.value`,
         });

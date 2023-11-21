@@ -17,7 +17,7 @@ export class InRule extends Rule {
    * Get error message
    */
   public error() {
-    return this.trans("minLength", {
+    return this.trans("in", {
       values: this.options.join("|"),
     });
   }

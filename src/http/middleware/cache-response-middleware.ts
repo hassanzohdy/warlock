@@ -45,7 +45,7 @@ const defaultCacheOptions: Partial<CacheMiddlewareOptions> = {
   withLocale: true,
 };
 
-type ParsedCacheOptions = CacheMiddlewareOptions & {
+type ParsedCacheOptions = Required<CacheMiddlewareOptions> & {
   cacheKey: string;
 };
 
@@ -74,6 +74,14 @@ async function parseCacheOptions(
     finalCacheOptions.cacheKey = `${finalCacheOptions.cacheKey}:${locale}`;
   }
 
+  if (!finalCacheOptions.omit) {
+    finalCacheOptions.omit = ["user", "settings"];
+  }
+
+  if (!finalCacheOptions.driver) {
+    finalCacheOptions.driver = "memory";
+  }
+
   return finalCacheOptions;
 }
 
@@ -81,12 +89,10 @@ export function cacheMiddleware(
   responseCacheOptions: CacheMiddlewareOptions | string,
 ) {
   return async function (request: Request, response: Response) {
-    const {
-      expiresAfter,
-      omit = ["user", "settings"],
-      cacheKey,
-      driver = "memory",
-    } = await parseCacheOptions(responseCacheOptions, request);
+    const { expiresAfter, omit, cacheKey, driver } = await parseCacheOptions(
+      responseCacheOptions,
+      request,
+    );
 
     const cacheDriver = await cache.use(driver);
 
@@ -105,7 +111,11 @@ export function cacheMiddleware(
     }
 
     response.onSent((response: Response) => {
-      if (response.statusCode > 299 || response.request.path !== request.path) {
+      if (
+        response.statusCode < 200 ||
+        response.statusCode > 299 ||
+        response.request.path !== request.path
+      ) {
         return;
       }
 
