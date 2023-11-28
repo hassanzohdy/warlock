@@ -1,6 +1,6 @@
 import config from "@mongez/config";
 import { fileSize } from "@mongez/fs";
-import { Random } from "@mongez/reinforcements";
+import { Random, ltrim } from "@mongez/reinforcements";
 import dayjs from "dayjs";
 import { Request, Response, UploadedFile } from "../../../http";
 import { uploadsPath } from "../../../utils";
@@ -11,15 +11,17 @@ async function getDirectory(directoryInput?: string) {
 
   const configDirectory = config.get("uploads.saveTo");
 
+  const path = dayjs().format("DD-MM-YYYY");
+
   if (configDirectory) {
     if (typeof configDirectory === "function") {
-      return await configDirectory();
+      return await configDirectory(path);
     }
 
     return configDirectory;
   }
 
-  return dayjs().format("DD-MM-YYYY");
+  return path;
 }
 
 export async function uploadFiles(request: Request, response: Response) {
@@ -31,7 +33,7 @@ export async function uploadFiles(request: Request, response: Response) {
 
   const isRandom = request.bool("random");
 
-  const baseDirectoryPath = getDirectory(directory);
+  const baseDirectoryPath = await getDirectory(directory);
 
   const addFile = async (file: UploadedFile) => {
     const hash = Random.string(64);
@@ -46,7 +48,7 @@ export async function uploadFiles(request: Request, response: Response) {
       name: file.name,
       fileHash: file.hash,
       hash: hash,
-      path: filePath,
+      path: ltrim(filePath, "/"),
       directory: fileDirectoryPath,
       size: fileSize(uploadsPath(filePath)),
       mimeType: file.mimeType,

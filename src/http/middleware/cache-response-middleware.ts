@@ -93,6 +93,7 @@ export function cacheMiddleware(
       responseCacheOptions,
       request,
     );
+    console.log({ expiresAfter, omit, cacheKey, driver });
 
     const cacheDriver = await cache.use(driver);
 

@@ -28,9 +28,9 @@ export async function getUploadedFile(request: Request, response: Response) {
     new Date(Date.now() + cacheTime * 1000).toUTCString(),
   );
 
-  const height = request.input("h");
-  const width = request.input("w");
-  const quality = request.input("q");
+  const height = request.int("h");
+  const width = request.int("w");
+  const quality = request.int("q");
 
   if (height || width || quality) {
     const imageOptions = {
@@ -63,7 +63,7 @@ export async function getUploadedFile(request: Request, response: Response) {
       image.resize(imageOptions);
 
       if (quality) {
-        image.quality(parseInt(quality));
+        image.quality(quality);
       }
 
       await image.save(cacheFullPath);

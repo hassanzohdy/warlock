@@ -78,7 +78,6 @@ export class BaseRepositoryManager<
    */
   public newModel(data?: any): T {
     const Model: any = this.model;
-
     return new Model(data);
   }
 }

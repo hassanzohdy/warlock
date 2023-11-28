@@ -41,7 +41,9 @@ export class Upload extends Model {
    * Get file full path
    */
   public get path() {
-    return uploadsPath(this.get("path"));
+    const path = this.get("path");
+
+    return uploadsPath(path);
   }
 
   /**
@@ -63,6 +65,13 @@ export class Upload extends Model {
    */
   public get isPDF() {
     return this.get("mimeType") === "application/pdf";
+  }
+
+  /**
+   * Get the hash value
+   */
+  public get hash(): string {
+    return this.get("hash");
   }
 }
 

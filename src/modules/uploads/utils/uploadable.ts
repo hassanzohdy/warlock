@@ -136,11 +136,19 @@ export function uploadableExtended(
     hash: any,
     column: string,
     model: Model,
+    sync = true,
   ): Promise<any> {
     if (Array.isArray(hash)) {
-      return await Promise.all(
-        hash.map(async (item: any) => await uploadable(item, column, model)),
+      const value = await Promise.all(
+        hash.map(
+          async (item: any) => await uploadable(item, column, model, false),
+        ),
       );
+
+      if (sync) {
+        // link the model to the upload
+        syncModelWithUpload(model, column, value);
+      }
     }
 
     if (hash?.value) {
@@ -153,14 +161,16 @@ export function uploadableExtended(
 
     if (!upload) return null;
 
-    // link the model to the upload
-    syncModelWithUpload(model, upload, column);
-
     if (typeof options === "function") {
       options = options(model);
     }
 
     upload.merge(options as GenericObject).silentSaving();
+
+    if (sync) {
+      // link the model to the upload
+      syncModelWithUpload(model, column, upload.hash);
+    }
 
     return {
       ...upload.embeddedData,
@@ -177,11 +187,25 @@ export async function uploadable(
   hash: any,
   column: string,
   model: Model,
+  sync = true,
 ): Promise<any> {
   if (Array.isArray(hash)) {
-    return await Promise.all(
-      hash.map(async (item: any) => await uploadable(item, column, model)),
+    const value = await Promise.all(
+      hash.map(
+        async (item: any) => await uploadable(item, column, model, false),
+      ),
     );
+
+    if (sync) {
+      // link the model to the upload
+      syncModelWithUpload(
+        model,
+        column,
+        value.map(value => value.hash),
+      );
+    }
+
+    return value;
   }
 
   if (hash?.value) {
@@ -192,41 +216,20 @@ export async function uploadable(
 
   const upload = await getUpload(hash);
 
-  // link the model to the upload
-  syncModelWithUpload(model, upload, column);
-
   if (!upload) return null;
+
+  if (sync) {
+    // link the model to the upload
+    syncModelWithUpload(model, column, upload.hash);
+  }
 
   return upload.embeddedData;
 }
 
 async function syncModelWithUpload(
   model: Model,
-  upload: Upload | null,
   column: string,
+  hash: string | string[],
 ) {
-  if (!upload) return;
-
-  const data = {
-    collection: model.getCollection(),
-    id: model.id || (await model.generateNextId()),
-    column,
-  };
-
-  const syncedModels = upload.get("syncedModels") || [];
-
-  if (
-    !syncedModels.find(
-      (item: any) =>
-        item.id === data.id &&
-        item.column === data.column &&
-        item.collection === data.collection,
-    )
-  ) {
-    syncedModels.push(data);
-
-    upload.set("syncedModels", syncedModels);
-
-    upload.silentSaving();
-  }
+  model.set("_uploads." + column, hash);
 }

@@ -26,7 +26,7 @@ export async function compressUploadingFile(file: Upload) {
   await image.saveAsWebp(newPath);
 
   file.set("name", fileName.replace(/(\.[a-zA-Z0-9]+)$/, ".webp"));
-  file.set("path", removeFirst(newPath, uploadsPath("/")));
+  file.set("path", removeFirst(newPath, uploadsPath()));
   file.set("mimeType", "image/webp");
   file.set("extension", "webp");
   file.set("size", fileSize(newPath));
