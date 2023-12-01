@@ -5,7 +5,7 @@
 // warlock build
 // warlock prod
 // warlock exec
-const chalk = require("chalk");
+const {colors} = require("@mongez/copper");
 const { spawnSync } = require("child_process");
 
 // warlock is the name of the bin so we want check it in the argsv
@@ -38,7 +38,7 @@ function executeCliCommands() {
   if (!command) {
     console.log(
       "You must specify the command you want to execute",
-      chalk.red("warlock exec <command>"),
+      colors.red("warlock exec <command>"),
     );
     process.exit(1);
   }
@@ -55,10 +55,10 @@ function main() {
   const { command, options } = parseArgs();
 
   if (!commandsList[command]) {
-    console.log("Invalid command", chalk.red(command));
+    console.log("Invalid command", colors.red(command));
     console.log(
       "Available commands",
-      chalk.green(
+      colors.green(
         Object.keys(commandsList).map(command => `warlock ${command}`),
       ),
     );
