@@ -34,8 +34,8 @@ export async function getUploadedFile(request: Request, response: Response) {
 
   if (height || width || quality) {
     const imageOptions = {
-      height,
-      width,
+      height: height || undefined,
+      width: width || undefined,
       quality,
     };
 

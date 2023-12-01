@@ -9,6 +9,7 @@ import { FastifyRequest } from "fastify";
 import type { Auth } from "../auth/models/auth";
 import type { Middleware, Route } from "../router";
 import { validateAll } from "../validator";
+import { ValidationSchema } from "../validator/validation-schema";
 import { Validator } from "../validator/validator";
 import { UploadedFile } from "./UploadedFile";
 import { httpConfig } from "./config";
@@ -117,12 +118,15 @@ export class Request<User extends Auth = any> {
   }
 
   /**
-   * Validate the given rules
+   * Validate the given validation schema
    */
-  public async validate(rules: any) {
-    this.validator.setRules(rules);
+  public async validate(validationSchema: ValidationSchema) {
+    this.validator.setValidationSchema(validationSchema);
 
-    return await this.validator.scan();
+    await this.validator.scan();
+    this.validator.triggerValidationUpdateEvent();
+
+    return this.validator;
   }
 
   /**
