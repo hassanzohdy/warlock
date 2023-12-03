@@ -1,15 +1,12 @@
 import type { Rule } from "./rules/rule";
-
-export type RuleType = string | Rule;
+import { RuleType, Validation } from "./types";
 
 export class ValidationSchema {
   /**
    * constructor
    */
   public constructor(
-    public readonly inputs: {
-      [key: string]: RuleType[] | ValidationSchema;
-    },
+    public readonly inputs: Validation,
     public readonly isArraySchema = false,
   ) {
     //

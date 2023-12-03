@@ -1,4 +1,5 @@
-import { Rule } from "./rules/rule";
+import type { Rule } from "./rules/rule";
+import type { ValidationSchema } from "./validation-schema";
 
 /**
  * Validation event types
@@ -70,4 +71,10 @@ export type ValidationConfigurations = {
    * Rules list that will be used in the validation process
    */
   rules?: Record<string, new (...args: any[]) => Rule>;
+};
+
+export type RuleType = string | Rule;
+
+export type Validation = {
+  [key: string]: RuleType[] | ValidationSchema;
 };

@@ -1,6 +1,6 @@
 {
     "name": "@mongez/warlock",
-    "version": "1.4.1",
+    "version": "1.4.2",
     "description": "A comprehensive nodejs framework for building nodejs applications",
     "main": "src/index.ts",
     "bin": "./bin/warlock.js",

@@ -8,7 +8,7 @@ import { isEmpty } from "@mongez/supportive-is";
 import { FastifyRequest } from "fastify";
 import type { Auth } from "../auth/models/auth";
 import type { Middleware, Route } from "../router";
-import { validateAll } from "../validator";
+import { Validation, validateAll } from "../validator";
 import { ValidationSchema } from "../validator/validation-schema";
 import { Validator } from "../validator/validator";
 import { UploadedFile } from "./UploadedFile";
@@ -49,11 +49,6 @@ export class Request<User extends Auth = any> {
   public static current: Request;
 
   /**
-   * Validator instance
-   */
-  protected validator!: Validator;
-
-  /**
    * Translation method
    * Type of it is the same as the type of trans function
    */
@@ -74,8 +69,6 @@ export class Request<User extends Auth = any> {
    */
   public setRequest(request: FastifyRequest) {
     this.baseRequest = request;
-
-    this.validator = new Validator(this);
 
     this.parsePayload();
 
@@ -120,13 +113,19 @@ export class Request<User extends Auth = any> {
   /**
    * Validate the given validation schema
    */
-  public async validate(validationSchema: ValidationSchema) {
-    this.validator.setValidationSchema(validationSchema);
+  public async validate(validation: Validation | ValidationSchema) {
+    const validationSchema =
+      validation instanceof ValidationSchema
+        ? validation
+        : new ValidationSchema(validation, false);
 
-    await this.validator.scan();
-    this.validator.triggerValidationUpdateEvent();
+    const validator = new Validator(this);
+    validator.setValidationSchema(validationSchema);
 
-    return this.validator;
+    await validator.scan();
+    validator.triggerValidationUpdateEvent();
+
+    return validator;
   }
 
   /**

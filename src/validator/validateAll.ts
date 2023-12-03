@@ -2,7 +2,6 @@ import config from "@mongez/config";
 import { log } from "@mongez/logger";
 import { Request, Response } from "../http";
 import { Route } from "../router";
-import { ValidationSchema } from "./validation-schema";
 import { Validator } from "./validator";
 
 /**
@@ -19,11 +18,7 @@ export async function validateAll(
 
   if (validation.rules) {
     try {
-      const rules =
-        validation.rules instanceof ValidationSchema
-          ? validation.rules
-          : new ValidationSchema(validation.rules, false);
-      const validator = await request.validate(rules);
+      const validator = await request.validate(validation.rules);
 
       if (validator.fails()) {
         return response.validationFailed(validator);
