@@ -20,6 +20,7 @@ import {
   RouteHandlerValidation,
   RouteOptions,
   RouteResource,
+  RouterStacks,
 } from "./types";
 
 export class Router {
@@ -32,6 +33,16 @@ export class Router {
    * Router Instance
    */
   private static instance: Router;
+
+  /**
+   * Stacks
+   * Stacks will be used for grouping routes to add prefix, name or middleware
+   */
+  protected stacks: RouterStacks = {
+    prefix: [],
+    name: [],
+    middleware: [],
+  };
 
   /**
    * Get router instance
@@ -62,6 +73,26 @@ export class Router {
       return this;
     }
 
+    path = this.stacks.prefix.reduce((path, prefix) => {
+      return concatRoute(prefix, path);
+    }, path);
+
+    // admin
+    // users
+    // list
+    const name = this.stacks.name.reduceRight(
+      (name, prefixName) => {
+        // admin.list
+        return trim(prefixName + "." + name, ".");
+      },
+      options.name || trim(path.replace(/\//g, "."), "."),
+    );
+
+    options.middleware = [
+      ...(options.middleware || []),
+      ...this.stacks.middleware,
+    ];
+
     if (Array.isArray(handler)) {
       const [controller, action] = handler;
 
@@ -90,6 +121,7 @@ export class Router {
       path,
       handler,
       ...options,
+      name,
     };
 
     if (routeData.name) {
@@ -331,67 +363,46 @@ export class Router {
   /**
    * Group routes with options
    */
-  public group(options: GroupedRoutesOptions, callback?: () => void) {
-    const { prefix, name, method, middleware, routes } = options;
+  public group(options: GroupedRoutesOptions, callback: () => void) {
+    const {
+      prefix,
+      // name must always be defined because
+      // if there are multiple groups without name
+      // they might generate the same route name
+      // thus causing an error
+      // in this case we need always to make sure that
+      // the name is always defined.
+      name = prefix ? trim(prefix.replace(/\//g, "."), ".") : undefined,
+      middleware,
+    } = options;
 
-    const applyGroupOptionsOnRoutes = (
-      // type is routes of grouped routes options but it has to be changed to be strict
-      routes: Route[],
-    ) => {
-      routes.forEach(route => {
-        if (prefix) {
-          route.path = concatRoute(prefix, route.path);
-        }
-
-        if (name) {
-          route.name =
-            name + "." + (route.name || route.path.replace(/\/|:/g, "."));
-        }
-
-        // replace multiple . with one .
-        if (route.name) {
-          route.name = route.name.replace(/\.{2,}/g, ".");
-        } else {
-          route.name = route.path.replace(/\/|:/g, ".");
-        }
-
-        if (route.name) {
-          route.name = trim(route.name, ".");
-        }
-
-        if (method) {
-          route.method = method;
-        }
-
-        if (!route.method) {
-          route.method = "GET";
-        }
-
-        if (middleware) {
-          route.middleware = route.middleware
-            ? [...middleware, ...route.middleware]
-            : middleware;
-        }
-
-        this.add(route.method, route.path, route.handler, route);
-      });
-    };
-
-    if (routes) {
-      applyGroupOptionsOnRoutes(routes as Route[]);
+    if (prefix) {
+      this.stacks.prefix.push(prefix);
     }
 
-    if (callback) {
-      const currentRoutes = [...this.routes];
-      callback();
-      // get new routes
-      const newRoutes = this.routes.filter(
-        route => !currentRoutes.includes(route),
+    if (name) {
+      this.stacks.name.push(name);
+    }
+
+    if (middleware) {
+      this.stacks.middleware.push(...middleware);
+    }
+
+    callback();
+
+    if (prefix) {
+      this.stacks.prefix.pop();
+    }
+
+    if (name) {
+      this.stacks.name.pop();
+    }
+
+    if (middleware) {
+      this.stacks.middleware.splice(
+        this.stacks.middleware.length - middleware.length,
+        middleware.length,
       );
-
-      this.routes = [...currentRoutes];
-
-      applyGroupOptionsOnRoutes(newRoutes);
     }
 
     return this;
@@ -400,7 +411,7 @@ export class Router {
   /**
    * Add prefix to all routes in the given callback
    */
-  public prefix(prefix: string, callback?: () => void) {
+  public prefix(prefix: string, callback: () => void) {
     return this.group({ prefix }, callback);
   }
 

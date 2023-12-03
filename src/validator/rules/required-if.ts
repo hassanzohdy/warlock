@@ -28,13 +28,13 @@ export class RequiredIfRule extends Rule {
       return;
     }
 
-    const [otherInput, expectedValue] = this.options;
+    const [otherInput, ...expectedValue] = this.options;
 
     const otherInputValue = this.request.input(otherInput);
 
     if (isEmpty(otherInputValue)) return;
 
-    this.isValid = otherInputValue === expectedValue;
+    this.isValid = expectedValue.includes(otherInputValue);
   }
 
   /**

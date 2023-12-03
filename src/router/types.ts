@@ -118,14 +118,6 @@ export type GroupedRoutesOptions = {
    * This will be added to each route as a name prefix
    */
   name?: string;
-  /**
-   * If set, all route methods will be set to this method
-   */
-  method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-  /**
-   * Routes list
-   */
-  routes?: PartialPick<Route, "method">[];
 };
 
 /** Route resource */
@@ -179,4 +171,10 @@ export type RouteResource = {
      */
     patch?: RouteHandlerValidation;
   };
+};
+
+export type RouterStacks = {
+  prefix: string[];
+  name: string[];
+  middleware: Middleware[];
 };
