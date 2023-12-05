@@ -58,8 +58,8 @@ export class ExistsRule extends UniqueRule {
     const value = this.isCaseSensitive
       ? String(this.value).toLowerCase()
       : isNumeric(this.value)
-      ? Number(this.value)
-      : this.value;
+        ? Number(this.value)
+        : this.value;
 
     const column = this.columnName || this.input;
 

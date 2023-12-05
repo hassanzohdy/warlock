@@ -467,6 +467,7 @@ export class Output {
   protected parseDate(value: any, format = this.dateFormat) {
     return dateOutput(value, {
       format,
+      locale: requestContext()?.request?.locale,
     });
   }
 }

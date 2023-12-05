@@ -54,6 +54,12 @@ export type DateOutputOptions = {
    * Return the offset from the UTC time
    */
   offset?: boolean;
+  /**
+   * Locale code
+   *
+   * Please note that you must import the dayjs locale file before using it
+   */
+  locale?: string;
 };
 
 export type DateOutputReturn = {
@@ -96,6 +102,10 @@ export function dateOutput(
 
     if (timezone) {
       dayjsDate = dayjsDate.tz(timezone);
+    }
+
+    if (options?.locale) {
+      dayjsDate = dayjsDate.locale(options.locale);
     }
 
     const outputObject: DateOutputReturn = {};

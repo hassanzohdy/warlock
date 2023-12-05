@@ -5,12 +5,13 @@ import { initializeDayjs } from "@mongez/time-wizard";
 import { environment } from "./utils/environment";
 
 export async function bootstrap() {
-  const environmentMode =
-    environment() === "production"
-      ? colors.cyan("production")
-      : colors.green("development");
-
-  console.log(`Application is running in ${environmentMode} mode`);
+  console.log(
+    colors.blueBright("ℹ"),
+    colors.yellow(`(${new Date().toISOString()})`),
+    colors.orange("[warlock]"),
+    colors.magenta(`[${environment()}]`),
+    colors.blueBright("Starting the http application"),
+  );
 
   loadEnv();
   initializeDayjs();

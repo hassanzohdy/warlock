@@ -11,7 +11,10 @@ export class ProviderUser {
   /**
    * Constructor
    */
-  public constructor(public userData: ProviderData, public provider: string) {
+  public constructor(
+    public userData: ProviderData,
+    public provider: string,
+  ) {
     //
   }
 

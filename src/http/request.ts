@@ -86,6 +86,9 @@ export class Request<User extends Auth = any> {
     return this.header("translation-locale-code") || this.localized;
   }
 
+  /**
+   * Get locale code that will be used for translation
+   */
   public get localized() {
     return (
       this.header("locale-code") ||

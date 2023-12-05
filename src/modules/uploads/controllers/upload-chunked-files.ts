@@ -157,7 +157,10 @@ class ChunkedFileQueue {
   /**
    * Constructor
    */
-  public constructor(public filePath: string, public totalChunks: number) {
+  public constructor(
+    public filePath: string,
+    public totalChunks: number,
+  ) {
     //
   }
 

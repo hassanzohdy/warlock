@@ -1,6 +1,6 @@
 {
     "name": "@mongez/warlock",
-    "version": "1.4.3",
+    "version": "1.4.4",
     "description": "A comprehensive nodejs framework for building nodejs applications",
     "main": "src/index.ts",
     "bin": "./bin/warlock.js",
@@ -24,7 +24,7 @@
         "@mongez/http": "^2.2.6",
         "@mongez/localization": "^2.2.4",
         "@mongez/logger": "^1.0.10",
-        "@mongez/monpulse": "^1.0.19",
+        "@mongez/monpulse": "^1.0.20",
         "@mongez/password": "^1.0.2",
         "@mongez/reinforcements": "^2.3.9",
         "@mongez/slug": "^1.0.7",
