@@ -1,4 +1,5 @@
 import { Casts, Model } from "@mongez/monpulse";
+import { trim } from "@mongez/reinforcements";
 import { UploadOutput } from "../output/upload-output";
 import { uploadsPath } from "./../../../utils";
 
@@ -43,7 +44,7 @@ export class Upload extends Model {
   public get path() {
     const path = this.get("path");
 
-    return uploadsPath(path);
+    return uploadsPath(trim(path, "/"));
   }
 
   /**
