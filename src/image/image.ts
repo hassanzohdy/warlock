@@ -139,6 +139,35 @@ export class Image {
   }
 
   /**
+   * Add multiple watermarks
+   */
+  public async watermarks(
+    watermarks: {
+      image: Parameters<typeof sharp>[0] | Image;
+      options: sharp.OverlayOptions;
+    }[],
+  ) {
+    const images = await Promise.all(
+      watermarks.map(async ({ image }) => {
+        if (!(image instanceof Image)) {
+          image = new Image(image);
+        }
+
+        return await image.toBuffer();
+      }),
+    );
+
+    this.image.composite(
+      watermarks.map(({ options }, index) => ({
+        input: images[index],
+        ...options,
+      })),
+    );
+
+    return this;
+  }
+
+  /**
    * Rotate image
    */
   public rotate(angle: number) {

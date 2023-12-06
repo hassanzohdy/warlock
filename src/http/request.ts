@@ -93,7 +93,9 @@ export class Request<User extends Auth = any> {
     return (
       this.header("locale-code") ||
       this.header("locale") ||
-      this.query["locale"]
+      this.query["locale"] ||
+      this.query["localeCode"] ||
+      this.query["locale-code"]
     );
   }
 
