@@ -470,4 +470,13 @@ export class Output {
       locale: requestContext()?.request?.locale,
     });
   }
+
+  /**
+   * Return an array of the given object for response output
+   */
+  public arrayOf(options: FinalOutput) {
+    return class AnonymousOutput extends Output {
+      protected output: FinalOutput = options;
+    };
+  }
 }

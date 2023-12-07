@@ -178,12 +178,6 @@ export abstract class BaseCacheDriver<ClientType, Options extends GenericObject>
    * Parse fetched data from cache
    */
   protected async parseCachedData(key: string, data: CacheData) {
-    if (data.expiresAt && data.expiresAt < new Date().getTime()) {
-      this.log("expired", key);
-
-      return this.remove(key);
-    }
-
     this.log("fetched", key);
 
     return data.data || null;

@@ -30,6 +30,40 @@ export class MemoryCacheDriver
   public data: GenericObject = {};
 
   /**
+   * List of data that will be cleared from cache
+   */
+  protected temporaryData: Record<string, number> = {};
+
+  /**
+   * {@inheritdoc}
+   */
+  public constructor() {
+    super();
+
+    this.startCleanup();
+  }
+
+  /**
+   * Start the cleanup process whenever a data that has a cache key is set
+   */
+  public startCleanup() {
+    const interval = setInterval(() => {
+      const now = Date.now();
+
+      for (const key in this.temporaryData) {
+        if (this.temporaryData[key] <= now) {
+          this.remove(key);
+          delete this.temporaryData[key];
+          this.log("expired", key);
+        }
+      }
+    }, 1000);
+
+    // do not block the process from exiting
+    interval.unref();
+  }
+
+  /**
    * {@inheritdoc}
    */
   public async removeNamespace(namespace: string) {
@@ -51,6 +85,11 @@ export class MemoryCacheDriver
     this.log("caching", key);
 
     const data = this.prepareDataForStorage(value, ttl);
+
+    if (ttl) {
+      // it means we need to check for expiration
+      this.temporaryData[key] = Date.now() + ttl * 1000;
+    }
 
     set(this.data, key, data);
 
