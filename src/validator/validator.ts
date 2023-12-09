@@ -1,8 +1,9 @@
-import events from "@mongez/events";
 import { Request } from "../http";
 import { ValidationEvent } from "./types";
 import { ValidationSchema } from "./validation-schema";
 import { ValidationSchemaValidator } from "./validation-schema-validator";
+import { validatorEvents } from "./validator-events";
+
 export class Validator {
   /**
    * Errors list
@@ -79,19 +80,12 @@ export class Validator {
   }
 
   /**
-   * Trigger validation event
-   */
-  public static trigger(eventName: ValidationEvent, ...args: any[]) {
-    return events.trigger(`validation.${eventName}`, ...args);
-  }
-
-  /**
    * Listen to the given event name
    */
   public static on(
     eventName: ValidationEvent,
     callback: (...args: any[]) => void,
   ) {
-    return events.subscribe(`validation.${eventName}`, callback);
+    return validatorEvents.on(eventName, callback);
   }
 }

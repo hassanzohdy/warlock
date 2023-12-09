@@ -2,7 +2,7 @@ import type { Request } from "../http";
 import { ArrayRule, RequiredRule } from "./rules";
 import { RulesList } from "./rules-list";
 import { ValidationSchema } from "./validation-schema";
-import { Validator } from "./validator";
+import { validatorEvents } from "./validator-events";
 
 export class ValidationSchemaValidator {
   /**
@@ -174,14 +174,14 @@ export class ValidationSchemaValidator {
   public triggerValidationUpdateEvent() {
     // 👇🏻 trigger validation done
     const passes = this.passes();
-    Validator.trigger("done", passes, this.validationSchema.inputs, this);
+    validatorEvents.trigger("done", passes, this.validationSchema.inputs, this);
 
     // 👇🏻 check if validation passes, then trigger the passes event
     // otherwise trigger fails event
     if (passes) {
-      Validator.trigger("passes", this.validationSchema.inputs, this);
+      validatorEvents.trigger("passes", this.validationSchema.inputs, this);
     } else {
-      Validator.trigger("fails", this.validationSchema.inputs, this);
+      validatorEvents.trigger("fails", this.validationSchema.inputs, this);
     }
   }
 

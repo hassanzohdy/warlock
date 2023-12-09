@@ -5,3 +5,4 @@ export * from "./types";
 export * from "./validateAll";
 export * from "./validation-schema";
 export * from "./validator";
+export * from "./validator-events";

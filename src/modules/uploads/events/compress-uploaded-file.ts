@@ -11,30 +11,35 @@ export async function compressUploadingFile(file: Upload) {
 
   // skip if file is webp
   if (file.get("extension") === "webp") return;
+  try {
+    const fullFilePath = file.path;
+    const fileName = file.get("name");
 
-  const fullFilePath = file.path;
-  const fileName = file.get("name");
+    // convert the image to webp
+    log("upload", "compressing", "Compressing " + fileName + "...", "info");
 
-  // convert the image to webp
-  log("upload", "compressing", "Compressing " + fileName + "...", "info");
+    const image = new Image(fullFilePath);
 
-  const image = new Image(fullFilePath);
+    // replace the end of the file path with .webp
+    const newPath = fullFilePath.replace(/(\.[a-zA-Z0-9]+)$/, ".webp");
 
-  // replace the end of the file path with .webp
-  const newPath = fullFilePath.replace(/(\.[a-zA-Z0-9]+)$/, ".webp");
+    await image.saveAsWebp(newPath);
 
-  await image.saveAsWebp(newPath);
+    file.set("name", fileName.replace(/(\.[a-zA-Z0-9]+)$/, ".webp"));
+    file.set("path", removeFirst(newPath, uploadsPath()));
+    file.set("mimeType", "image/webp");
+    file.set("extension", "webp");
+    file.set("size", fileSize(newPath));
 
-  file.set("name", fileName.replace(/(\.[a-zA-Z0-9]+)$/, ".webp"));
-  file.set("path", removeFirst(newPath, uploadsPath()));
-  file.set("mimeType", "image/webp");
-  file.set("extension", "webp");
-  file.set("size", fileSize(newPath));
+    log("upload", "compressed", "Compressed " + fileName + "...", "success");
 
-  log("upload", "compressed", "Compressed " + fileName + "...", "success");
-
-  // now remove the original file
-  removePath(fullFilePath);
+    // now remove the original file
+    removePath(fullFilePath);
+  } catch (error: any) {
+    // do nothing
+    console.log("Compressing Error", error.message);
+    log.error("upload", "compressing", error.message);
+  }
 }
 
 export function compressImageWhileUploading() {

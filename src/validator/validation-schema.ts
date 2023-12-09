@@ -1,5 +1,5 @@
 import type { Rule } from "./rules/rule";
-import { RuleType, Validation } from "./types";
+import type { RuleType, Validation } from "./types";
 
 export class ValidationSchema {
   /**
