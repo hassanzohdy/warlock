@@ -1,6 +1,6 @@
-import { Model } from "@mongez/monpulse";
-import { GenericObject } from "@mongez/reinforcements";
-import { Output } from "./output";
+import type { Model } from "@mongez/monpulse";
+import type { GenericObject } from "@mongez/reinforcements";
+import type { Output } from "./output";
 
 /**
  * Built in casts

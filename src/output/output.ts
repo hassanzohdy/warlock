@@ -1,13 +1,13 @@
 /* eslint-disable no-case-declarations */
 import { Model } from "@mongez/monpulse";
-import { GenericObject, get, set, unset } from "@mongez/reinforcements";
+import { get, set, unset, type GenericObject } from "@mongez/reinforcements";
 import { isEmpty, isObject, isPlainObject } from "@mongez/supportive-is";
 import dayjs from "dayjs";
-import { Request } from "../http";
+import { type Request } from "../http";
 import { requestContext } from "../http/middleware/inject-request-context";
 import { dateOutput } from "../utils/date-output";
 import { assetsUrl, uploadsUrl, url } from "../utils/urls";
-import {
+import type {
   FinalOutput,
   OutputCastType,
   OutputResource,
@@ -474,7 +474,7 @@ export class Output {
   /**
    * Return an array of the given object for response output
    */
-  public arrayOf(options: FinalOutput) {
+  public arrayOf(options: FinalOutput): typeof Output {
     return class AnonymousOutput extends Output {
       protected output: FinalOutput = options;
     };
