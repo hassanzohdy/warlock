@@ -1,10 +1,11 @@
-import { copyFile, ensureDirectory, putFile } from "@mongez/fs";
+import { copyFile, ensureDirectory } from "@mongez/fs";
 import Endpoint from "@mongez/http";
 import { Model } from "@mongez/monpulse";
 import { GenericObject, Random, trim } from "@mongez/reinforcements";
 import { isUrl } from "@mongez/supportive-is";
 import { AxiosResponse } from "axios";
 import dayjs from "dayjs";
+import { writeFileSync } from "fs";
 import path from "path";
 import { Upload } from "../models";
 import { Image } from "./../../../image";
@@ -53,6 +54,8 @@ export async function uploadFromFile(file: File) {
 async function getUpload(hash: any) {
   if (!hash) return null;
 
+  if (hash instanceof Upload) return hash;
+
   if (isUrl(hash)) {
     return await uploadFromUrl(hash);
   }
@@ -99,7 +102,7 @@ export async function uploadFromUrl(url: string) {
 
   const fullPath = uploadPath + "/" + filePath;
 
-  putFile(fullPath, fileContent);
+  writeFileSync(fullPath, fileContent);
 
   const fileData = {
     name: fileName,
