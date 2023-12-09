@@ -1,3 +1,4 @@
+import config from "@mongez/config";
 import { copyFile, ensureDirectory } from "@mongez/fs";
 import Endpoint from "@mongez/http";
 import { Model } from "@mongez/monpulse";
@@ -67,6 +68,23 @@ async function getUpload(hash: any) {
   return await Upload.findBy("hash", hash);
 }
 
+async function getDirectory() {
+  const configDirectory = config.get("uploads.saveTo");
+
+  const hash = Random.string(32);
+
+  const path = dayjs().format("DD-MM-YYYY") + "/" + hash;
+
+  if (configDirectory) {
+    if (typeof configDirectory === "function") {
+      return await configDirectory(path);
+    }
+
+    return configDirectory;
+  }
+
+  return path;
+}
 export async function uploadFromUrl(url: string) {
   const urlHandler = new URL(url);
   // get file name from url
@@ -76,15 +94,15 @@ export async function uploadFromUrl(url: string) {
 
   const fileExtension = fileName.split(".").pop();
 
-  const date = dayjs().format("DD-MM-YYYY");
-
   const hash = Random.string(32);
 
   // file path should be date/hash/file.extension
   // const filePath = fileName + "." + fileExtension;
   const filePath = fileName;
 
-  const uploadPath = uploadsPath(date + "/" + hash);
+  const directoryPath = await getDirectory();
+
+  const uploadPath = uploadsPath(directoryPath);
 
   ensureDirectory(uploadPath);
 
@@ -109,7 +127,7 @@ export async function uploadFromUrl(url: string) {
   const fileData = {
     name: fileName,
     hash: hash,
-    path: date + "/" + hash + "/" + filePath,
+    path: directoryPath + "/" + filePath,
     size: fileSize,
     mimeType: fileMimeType,
     extension: fileExtension,
