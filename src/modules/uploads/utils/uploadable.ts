@@ -90,7 +90,9 @@ export async function uploadFromUrl(url: string) {
 
   const request = new Endpoint({ baseURL: "" });
 
-  const response: AxiosResponse = await request.get(url);
+  const response: AxiosResponse = await request.get(url, {
+    responseType: "arraybuffer",
+  });
 
   const fileContent = response.data;
 
