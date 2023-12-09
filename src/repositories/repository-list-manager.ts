@@ -774,9 +774,8 @@ export abstract class RepositoryListManager<
    * Get first active record
    */
   public async firstActive(options?: RepositoryOptions) {
-    const { documents } = await this.list({
+    const { documents } = await this.listActive({
       orderBy: ["id", "asc"],
-      isActive: true,
       ...options,
       limit: 1,
     });
@@ -788,9 +787,8 @@ export abstract class RepositoryListManager<
    * Get first active cached record
    */
   public async firstActiveCached(options?: RepositoryOptions) {
-    const { documents } = await this.listCached({
+    const { documents } = await this.listActiveCached({
       orderBy: ["id", "asc"],
-      isActive: true,
       ...options,
       limit: 1,
     });

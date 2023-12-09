@@ -80,6 +80,13 @@ export class Validator {
   }
 
   /**
+   * Trigger validation event
+   */
+  public static trigger(eventName: ValidationEvent, ...args: any[]) {
+    return validatorEvents.trigger(eventName, ...args);
+  }
+
+  /**
    * Listen to the given event name
    */
   public static on(
