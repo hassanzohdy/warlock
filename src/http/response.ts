@@ -128,8 +128,17 @@ export class Response {
   /**
    * Get the status code
    */
-  public get statusCode() {
+  public get statusCode(): number {
     return this.baseResponse.statusCode;
+  }
+
+  /**
+   * Check if response status is ok
+   */
+  public get isOk() {
+    return (
+      this.baseResponse.statusCode >= 200 && this.baseResponse.statusCode < 300
+    );
   }
 
   /**
@@ -233,11 +242,20 @@ export class Response {
    * Send the response
    */
   public async send(data?: any, statusCode?: number) {
+    if (statusCode) {
+      this.currentStatusCode = statusCode;
+    }
+
     if (data === this) return this;
 
     if (data) {
       this.currentBody = data;
     }
+
+    if (!this.currentStatusCode) {
+      this.currentStatusCode = 200;
+    }
+
     this.log("Sending response");
     // trigger the sending event
     await Response.trigger("sending", this);
@@ -249,14 +267,6 @@ export class Response {
     // parse the body and make sure it is transformed to sync data instead of async data
     if (typeof this.currentBody !== "string") {
       data = await this.parseBody();
-    }
-
-    if (statusCode) {
-      this.currentStatusCode = statusCode;
-    }
-
-    if (!this.currentStatusCode) {
-      this.currentStatusCode = 200;
     }
 
     this.baseResponse.status(this.currentStatusCode).send(data);
