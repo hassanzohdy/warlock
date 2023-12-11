@@ -114,7 +114,13 @@ export class RepositoryListing<
     let orderByOptions = this.repositoryManager.orderBy?.(this.options);
 
     if (!orderByOptions) {
-      orderByOptions = this.options.orderBy;
+      if (this.options.sortBy && this.options.sortDirection) {
+        orderByOptions = {
+          [this.options.sortBy]: this.options.sortDirection,
+        };
+      } else if (this.options.orderBy) {
+        orderByOptions = this.options.orderBy;
+      }
     }
 
     this.parseOrderBy(orderByOptions);

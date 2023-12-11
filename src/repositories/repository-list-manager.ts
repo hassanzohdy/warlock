@@ -59,11 +59,34 @@ export abstract class RepositoryListManager<
   protected cacheDriverName = "";
 
   /**
+   * Define the `isActive` column
+   *
+   * @default isActive
+   */
+  protected isActiveColumn = "isActive";
+
+  /**
+   * Define the value of the `isActive` column when the record is active
+   *
+   * @default true
+   */
+  protected isActiveValue: any = true;
+
+  /**
    * Constructor
    */
   public constructor() {
     super();
     this.prepareCache();
+  }
+
+  /**
+   * Get active column and its value
+   */
+  protected getIsActiveFilter() {
+    return {
+      [this.isActiveColumn]: this.isActiveValue,
+    };
   }
 
   /**
@@ -108,7 +131,7 @@ export abstract class RepositoryListManager<
    */
   public async allActiveCached(options?: Omit<RepositoryOptions, "paginate">) {
     return await this.cacheAll({
-      options: { ...options, isActive: true },
+      options: { ...options, ...this.getIsActiveFilter() },
       purge: options?.purgeCache,
     });
   }
@@ -255,7 +278,7 @@ export abstract class RepositoryListManager<
 
     if (!model) return null;
 
-    if (model.get("isActive") !== true) return null;
+    if (model.get(this.isActiveColumn) !== this.isActiveValue) return null;
 
     return model;
   }
@@ -358,7 +381,7 @@ export abstract class RepositoryListManager<
    */
   public async latestActive(options?: RepositoryOptions) {
     return await this.list({
-      isActive: true,
+      ...this.getIsActiveFilter(),
       ...options,
       orderBy: ["id", "desc"],
     });
@@ -379,7 +402,7 @@ export abstract class RepositoryListManager<
    */
   public async oldestActive(options?: RepositoryOptions) {
     return await this.list({
-      isActive: true,
+      ...this.getIsActiveFilter(),
       ...options,
       orderBy: ["id", "asc"],
     });
@@ -550,7 +573,7 @@ export abstract class RepositoryListManager<
    */
   public async countActive(options: RepositoryOptions = {}) {
     return await this.count({
-      isActive: true,
+      ...this.getIsActiveFilter(),
       ...options,
     });
   }
@@ -595,7 +618,7 @@ export abstract class RepositoryListManager<
    */
   public async countActiveCached(options: RepositoryOptions = {}) {
     return await this.countCached({
-      isActive: true,
+      ...this.getIsActiveFilter(),
       ...options,
     });
   }
@@ -612,7 +635,7 @@ export abstract class RepositoryListManager<
    */
   public async listActiveCached(options: CachedRepositoryOptions = {}) {
     return this.listCached({
-      isActive: true,
+      ...this.getIsActiveFilter(),
       ...options,
     });
   }
@@ -622,7 +645,7 @@ export abstract class RepositoryListManager<
    */
   public async listActive(options: RepositoryOptions = {}) {
     return this.list({
-      isActive: true,
+      ...this.getIsActiveFilter(),
       ...options,
     });
   }
@@ -665,7 +688,7 @@ export abstract class RepositoryListManager<
   ) {
     return await this.chunk(
       {
-        isActive: true,
+        ...this.getIsActiveFilter(),
         ...options,
       },
       callback,
@@ -677,7 +700,7 @@ export abstract class RepositoryListManager<
    */
   public async getActive(id: number | string, options: RepositoryOptions = {}) {
     return this.first({
-      isActive: true,
+      ...this.getIsActiveFilter(),
       perform(query) {
         query.where("id", Number(id));
       },
@@ -737,7 +760,7 @@ export abstract class RepositoryListManager<
   ) {
     return await this.list({
       ...options,
-      isActive: true,
+      ...this.getIsActiveFilter(),
       perform(query) {
         query.where(`${column}.id`, userId);
       },
@@ -747,7 +770,7 @@ export abstract class RepositoryListManager<
   /**
    * Get first record
    */
-  public async first(options?: RepositoryOptions) {
+  public async first(options?: RepositoryOptions): Promise<T | null> {
     const { documents } = await this.list({
       orderBy: ["id", "asc"],
       ...options,
@@ -760,7 +783,7 @@ export abstract class RepositoryListManager<
   /**
    * Get first cached record
    */
-  public async firstCached(options?: RepositoryOptions) {
+  public async firstCached(options?: RepositoryOptions): Promise<T | null> {
     const { documents } = await this.listCached({
       orderBy: ["id", "asc"],
       ...options,
@@ -773,7 +796,7 @@ export abstract class RepositoryListManager<
   /**
    * Get first active record
    */
-  public async firstActive(options?: RepositoryOptions) {
+  public async firstActive(options?: RepositoryOptions): Promise<T | null> {
     const { documents } = await this.listActive({
       orderBy: ["id", "asc"],
       ...options,
@@ -786,7 +809,9 @@ export abstract class RepositoryListManager<
   /**
    * Get first active cached record
    */
-  public async firstActiveCached(options?: RepositoryOptions) {
+  public async firstActiveCached(
+    options?: RepositoryOptions,
+  ): Promise<T | null> {
     const { documents } = await this.listActiveCached({
       orderBy: ["id", "asc"],
       ...options,
@@ -799,7 +824,7 @@ export abstract class RepositoryListManager<
   /**
    * Get last record
    */
-  public async last(options?: RepositoryOptions) {
+  public async last(options?: RepositoryOptions): Promise<T | null> {
     const { documents } = await this.list({
       orderBy: ["id", "desc"],
       ...options,
@@ -812,7 +837,7 @@ export abstract class RepositoryListManager<
   /**
    * Get last cached record
    */
-  public async lastCached(options?: RepositoryOptions) {
+  public async lastCached(options?: RepositoryOptions): Promise<T | null> {
     const { documents } = await this.listCached({
       orderBy: ["id", "desc"],
       ...options,
@@ -825,10 +850,10 @@ export abstract class RepositoryListManager<
   /**
    * Get last active record
    */
-  public async lastActive(options?: RepositoryOptions) {
+  public async lastActive(options?: RepositoryOptions): Promise<T | null> {
     const { documents } = await this.list({
       orderBy: ["id", "desc"],
-      isActive: true,
+      ...this.getIsActiveFilter(),
       ...options,
       limit: 1,
     });
@@ -839,10 +864,12 @@ export abstract class RepositoryListManager<
   /**
    * Get last active cached record
    */
-  public async lastActiveCached(options?: RepositoryOptions) {
+  public async lastActiveCached(
+    options?: RepositoryOptions,
+  ): Promise<T | null> {
     const { documents } = await this.listCached({
       orderBy: ["id", "desc"],
-      isActive: true,
+      ...this.getIsActiveFilter(),
       ...options,
       limit: 1,
     });
@@ -900,7 +927,7 @@ export abstract class RepositoryListManager<
     return this.first({
       perform(query) {
         query.where({
-          isActive: true,
+          ...this.getIsActiveFilter(),
           [column]: value,
         });
       },
