@@ -69,6 +69,8 @@ export class MemoryCacheDriver
   public async removeNamespace(namespace: string) {
     this.log("clearing", namespace);
 
+    namespace = await this.parseKey(namespace);
+
     unset(this.data, [namespace]);
 
     this.log("cleared", namespace);
@@ -80,7 +82,7 @@ export class MemoryCacheDriver
    * {@inheritdoc}
    */
   public async set(key: string | GenericObject, value: any, ttl?: number) {
-    key = this.parseKey(key);
+    key = await this.parseKey(key);
 
     this.log("caching", key);
 
@@ -102,7 +104,7 @@ export class MemoryCacheDriver
    * {@inheritdoc}
    */
   public async get(key: string | GenericObject) {
-    const parsedKey = this.parseKey(key);
+    const parsedKey = await this.parseKey(key);
 
     this.log("fetching", parsedKey);
 
@@ -113,14 +115,14 @@ export class MemoryCacheDriver
       return null;
     }
 
-    return this.parseCachedData(parsedKey, value);
+    return this.parseCachedData(parsedKey, { data: value });
   }
 
   /**
    * {@inheritdoc}
    */
   public async remove(key: string | GenericObject) {
-    const parsedKey = this.parseKey(key);
+    const parsedKey = await this.parseKey(key);
 
     this.log("removing", parsedKey);
 
