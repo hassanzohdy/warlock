@@ -115,7 +115,7 @@ export class MemoryCacheDriver
       return null;
     }
 
-    return this.parseCachedData(parsedKey, { data: value });
+    return this.parseCachedData(parsedKey, value);
   }
 
   /**
