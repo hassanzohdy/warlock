@@ -67,6 +67,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
       }
 
       const listMethod = this.cache ? "listCached" : "list";
+
       const { documents, paginationInfo } =
         await this.repository[listMethod](data);
 

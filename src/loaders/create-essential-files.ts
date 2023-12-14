@@ -1,5 +1,5 @@
 import { ensureDirectory, listFiles, putFile } from "@mongez/fs";
-import { ucfirst } from "@mongez/reinforcements";
+import { toCamelCase, ucfirst } from "@mongez/reinforcements";
 import prettier from "prettier";
 import { configPath, warlockPath } from "../utils";
 
@@ -27,8 +27,6 @@ export async function createEssentialFiles() {
 export async function createConfigLoader() {
   // first, get all files from the config directory
   const files = listFiles(configPath(""));
-
-  const normalFiles = ["app", "validation", "auth", "http", "uploads"];
 
   const fileContents: string[] = [];
 
@@ -93,13 +91,14 @@ export async function createConfigLoader() {
         cache.setCacheConfigurations(cacheConfigurations);
         `,
       );
-    } else if (normalFiles.includes(file)) {
-      imports.push(`import ${file}Configurations from "src/config/${file}";`);
+    } else {
+      const importFileName = toCamelCase(file) + "Configurations";
+      imports.push(`import ${importFileName} from "src/config/${file}";`);
 
       fileContents.push(
         `
         // ${ucfirst(file)} configurations
-        config.set("${file}", ${file}Configurations);
+        config.set("${toCamelCase(file)}", ${importFileName});
         `,
       );
     }

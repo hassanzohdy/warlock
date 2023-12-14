@@ -16,23 +16,21 @@ export class UploadableRule extends Rule {
       for (const item of this.value) {
         if (!(await this.checkIfFile(item))) {
           this.isValid = false;
-          break;
+          return;
         }
       }
       this.isValid = true;
     }
 
-    this.isValid = (await this.checkIfFile(this.value)) ? true : false;
+    this.isValid = await this.checkIfFile(this.value);
   }
 
   protected async checkIfFile(hash: any) {
-    if (!hash || !hash.value) return false;
-
     if (hash?.value) {
-      return (await Upload.findBy("hash", hash.value)) ? true : false;
+      return Boolean(await Upload.findBy("hash", hash.value));
     }
 
-    return (await Upload.findBy("hash", hash)) ? true : false;
+    return Boolean(await Upload.findBy("hash", hash));
   }
   /**
    * Get error message

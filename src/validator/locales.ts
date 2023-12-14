@@ -13,6 +13,10 @@ groupedTranslations("validation", {
     en: ":input must be an object.",
     ar: ":input يجب أن يكون كائن.",
   },
+  uploadable: {
+    en: ":input must be a uploadable type, upload hash must be passed.",
+    ar: ":input يجب أن يكون من نوع قابل للتحميل، يجب تمرير هاش التحميل.",
+  },
   exists: {
     en: "The selected :input does not exist in our database records.",
     ar: ":input المحدد غير موجود في سجلات قاعدة البيانات الخاصة بنا.",

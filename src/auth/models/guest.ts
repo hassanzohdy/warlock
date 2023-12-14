@@ -26,7 +26,7 @@ export class Guest extends Auth {
   public get embeddedData(): Document {
     if (!this.userTypeKey) return super.embeddedData;
     return {
-      ...this.only(["id"]),
+      ...this.onlyId,
       [this.userTypeKey]: this.userType,
     };
   }
@@ -38,7 +38,7 @@ export class Guest extends Auth {
     if (!this.userTypeKey) return this.onlyId;
 
     return {
-      ...this.only(["id"]),
+      ...this.onlyId,
       [this.userTypeKey]: this.userType,
     };
   }

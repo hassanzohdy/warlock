@@ -72,3 +72,19 @@ export function t(keyword: string, placeholders?: any) {
 
   return request?.trans(keyword, placeholders) || trans(keyword);
 }
+
+/**
+ * Get the value of the given key from the request
+ * If not found, then execute the given callback and store its result in the request then return it
+ */
+export async function fromRequest(key: string, callback: () => Promise<any>) {
+  const request = requestContext().request;
+
+  if (!request) return callback();
+
+  if (request[key]) return request[key];
+
+  request[key] = await callback();
+
+  return request[key];
+}
