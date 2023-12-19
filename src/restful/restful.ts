@@ -109,13 +109,31 @@ export abstract class Restful<T extends Model> implements RouteResource {
    */
   public async create(request: Request, response: Response) {
     try {
-      await this.beforeCreate(request);
-      await this.beforeSave(request);
+      const beforeCreate = await this.beforeCreate(request, response);
+
+      if (beforeCreate) {
+        return beforeCreate;
+      }
+
+      const beforeSave = await this.beforeSave(request);
+
+      if (beforeSave) {
+        return beforeSave;
+      }
 
       const record = await this.repository.create(request.all());
 
-      this.onCreate(request, record);
-      this.onSave(request, record);
+      const createOutput = await this.onCreate(request, record);
+
+      if (createOutput) {
+        return createOutput;
+      }
+
+      const saveOutput = await this.onSave(request, record);
+
+      if (saveOutput) {
+        return saveOutput;
+      }
 
       if (this.returnOn.create === "records") {
         return this.list(request, response);
@@ -147,8 +165,16 @@ export abstract class Restful<T extends Model> implements RouteResource {
         });
       }
 
-      await this.beforeUpdate(request, record);
-      await this.beforeSave(request, record);
+      const beforeOutput = await this.beforeUpdate(request, record);
+      if (beforeOutput) {
+        return beforeOutput;
+      }
+
+      const beforeSafe = await this.beforeSave(request, record);
+
+      if (beforeSafe) {
+        return beforeSafe;
+      }
 
       const oldRecord = record.clone();
 
@@ -274,70 +300,97 @@ export abstract class Restful<T extends Model> implements RouteResource {
   /**
    * Before create
    */
-  protected async beforeCreate(_request: Request) {
+  protected async beforeCreate(
+    _request: Request,
+    _response: Response,
+  ): Promise<any> {
     //
   }
 
   /**
    * On create
    */
-  protected onCreate(_request: Request, _record: T) {
+  protected async onCreate(_request: Request, _record: T): Promise<any> {
     //
   }
 
   /**
    * Before update
    */
-  protected beforeUpdate(_request: Request, _record: T, _oldRecord?: T) {
+  protected async beforeUpdate(
+    _request: Request,
+    _record: T,
+    _oldRecord?: T,
+  ): Promise<any> {
     //
   }
 
   /**
    * On update
    */
-  protected onUpdate(_request: Request, _record: T, _oldRecord: T) {
+  protected async onUpdate(
+    _request: Request,
+    _record: T,
+    _oldRecord: T,
+  ): Promise<any> {
     //
   }
 
   /**
    * Before delete
    */
-  protected beforeDelete(_request: Request, _record: T) {
+  protected async beforeDelete(_request: Request, _record: T): Promise<any> {
     //
   }
 
   /**
    * On delete
    */
-  protected onDelete(_request: Request, _record: T) {
+  protected async onDelete(_request: Request, _record: T): Promise<any> {
     //
   }
 
   /**
    * Before patch
    */
-  protected beforePatch(_request: Request, _record: T, _oldRecord?: T) {
+  protected async beforePatch(
+    _request: Request,
+    _record: T,
+    _oldRecord?: T,
+  ): Promise<any> {
     //
   }
 
   /**
    * On patch
    */
-  protected onPatch(_request: Request, _record: T, _oldRecord: T) {
+  protected async onPatch(
+    _request: Request,
+    _record: T,
+    _oldRecord: T,
+  ): Promise<any> {
     //
   }
 
   /**
    * Before save
    */
-  protected async beforeSave(_request: Request, _record?: T, _oldRecord?: T) {
+  protected async beforeSave(
+    _request: Request,
+    _record?: T,
+    _oldRecord?: T,
+  ): Promise<any> {
     //
   }
 
   /**
    * On save
    */
-  protected onSave(_request: Request, _record: T, _oldRecord?: T) {
+  protected async onSave(
+    _request: Request,
+    _record: T,
+    _oldRecord?: T,
+  ): Promise<any> {
     //
   }
 

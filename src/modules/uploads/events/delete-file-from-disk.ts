@@ -1,6 +1,5 @@
 import { fileExistsAsync, unlinkAsync } from "@mongez/fs";
 import { Model } from "@mongez/monpulse";
-import { areEqual } from "@mongez/reinforcements";
 import { Upload } from "../models";
 
 Upload.events().onDeleted(async (upload: Upload) => {
@@ -21,16 +20,16 @@ Model.events()
       const oldValue = oldModel.get(column);
       const newValue = model.get(column);
 
-      if (areEqual(oldValue, newValue)) continue;
+      if (Array.isArray(oldValue) && Array.isArray(newValue)) {
+        // now find all hashes on the old value that are not in the new value
+        const hashes = oldValue
+          .map(value => value.hash)
+          .filter(hash => {
+            return !newValue.find(value => value.hash === hash);
+          });
 
-      if (Array.isArray(oldValue)) {
-        Upload.aggregate()
-          .whereIn(
-            "hash",
-            oldValue.map(value => value.hash),
-          )
-          .delete();
-      } else {
+        Upload.aggregate().whereIn("hash", hashes).delete();
+      } else if (oldValue && newValue && oldValue.hash !== newValue.hash) {
         Upload.aggregate().where("hash", oldValue.hash).delete();
       }
     }

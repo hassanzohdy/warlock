@@ -924,10 +924,14 @@ export abstract class RepositoryListManager<
    * Find by the given column and make sure it is active
    */
   public async findByActive(column: string, value: any) {
+    const isActiveFilter = this.getIsActiveFilter();
+
+    console.log(isActiveFilter);
+
     return this.first({
       perform(query) {
         query.where({
-          ...this.getIsActiveFilter(),
+          ...isActiveFilter,
           [column]: value,
         });
       },
