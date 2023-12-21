@@ -2,15 +2,15 @@ import { isEmpty } from "@mongez/supportive-is";
 import { Rule } from "./rule";
 
 /**
- * The field under validation must be present and not empty if the another field is equal to any value.
+ * The field under validation must be present and not empty if the another field is empty
  *
- * @example creditCardNumber: ["requiredIf:paymentType,card"]
+ * @example creditCardNumber: ["requiredIfEmpty:paymentType"]
  */
-export class RequiredIfRule extends Rule {
+export class RequiredIfEmptyRule extends Rule {
   /**
    * Rule name
    */
-  public static ruleName = "requiredIf";
+  public static ruleName = "requiredIfEmpty";
 
   /**
    * {@inheritdoc}
@@ -28,13 +28,11 @@ export class RequiredIfRule extends Rule {
       return;
     }
 
-    const [otherInput, ...expectedValues] = this.options;
+    const [otherInput] = this.options;
 
     const otherInputValue = this.request.input(otherInput);
 
-    if (isEmpty(otherInputValue)) return;
-
-    this.isValid = !expectedValues.includes(otherInputValue);
+    this.isValid = !isEmpty(otherInputValue);
   }
 
   /**

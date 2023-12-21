@@ -5,6 +5,7 @@ export * from "./bootstrap";
 export * from "./cache";
 export * from "./config/index";
 export * from "./console";
+export * from "./database";
 export * from "./http";
 export * from "./image";
 export * from "./loaders";

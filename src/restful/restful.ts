@@ -115,7 +115,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
         return beforeCreate;
       }
 
-      const beforeSave = await this.beforeSave(request);
+      const beforeSave = await this.beforeSave(request, response);
 
       if (beforeSave) {
         return beforeSave;
@@ -123,13 +123,13 @@ export abstract class Restful<T extends Model> implements RouteResource {
 
       const record = await this.repository.create(request.all());
 
-      const createOutput = await this.onCreate(request, record);
+      const createOutput = await this.onCreate(request, response, record);
 
       if (createOutput) {
         return createOutput;
       }
 
-      const saveOutput = await this.onSave(request, record);
+      const saveOutput = await this.onSave(request, response, record);
 
       if (saveOutput) {
         return saveOutput;
@@ -165,12 +165,12 @@ export abstract class Restful<T extends Model> implements RouteResource {
         });
       }
 
-      const beforeOutput = await this.beforeUpdate(request, record);
+      const beforeOutput = await this.beforeUpdate(request, response, record);
       if (beforeOutput) {
         return beforeOutput;
       }
 
-      const beforeSafe = await this.beforeSave(request, record);
+      const beforeSafe = await this.beforeSave(request, response, record);
 
       if (beforeSafe) {
         return beforeSafe;
@@ -184,8 +184,8 @@ export abstract class Restful<T extends Model> implements RouteResource {
         await record.save(request.allExceptParams());
       }
 
-      this.onUpdate(request, record, oldRecord);
-      this.onSave(request, record, oldRecord);
+      this.onUpdate(request, response, record, oldRecord);
+      this.onSave(request, response, record, oldRecord);
 
       if (this.returnOn.update === "records") {
         return this.list(request, response);
@@ -214,13 +214,13 @@ export abstract class Restful<T extends Model> implements RouteResource {
 
       const oldRecord = record.clone();
 
-      await this.beforePatch(request, record, oldRecord);
-      await this.beforeSave(request, record, oldRecord);
+      await this.beforePatch(request, response, record, oldRecord);
+      await this.beforeSave(request, response, record, oldRecord);
 
       await record.save(request.heavyExceptParams());
 
-      this.onPatch(request, record, oldRecord);
-      this.onSave(request, record, oldRecord);
+      this.onPatch(request, response, record, oldRecord);
+      this.onSave(request, response, record, oldRecord);
 
       if (this.returnOn.delete === "records") {
         return this.list(request, response);
@@ -245,11 +245,11 @@ export abstract class Restful<T extends Model> implements RouteResource {
         return response.notFound();
       }
 
-      await this.beforeDelete(request, record);
+      await this.beforeDelete(request, response, record);
 
       await record.destroy();
 
-      this.onDelete(request, record);
+      this.onDelete(request, response, record);
 
       if (this.returnOn.delete === "records") {
         return this.list(request, response);
@@ -283,9 +283,9 @@ export abstract class Restful<T extends Model> implements RouteResource {
     });
 
     for (const record of records) {
-      await this.beforeDelete(request, record);
+      await this.beforeDelete(request, response, record);
       record.destroy();
-      this.onDelete(request, record);
+      this.onDelete(request, response, record);
     }
 
     if (this.returnOn.delete === "records") {
@@ -310,7 +310,11 @@ export abstract class Restful<T extends Model> implements RouteResource {
   /**
    * On create
    */
-  protected async onCreate(_request: Request, _record: T): Promise<any> {
+  protected async onCreate(
+    _request: Request,
+    _response: Response,
+    _record: T,
+  ): Promise<any> {
     //
   }
 
@@ -319,6 +323,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
    */
   protected async beforeUpdate(
     _request: Request,
+    _response: Response,
     _record: T,
     _oldRecord?: T,
   ): Promise<any> {
@@ -330,6 +335,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
    */
   protected async onUpdate(
     _request: Request,
+    _response: Response,
     _record: T,
     _oldRecord: T,
   ): Promise<any> {
@@ -339,14 +345,22 @@ export abstract class Restful<T extends Model> implements RouteResource {
   /**
    * Before delete
    */
-  protected async beforeDelete(_request: Request, _record: T): Promise<any> {
+  protected async beforeDelete(
+    _request: Request,
+    _response: Response,
+    _record: T,
+  ): Promise<any> {
     //
   }
 
   /**
    * On delete
    */
-  protected async onDelete(_request: Request, _record: T): Promise<any> {
+  protected async onDelete(
+    _request: Request,
+    _response: Response,
+    _record: T,
+  ): Promise<any> {
     //
   }
 
@@ -355,6 +369,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
    */
   protected async beforePatch(
     _request: Request,
+    _response: Response,
     _record: T,
     _oldRecord?: T,
   ): Promise<any> {
@@ -366,6 +381,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
    */
   protected async onPatch(
     _request: Request,
+    _response: Response,
     _record: T,
     _oldRecord: T,
   ): Promise<any> {
@@ -377,6 +393,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
    */
   protected async beforeSave(
     _request: Request,
+    _response: Response,
     _record?: T,
     _oldRecord?: T,
   ): Promise<any> {
@@ -388,6 +405,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
    */
   protected async onSave(
     _request: Request,
+    _response: Response,
     _record: T,
     _oldRecord?: T,
   ): Promise<any> {

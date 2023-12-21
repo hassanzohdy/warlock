@@ -13,16 +13,14 @@ export class UploadableRule extends Rule {
   public async validate() {
     // Check if the value is a file
     if (Array.isArray(this.value)) {
-      for (const item of this.value) {
-        if (!(await this.checkIfFile(item))) {
-          this.isValid = false;
-          return;
-        }
-      }
-      this.isValid = true;
-    }
+      const totalUploads = await Upload.aggregate()
+        .whereIn("hash", this.value)
+        .count();
 
-    this.isValid = await this.checkIfFile(this.value);
+      this.isValid = totalUploads === this.value.length;
+    } else {
+      this.isValid = await this.checkIfFile(this.value);
+    }
   }
 
   protected async checkIfFile(hash: any) {

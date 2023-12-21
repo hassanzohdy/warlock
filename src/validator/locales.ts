@@ -5,6 +5,10 @@ groupedTranslations("validation", {
     en: "The :input field is required.",
     ar: ":input مطلوب.",
   },
+  missing: {
+    en: "The :input field can not be present.",
+    ar: ":input لا يمكن أن يكون موجود.",
+  },
   unique: {
     en: "The :input has already been taken.",
     ar: ":input مستخدم من قبل.",

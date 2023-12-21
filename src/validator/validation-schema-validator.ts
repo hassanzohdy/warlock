@@ -108,7 +108,9 @@ export class ValidationSchemaValidator {
 
         await rulesList.validate();
 
-        this.errorsList.push(rulesList.errors());
+        if (rulesList.fails()) {
+          this.errorsList.push(rulesList.errors());
+        }
       } else {
         await this.validateArray(inputValue);
       }
