@@ -426,12 +426,19 @@ export class Router {
 
     const methodValidation = resource?.validation?.[method];
 
-    if (method === "patch" && methodValidation) {
+    if (method === "patch") {
       handler.validation = methodValidation;
 
       if (handler.validation?.validate) {
         handler.validation.validate =
           handler.validation.validate.bind(resource);
+      }
+
+      if (resource.validation?.patch) {
+        handler.validation = merge(
+          resource.validation.patch,
+          handler.validation,
+        );
       }
 
       return handler;

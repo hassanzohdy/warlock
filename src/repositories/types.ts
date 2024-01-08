@@ -132,13 +132,7 @@ export type FilterByOptions = {
 
 export type SaveMode = "create" | "update" | "patch";
 
-export type RepositoryOptions = {
-  /**
-   * Default limit for listing
-   *
-   * @default 15
-   */
-  defaultLimit?: number;
+export type RepositoryOptions = AllRepositoryOptions & {
   /**
    * Whether to paginate the results or not
    *
@@ -146,17 +140,30 @@ export type RepositoryOptions = {
    */
   paginate?: boolean;
   /**
-   * If passed, it will be used instead of the default limit
-   *
-   * @default undefined
-   */
-  limit?: number;
-  /**
    * Page number
    *
    * @default 1
    */
   page?: number;
+};
+
+export type AllRepositoryOptions = {
+  /**
+   * Any additional options to be passed to the list method
+   */
+  [key: string]: any;
+  /**
+   * Default limit for listing
+   *
+   * @default 15
+   */
+  defaultLimit?: number;
+  /**
+   * If passed, it will be used instead of the default limit
+   *
+   * @default undefined
+   */
+  limit?: number;
   /**
    * Select only the passed columns, useful for performance
    *
@@ -191,10 +198,6 @@ export type RepositoryOptions = {
    * Perform a query by using the query aggregate, useful for advanced queries
    */
   perform?: (query: ModelAggregate<any>, options: RepositoryOptions) => void;
-  /**
-   * Any additional options to be passed to the list method
-   */
-  [key: string]: any;
 };
 
 export type CachedRepositoryOptions = RepositoryOptions & {

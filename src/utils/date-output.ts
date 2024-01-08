@@ -91,6 +91,8 @@ export function dateOutput(
     return date;
   }
 
+  if (!date?.getTime) return date;
+
   const optionsData = {
     ...defaultOptions,
     ...options,

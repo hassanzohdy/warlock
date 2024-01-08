@@ -1,5 +1,7 @@
 import Endpoint from "@mongez/http";
-import sharp from "sharp";
+import sharp, { FormatEnum } from "sharp";
+
+export type ImageFormat = keyof FormatEnum;
 
 export class Image {
   /**
@@ -113,6 +115,15 @@ export class Image {
    */
   public async saveAsWebp(path: string) {
     return this.image.toFormat("webp").toFile(path);
+  }
+
+  /**
+   * Change the file format
+   */
+  public format(format: ImageFormat) {
+    this.image.toFormat(format);
+
+    return this;
   }
 
   /**

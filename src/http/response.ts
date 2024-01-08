@@ -480,7 +480,11 @@ export class Response {
   /**
    * Send a forbidden response with status code 403
    */
-  public forbidden(data: any) {
+  public forbidden(
+    data: any = {
+      error: "You are not allowed to access this resource, FORBIDDEN",
+    },
+  ) {
     return this.send(data, 403);
   }
 

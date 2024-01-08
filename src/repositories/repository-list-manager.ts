@@ -6,6 +6,7 @@ import { BaseRepositoryManager } from "./base-repository-manager";
 import { RepositoryListing } from "./repository-listing";
 import { RepositoryManager } from "./repository-manager";
 import {
+  AllRepositoryOptions,
   CachedRepositoryOptions,
   FilterByOptions,
   RepositoryOptions,
@@ -27,7 +28,13 @@ export abstract class RepositoryListManager<
   protected defaultFilters: FilterByOptions = {
     id: "int",
     ids: ["inInt", "id"],
-    except: (id: any, query) => query.where("id", "!=", Number(id)),
+    except: (id: any, query) => {
+      if (Array.isArray(id)) {
+        query.whereNotIn("id", id.map(Number));
+      } else {
+        query.where("id", "!=", Number(id));
+      }
+    },
     createdBy: ["int", "createdBy.id"],
     isActive: "boolean",
   };
@@ -108,28 +115,28 @@ export abstract class RepositoryListManager<
   /**
    * List All records
    */
-  public async all(options?: Omit<RepositoryOptions, "paginate">) {
+  public async all(options: AllRepositoryOptions = {}) {
     return (await this.list({ ...options, paginate: false })).documents;
   }
 
   /**
    * Get all cached data
    */
-  public async allCached(options?: Omit<RepositoryOptions, "paginate">) {
+  public async allCached(options?: AllRepositoryOptions) {
     return await this.cacheAll({ options, purge: options?.purgeCache });
   }
 
   /**
    * List All Active records
    */
-  public async allActive(options?: Omit<RepositoryOptions, "paginate">) {
+  public async allActive(options?: AllRepositoryOptions) {
     return (await this.listActive({ ...options, paginate: false })).documents;
   }
 
   /**
    * List all active cached records
    */
-  public async allActiveCached(options?: Omit<RepositoryOptions, "paginate">) {
+  public async allActiveCached(options?: AllRepositoryOptions) {
     return await this.cacheAll({
       options: { ...options, ...this.getIsActiveFilter() },
       purge: options?.purgeCache,
@@ -925,8 +932,6 @@ export abstract class RepositoryListManager<
    */
   public async findByActive(column: string, value: any) {
     const isActiveFilter = this.getIsActiveFilter();
-
-    console.log(isActiveFilter);
 
     return this.first({
       perform(query) {

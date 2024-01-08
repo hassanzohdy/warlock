@@ -1,3 +1,4 @@
+import config from "@mongez/config";
 import type { Request } from "../http";
 import { ArrayRule, RequiredRule } from "./rules";
 import { RulesList } from "./rules-list";
@@ -109,7 +110,8 @@ export class ValidationSchemaValidator {
         await rulesList.validate();
 
         if (rulesList.fails()) {
-          this.errorsList.push(rulesList.errors());
+          const errors = rulesList.errors();
+          this.addError(errors[0], errors[1]);
         }
       } else {
         await this.validateArray(inputValue);
@@ -129,7 +131,8 @@ export class ValidationSchemaValidator {
         await schema.scan();
 
         if (schema.fails()) {
-          this.errorsList.push(...schema.errors());
+          const errors = schema.errors();
+          this.addError(errors[0], errors[1]);
         }
 
         continue;
@@ -210,7 +213,8 @@ export class ValidationSchemaValidator {
           await schema.scan();
 
           if (schema.fails()) {
-            this.errorsList.push(...schema.errors());
+            const errors = schema.errors();
+            this.addError(errors[0], errors[1]);
           }
 
           continue;
@@ -236,7 +240,8 @@ export class ValidationSchemaValidator {
     await rulesList.validate();
 
     if (rulesList.fails()) {
-      this.errorsList.push(rulesList.errors());
+      const error = rulesList.errors();
+      this.addError(error[0], error[1]);
     }
   }
 
@@ -270,6 +275,21 @@ export class ValidationSchemaValidator {
    */
   public passes() {
     return this.errorsList.length === 0;
+  }
+
+  /**
+   * Add new error
+   */
+  public addError(inputName: string, message: string) {
+    const inputKey = config.get("validation.keys.inputKey", "input");
+    const inputError = config.get("validation.keys.inputError", "error");
+
+    this.errorsList.push({
+      [inputKey]: inputName,
+      [inputError]: message,
+    });
+
+    return this;
   }
 
   /**

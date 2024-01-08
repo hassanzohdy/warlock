@@ -46,9 +46,9 @@ export abstract class RepositoryDestroyManager<
    * Delete multiple records
    */
   public async deleteMany(options: Filter) {
-    const query = this.newQuery();
+    const listManager = this.newList(options);
 
-    query.where(options);
+    const query = await listManager.prepareQuery();
 
     return await query.delete();
   }

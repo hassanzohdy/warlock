@@ -1,4 +1,5 @@
 import { Aggregate, Model } from "@mongez/monpulse";
+import { Request } from "../../http";
 import { pool } from "../../pool";
 import { Rule } from "./rule";
 
@@ -41,7 +42,7 @@ export class UniqueRule extends Rule {
   /**
    * Add custom query
    */
-  protected _query?: (query: Aggregate) => void;
+  protected _query?: (query: Aggregate, request: Request<any>) => void;
 
   /**
    * Constructor
@@ -154,7 +155,7 @@ export class UniqueRule extends Rule {
     }
 
     if (this._query) {
-      this._query(query);
+      this._query(query, this.request);
     }
 
     const document = await query.first();
@@ -171,7 +172,7 @@ export class UniqueRule extends Rule {
   /**
    * Add custom query
    */
-  public query(query: (query: Aggregate) => void) {
+  public query(query: (query: Aggregate, request: Request<any>) => void) {
     this._query = query;
     return this;
   }

@@ -382,11 +382,24 @@ export class Output {
    * Transform and store the transformed value in the final output of the given key
    */
   public async opt(key: string, type: OutputValue, setAs = key) {
-    const value = await this.transform(key, type);
+    const value = this.get(key);
+    if (Array.isArray(value) && type !== "localized") {
+      return this.set(
+        key,
+        await Promise.all(
+          value.map(
+            async item =>
+              await this.transformValue(item, type as OutputCastType),
+          ),
+        ),
+      );
+    }
 
-    if (value === undefined) return;
+    const transformedValue = await this.transformValue(key, type);
 
-    return this.set(setAs, value);
+    if (transformedValue === undefined) return;
+
+    return this.set(setAs, transformedValue);
   }
 
   /**

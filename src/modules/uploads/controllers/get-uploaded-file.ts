@@ -3,7 +3,7 @@ import { sha1 } from "@mongez/encryption";
 import { fileExists } from "@mongez/fs";
 import systemPath from "path";
 import { Request, Response } from "../../../http";
-import { Image } from "../../../image";
+import { Image, ImageFormat } from "../../../image";
 import { cachePath, uploadsPath } from "../../../utils";
 
 // TODO: Add Watermark options
@@ -31,8 +31,9 @@ export async function getUploadedFile(request: Request, response: Response) {
   const height = request.int("h");
   const width = request.int("w");
   const quality = request.int("q");
+  const format: ImageFormat | undefined = request.input("f");
 
-  if (height || width || quality) {
+  if (height || width || quality || format) {
     const imageOptions = {
       height: height || undefined,
       width: width || undefined,
@@ -43,6 +44,7 @@ export async function getUploadedFile(request: Request, response: Response) {
       JSON.stringify({
         imageOptions,
         path,
+        format,
       }),
     );
 
@@ -61,6 +63,10 @@ export async function getUploadedFile(request: Request, response: Response) {
       const image = new Image(fullPath);
 
       image.resize(imageOptions);
+
+      if (format) {
+        image.format(format);
+      }
 
       if (quality) {
         image.quality(quality);

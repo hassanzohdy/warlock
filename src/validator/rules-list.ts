@@ -122,20 +122,11 @@ export class RulesList {
       "validation.returnErrorStrategy",
       "first",
     );
-    const inputKey = config.get("validation.keys.inputKey", "input");
-    const inputError = config.get("validation.keys.inputError", "error");
-    const inputErrors = config.get("validation.keys.inputErrors", "errors");
 
     if (returnErrorStrategy === "first") {
-      return {
-        [inputKey]: this.input,
-        [inputError]: this.errorsList[0],
-      };
+      return [this.input, this.errorsList[0]];
     }
 
-    return {
-      [inputKey]: this.input,
-      [inputErrors]: this.errorsList,
-    };
+    return [this.input, this.errorsList];
   }
 }

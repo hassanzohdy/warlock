@@ -73,6 +73,13 @@ export class Validator {
   }
 
   /**
+   * Add new error
+   */
+  public addError(inputName: string, message: string) {
+    return this.validationSchemaValidator.addError(inputName, message);
+  }
+
+  /**
    * Get errors list
    */
   public errors() {

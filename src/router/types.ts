@@ -1,4 +1,5 @@
-import { RouteShorthandOptions } from "fastify";
+import type { RouteShorthandOptions } from "fastify";
+import type { Auth } from "../auth";
 import type { Request, Response, ReturnedResponse } from "../http";
 
 /**
@@ -44,6 +45,18 @@ export type RouteHandler = {
    * Function Declaration
    */
   (request: Request, response: Response): ReturnedResponse | void;
+
+  /**
+   * Validation static object property which can be optional
+   */
+  validation?: RouteHandlerValidation;
+};
+
+export type RequestHandler<T extends Auth = any> = {
+  /**
+   * Function Declaration
+   */
+  (request: Request<T>, response: Response): ReturnedResponse | void;
 
   /**
    * Validation static object property which can be optional

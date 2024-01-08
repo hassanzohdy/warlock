@@ -200,7 +200,7 @@ export class Request<User extends Auth = any> {
   /**
    * Get current request method
    */
-  public get method() {
+  public get method(): string {
     return this.baseRequest.method;
   }
 
@@ -709,7 +709,7 @@ export class Request<User extends Auth = any> {
     return heavyInputs;
   }
 
-  /**
+  /**jobssr41@gmail.com
    * Get only the given keys from the request data
    */
   public only(keys: string[]) {

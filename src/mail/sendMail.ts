@@ -33,8 +33,8 @@ export async function sendMail(
   },
 ) {
   return newMailer(options?.configurations).sendMail({
-    from: parseFrom(options),
     ...options,
+    from: parseFrom(options),
   });
 }
 
@@ -58,7 +58,6 @@ function parseFrom(options: Options) {
   const from = options.from ?? getMailConfigurations().from;
 
   if (!from) return undefined;
-  if (typeof from === "string") return from;
 
-  return `${from.name} <${from.address}>`;
+  return from;
 }
