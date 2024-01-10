@@ -216,7 +216,7 @@ export class Output {
 
           const localeCode = request?.localized;
 
-          if (!localeCode)
+          if (!localeCode) {
             return await Promise.all(
               value.map(async item => {
                 if (item?.value) {
@@ -226,6 +226,7 @@ export class Output {
                 return item;
               }),
             );
+          }
 
           const singleOutput = value.find(
             item => item?.localeCode === localeCode,

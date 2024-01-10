@@ -2,7 +2,7 @@ import config from "@mongez/config";
 import { copyFile, ensureDirectory } from "@mongez/fs";
 import Endpoint from "@mongez/http";
 import { Model } from "@mongez/monpulse";
-import { GenericObject, Random, trim } from "@mongez/reinforcements";
+import { GenericObject, Random, ltrim, trim } from "@mongez/reinforcements";
 import { isUrl } from "@mongez/supportive-is";
 import { AxiosResponse } from "axios";
 import dayjs from "dayjs";
@@ -127,7 +127,7 @@ export async function uploadFromUrl(url: string) {
   const fileData = {
     name: fileName,
     hash: hash,
-    path: directoryPath + "/" + filePath,
+    path: ltrim(directoryPath + "/" + filePath, "/"),
     size: fileSize,
     mimeType: fileMimeType,
     extension: fileExtension,

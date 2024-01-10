@@ -153,7 +153,7 @@ export class Response {
    */
   public static on(
     event: ResponseEvent,
-    listener: (...args: any[]) => void,
+    listener: (response: Response) => void,
   ): EventSubscription {
     return events.subscribe(event, listener);
   }

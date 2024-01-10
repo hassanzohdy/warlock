@@ -63,7 +63,19 @@ export class ExistsRule extends UniqueRule {
 
     const column = this.columnName || this.input;
 
-    query.where(column, value);
+    if (Array.isArray(this.value)) {
+      const value = this.value.map(value => {
+        if (isNumeric(value)) {
+          return Number(value);
+        }
+
+        return value;
+      });
+
+      query.whereIn(column, value);
+    } else {
+      query.where(column, value);
+    }
 
     if (this.exceptValue) {
       query.where(this.exceptColumn, "!=", this.exceptValue);

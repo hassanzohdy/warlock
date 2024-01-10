@@ -30,14 +30,14 @@ export async function getUploadedFile(request: Request, response: Response) {
 
   const height = request.int("h");
   const width = request.int("w");
-  const quality = request.int("q");
+  const quality = request.int("q", 100);
   const format: ImageFormat | undefined = request.input("f");
 
   if (height || width || quality || format) {
     const imageOptions = {
       height: height || undefined,
       width: width || undefined,
-      quality,
+      quality: quality,
     };
 
     const fileCachePathKey = sha1(
