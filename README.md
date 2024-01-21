@@ -9,3 +9,8 @@ A comprehensive and flexible framework for building nodejs applications.
 Or
 
 `npm install @mongez/warlock @mongez/mongodb`
+
+
+## Documentation
+
+Full documentation is available at [official documentation](https://docs.mentoor.io/mongez/docs/warlock/getting-started/introduction).
