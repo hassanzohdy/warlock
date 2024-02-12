@@ -1,19 +1,6 @@
 import { GenericObject, get, set, unset } from "@mongez/reinforcements";
-import { CacheDriver } from "../types";
+import { CacheDriver, MemoryCacheOptions } from "../types";
 import { BaseCacheDriver } from "./base-cache-driver";
-
-export type MemoryCacheOptions = {
-  /**
-   * The global prefix for the cache key
-   */
-  globalPrefix?: string | (() => string);
-  /**
-   * The default TTL for the cache in seconds
-   *
-   * @default Infinity
-   */
-  ttl?: number;
-};
 
 export class MemoryCacheDriver
   extends BaseCacheDriver<MemoryCacheDriver, MemoryCacheOptions>

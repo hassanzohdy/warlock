@@ -24,4 +24,11 @@ export class FileRule extends Rule {
 
     return this.trans("file");
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public expectedType() {
+    return "file";
+  }
 }

@@ -43,4 +43,15 @@ export class RequiredIfRule extends Rule {
   public error() {
     return this.trans("required");
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public toJson() {
+    const [input, ...values] = this.options;
+    if (values.length === 1) {
+      return `Required If ${input} equals '${values[0]}'`;
+    }
+    return `Required If ${input} equals one of: '${values.join("', '")}'`;
+  }
 }

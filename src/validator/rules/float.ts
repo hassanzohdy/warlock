@@ -21,4 +21,11 @@ export class FloatRule extends Rule {
   public error() {
     return this.trans("float");
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public expectedType() {
+    return "float";
+  }
 }

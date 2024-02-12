@@ -4,12 +4,12 @@ import { router } from "../router";
 import { setBaseUrl } from "../utils/urls";
 import { httpConfig } from "./config";
 import { registerHttpPlugins } from "./plugins";
-import { getServer } from "./server";
+import { startServer } from "./server";
 
 export async function createHttpApplication() {
-  const server = getServer();
+  const server = startServer();
 
-  await registerHttpPlugins();
+  await registerHttpPlugins(server);
 
   router.scan(server);
 

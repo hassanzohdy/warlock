@@ -1,11 +1,17 @@
 import Fastify from "fastify";
 
+export type FastifyInstance = ReturnType<typeof Fastify>;
+
 // Instantiate Fastify server
-const server = Fastify({
-  trustProxy: true,
-  // logger: true,
-  bodyLimit: 200 * 1024 * 1024 * 1024, // 200GB
-});
+let server: FastifyInstance | undefined = undefined;
+
+export function startServer() {
+  return (server = Fastify({
+    trustProxy: true,
+    // logger: true,
+    bodyLimit: 200 * 1024 * 1024 * 1024, // 200GB
+  }));
+}
 
 /**
  * Expose the server to be publicly accessible
@@ -13,8 +19,3 @@ const server = Fastify({
 export function getServer() {
   return server;
 }
-
-/**
- * Register single plugin
- */
-export const registerPlugin = server.register.bind(server);

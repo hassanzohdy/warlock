@@ -8,6 +8,7 @@ import {
   whereOperators,
 } from "@mongez/monpulse";
 import { get } from "@mongez/reinforcements";
+import { isIterable } from "@mongez/supportive-is";
 import dayjs from "dayjs";
 import { RepositoryManager } from "./repository-manager";
 import { FilterByOptions, FilterByType, RepositoryOptions } from "./types";
@@ -906,7 +907,13 @@ export class RepositoryListing<
    * Return the given value as a array
    */
   protected returnAsArray(value: any) {
-    if (!Array.isArray(value)) return [value];
+    if (!Array.isArray(value)) {
+      if (isIterable(value) && value.toArray) {
+        return value.toArray();
+      } else {
+        return [value];
+      }
+    }
 
     return value;
   }

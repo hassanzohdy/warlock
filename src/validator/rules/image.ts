@@ -39,4 +39,11 @@ export class ImageRule extends Rule {
 
     return this.trans("image");
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public expectedType() {
+    return "file";
+  }
 }

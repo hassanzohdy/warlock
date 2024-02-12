@@ -98,4 +98,18 @@ export class ExistsRule extends UniqueRule {
   public error() {
     return this.trans("exists");
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public toJson() {
+    return `Valid ${this.input} ${this.column}`;
+  }
+
+  /**
+   * Get column
+   */
+  public get column() {
+    return this.columnName || "id";
+  }
 }

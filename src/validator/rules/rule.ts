@@ -1,4 +1,4 @@
-import { merge } from "@mongez/reinforcements";
+import { capitalize, merge } from "@mongez/reinforcements";
 import { Request } from "../../http";
 
 export abstract class Rule {
@@ -6,6 +6,11 @@ export abstract class Rule {
    * Rule name
    */
   public static ruleName = "";
+
+  /**
+   * Rule Description
+   */
+  public description = "";
 
   /**
    * Determine if the rule requires a value to be present
@@ -129,5 +134,30 @@ export abstract class Rule {
 
   public error() {
     return `${this.input} is not valid`;
+  }
+
+  /**
+   * Render the rule to json
+   */
+  public toJson() {
+    if (this.description) return this.description;
+
+    return capitalize(this.getName());
+  }
+
+  /**
+   * Get the rule expected type for the given input
+   * It should be overridden by the child class
+   */
+  public expectedType() {
+    return "";
+  }
+
+  /**
+   * Get rule name
+   */
+  public getName() {
+    // we need to get it from the child class as it is a static property
+    return (this.constructor as any).ruleName as string;
   }
 }

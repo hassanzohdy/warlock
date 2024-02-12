@@ -6,34 +6,8 @@ import {
 } from "@mongez/fs";
 import { GenericObject } from "@mongez/reinforcements";
 import path from "path";
-import { storagePath } from "../../utils";
-import { CacheDriver } from "../types";
+import { CacheDriver, FileCacheOptions } from "../types";
 import { BaseCacheDriver } from "./base-cache-driver";
-
-export type FileCacheOptions = {
-  /**
-   * The global prefix for the cache key
-   */
-  globalPrefix?: string | (() => string);
-  /**
-   * The default TTL for the cache in seconds
-   *
-   * @default 0
-   */
-  ttl?: number;
-  /**
-   * Storage cache directory
-   *
-   * @default storagePath("cache")
-   */
-  directory?: string | (() => string);
-  /**
-   * File name
-   *
-   * @default cache.json
-   */
-  fileName?: string | (() => string);
-};
 
 export class FileCacheDriver
   extends BaseCacheDriver<FileCacheDriver, FileCacheOptions>
@@ -54,7 +28,9 @@ export class FileCacheDriver
       return directory();
     }
 
-    return storagePath("cache");
+    throw new Error(
+      "Cache directory is not defined, please define it in the file driver options",
+    );
   }
 
   /**

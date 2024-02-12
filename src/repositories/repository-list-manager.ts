@@ -519,7 +519,8 @@ export abstract class RepositoryListManager<
       if (purge) {
         this.cacheDriver.remove(cacheKey);
       }
-      return this.mapModels(listing.documents) as T[];
+
+      return this.mapModels(listing) as T[];
     }
 
     // if we reached here then the data is not cached yet, so we need to fetch it from database first

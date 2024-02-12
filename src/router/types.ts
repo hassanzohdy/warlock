@@ -50,6 +50,12 @@ export type RouteHandler = {
    * Validation static object property which can be optional
    */
   validation?: RouteHandlerValidation;
+
+  /**
+   * Handler description
+   * Will be used for generating documentation
+   */
+  description?: string;
 };
 
 export type RequestHandler<T extends Auth = any> = {
@@ -82,6 +88,16 @@ export type RouteOptions = {
    * Request server options
    */
   serverOptions?: RouteShorthandOptions;
+  /**
+   * Set route label
+   * Will be used for generating documentation
+   * If not set, then Warlock will try to generate a label from the route path
+   */
+  label?: string;
+  /**
+   * Whether it is part of restful routes
+   */
+  restful?: boolean;
 };
 
 export type RequestMethod =
@@ -110,6 +126,12 @@ export type Route = RouteOptions & {
    * And als can have a `validation` object as a static property of the handler
    */
   handler: RouteHandler;
+  /**
+   * Path prefix
+   * Kindly note the prefix is auto added by the router and it should be added to the path itself
+   * this will be used for generating the documentation
+   */
+  $prefix: string;
 };
 export type PartialPick<T, F extends keyof T> = Omit<T, F> &
   Partial<Pick<T, F>>;

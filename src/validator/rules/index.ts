@@ -3,6 +3,7 @@ export * from "./array-of";
 export * from "./boolean";
 export * from "./confirmed";
 export * from "./date";
+export * from "./egyption-phone-number";
 export * from "./email";
 export * from "./exists";
 export * from "./file";

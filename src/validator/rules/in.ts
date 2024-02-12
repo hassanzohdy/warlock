@@ -21,4 +21,18 @@ export class InRule extends Rule {
       values: this.options.join("|"),
     });
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public toJson() {
+    return `One Of: ${this.options.join(", ")}`;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public expectedType() {
+    return "string";
+  }
 }

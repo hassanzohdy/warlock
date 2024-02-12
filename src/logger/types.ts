@@ -28,6 +28,10 @@ export type LogConfigurations = {
    */
   development?: EnvironmentConfigurations;
   /**
+   * Test environment configurations
+   */
+  test?: EnvironmentConfigurations;
+  /**
    * Production environment configurations
    */
   production?: EnvironmentConfigurations;

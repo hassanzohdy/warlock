@@ -152,7 +152,7 @@ export class CacheManager implements CacheDriver<any, any> {
   public async load(driver: string) {
     if (this.loadedDrivers[driver]) return this.loadedDrivers[driver];
 
-    const Driver = this.configurations.drivers[driver];
+    const Driver = (this.configurations.drivers as any)[driver];
 
     if (!Driver) {
       throw new Error(
@@ -162,20 +162,20 @@ export class CacheManager implements CacheDriver<any, any> {
 
     const driverInstance = new Driver();
 
-    driverInstance.setOptions(this.configurations.options[driver]);
+    driverInstance.setOptions((this.configurations.options as any)[driver]);
 
     await driverInstance.connect();
 
     this.loadedDrivers[driver] = driverInstance;
 
-    return driverInstance;
+    return driverInstance as CacheDriver<any, any>;
   }
 
   /**
    * Register and bind a driver
    */
   public registerDriver(driverName: string, driverClass: DriverClass) {
-    this.configurations.drivers[driverName] = driverClass;
+    (this.configurations.drivers as any)[driverName] = driverClass;
   }
 }
 

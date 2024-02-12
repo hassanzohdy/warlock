@@ -1,49 +1,8 @@
 import { GenericObject } from "@mongez/reinforcements";
-import { RedisClientOptions, createClient } from "redis";
-import { CacheData, CacheDriver } from "../types";
+import { createClient } from "redis";
+import { CacheData, CacheDriver, RedisOptions } from "../types";
 import { parseCacheKey } from "../utils";
 import { BaseCacheDriver } from "./base-cache-driver";
-
-export type RedisOptions = {
-  /**
-   * Redis Port
-   *
-   * @default 6379
-   */
-  port?: number;
-  /**
-   * Redis Host
-   */
-  host?: string;
-  /**
-   * Redis Username
-   */
-  username?: string;
-  /**
-   * Redis Password
-   */
-  password?: string;
-  /**
-   * Redis URL
-   *
-   * If used, it will override the host and port options
-   */
-  url?: string;
-  /**
-   * Global prefix for the cache key
-   */
-  globalPrefix?: string | (() => string);
-  /**
-   * Time to live in seconds
-   *
-   * @default Infinity
-   */
-  ttl?: number;
-  /**
-   * Redis client options
-   */
-  clientOptions?: RedisClientOptions;
-};
 
 export class RedisCacheDriver
   extends BaseCacheDriver<ReturnType<typeof createClient>, RedisOptions>

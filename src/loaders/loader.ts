@@ -2,6 +2,7 @@ import events from "@mongez/events";
 import { ensureDirectory, putFile } from "@mongez/fs";
 import { rtrim, trim } from "@mongez/reinforcements";
 import { srcPath, warlockPath } from "../utils";
+import { configFileLoaderName } from "./create-essential-files";
 
 export class Loader {
   public constructor(protected paths: string[]) {
@@ -15,14 +16,16 @@ export class Loader {
   public load() {
     //
 
+    const configLoader = configFileLoaderName();
+
     putFile(
-      warlockPath("config-loader.ts"),
+      warlockPath(configLoader + ".ts"),
       `import loadConfigurations from "src/config";loadConfigurations();`,
     );
 
     putFile(
       warlockPath("http.ts"),
-      `import './config-loader';\n` +
+      `import './${configLoader}';\n` +
         this.paths
           .map(path => {
             path = rtrim(

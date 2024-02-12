@@ -92,10 +92,19 @@ export class Output {
   }
 
   /**
-   * Get value from final output
+   * Get value from output resource
    */
   public get(key: string, defaultValue?: any) {
     return get(this.resource, key, defaultValue);
+  }
+
+  /**
+   * Update value in output resource
+   */
+  public update(key: string, value: any) {
+    set(this.resource, key, value);
+
+    return this;
   }
 
   /**

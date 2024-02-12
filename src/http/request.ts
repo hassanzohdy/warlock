@@ -9,6 +9,7 @@ import { FastifyRequest } from "fastify";
 import type { Auth } from "../auth/models/auth";
 import type { Middleware, Route } from "../router";
 import { Validation, validateAll } from "../validator";
+import { getValidationSchema } from "../validator/utils";
 import { ValidationSchema } from "../validator/validation-schema";
 import { Validator } from "../validator/validator";
 import { UploadedFile } from "./UploadedFile";
@@ -119,10 +120,7 @@ export class Request<User extends Auth = any> {
    * Validate the given validation schema
    */
   public async validate(validation: Validation | ValidationSchema) {
-    const validationSchema =
-      validation instanceof ValidationSchema
-        ? validation
-        : new ValidationSchema(validation, false);
+    const validationSchema = getValidationSchema(validation);
 
     const validator = new Validator(this);
     validator.setValidationSchema(validationSchema);
@@ -172,7 +170,13 @@ export class Request<User extends Auth = any> {
    * Get the domain of the origin
    */
   public get originDomain() {
-    return this.origin ? new URL(this.origin).hostname : null;
+    const domain = this.origin ? new URL(this.origin).hostname : null;
+
+    if (domain?.startsWith("www.")) {
+      return domain.replace(/^www\./, "");
+    }
+
+    return domain;
   }
 
   /**
@@ -435,6 +439,19 @@ export class Request<User extends Auth = any> {
    */
   public getHandler() {
     return this.route.handler;
+  }
+
+  /**
+   * Get inputs that has been validated only
+   */
+  public validated() {
+    let rules = this.getHandler()?.validation?.rules || {};
+
+    if (rules instanceof ValidationSchema) {
+      rules = rules.inputs;
+    }
+
+    return this.only(Object.keys(rules));
   }
 
   /**

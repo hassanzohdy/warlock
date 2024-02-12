@@ -5,12 +5,23 @@ import { initializeDayjs } from "@mongez/time-wizard";
 import { environment } from "./utils/environment";
 
 export async function bootstrap() {
+  const env = environment();
+  const envColor = (env: string) => {
+    switch (env) {
+      case "development":
+        return colors.yellow(env);
+      case "production":
+        return colors.green(env);
+      case "test":
+        return colors.magentaBright(env);
+    }
+  };
   console.log(
     colors.blueBright("ℹ"),
     colors.yellow(`(${new Date().toISOString()})`),
     colors.orange("[warlock]"),
-    colors.magenta(`[${environment()}]`),
-    colors.blueBright("Starting the http application"),
+    colors.magenta(`bootstrap`),
+    colors.blueBright(`Starting application in ${envColor(env)} mode`),
   );
 
   loadEnv();

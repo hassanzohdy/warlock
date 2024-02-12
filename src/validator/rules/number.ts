@@ -20,4 +20,11 @@ export class NumberRule extends Rule {
   public error() {
     return this.trans("number");
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public expectedType() {
+    return "number";
+  }
 }

@@ -1,3 +1,4 @@
+import events from "@mongez/events";
 import { connectToDatabase } from "@mongez/monpulse";
 import { cache } from "./cache";
 import { createHttpApplication } from "./http";
@@ -5,9 +6,9 @@ import { createHttpApplication } from "./http";
 export async function startHttpApplication() {
   cache.init();
 
-  connectToDatabase();
+  await Promise.all([connectToDatabase(), createHttpApplication()]);
 
-  createHttpApplication();
+  events.trigger("app.http.started");
 }
 
 export type AppConfigurations = {
@@ -27,4 +28,8 @@ export type AppConfigurations = {
    * Application timezone
    */
   timezone?: string;
+  /**
+   * Locale Codes list
+   */
+  localeCodes?: string[];
 };

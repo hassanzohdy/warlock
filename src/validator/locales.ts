@@ -5,6 +5,10 @@ groupedTranslations("validation", {
     en: "The :input field is required.",
     ar: ":input مطلوب.",
   },
+  egyptianPhoneNumber: {
+    en: "Make sure the :input is a valid Egyptian phone number.",
+    ar: ":input يجب أن يكون رقم هاتف صالح.",
+  },
   missing: {
     en: "The :input field can not be present.",
     ar: ":input لا يمكن أن يكون موجود.",

@@ -33,10 +33,20 @@ export async function startHttpApp() {
     plugins: [typecheckPlugin(), nativeNodeModulesPlugin, startServerPlugin],
   });
 
-  const watcher = chokidar.watch([srcPath(), rootPath(".env")], {
-    persistent: true,
-    ignoreInitial: true,
-  });
+  const watcher = chokidar.watch(
+    [
+      srcPath(),
+      rootPath(".env"),
+      rootPath(".env.local"),
+      rootPath(".env.development"),
+      rootPath(".production"),
+      rootPath(".env.test"),
+    ],
+    {
+      persistent: true,
+      ignoreInitial: true,
+    },
+  );
 
   const cachedFiles = new Map<string, string>();
 

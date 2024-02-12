@@ -43,7 +43,6 @@ export class Upload extends Model {
    */
   public get path() {
     const path = this.get("path");
-
     return uploadsPath(trim(path, "/"));
   }
 

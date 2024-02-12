@@ -19,4 +19,11 @@ export class IntRule extends Rule {
   public error() {
     return this.trans("integer");
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public expectedType() {
+    return "int";
+  }
 }

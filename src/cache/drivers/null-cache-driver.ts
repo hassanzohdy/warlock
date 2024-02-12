@@ -1,10 +1,10 @@
 import { log } from "@mongez/logger";
 import { GenericObject } from "@mongez/reinforcements";
-import { CacheDriver } from "../types";
-
-export type NullCacheDriverOptions = GenericObject;
+import { CacheDriver, NullCacheDriverOptions } from "../types";
+import { BaseCacheDriver } from "./base-cache-driver";
 
 export class NullCacheDriver
+  extends BaseCacheDriver<NullCacheDriver, NullCacheDriverOptions>
   implements CacheDriver<NullCacheDriver, NullCacheDriverOptions>
 {
   /**
@@ -33,6 +33,7 @@ export class NullCacheDriver
    * Constructor
    */
   public constructor(options: GenericObject = {}) {
+    super();
     this.setOptions(options);
   }
 

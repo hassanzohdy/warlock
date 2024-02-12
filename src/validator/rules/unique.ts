@@ -1,4 +1,5 @@
 import { Aggregate, Model } from "@mongez/monpulse";
+import { capitalize } from "@mongez/reinforcements";
 import { Request } from "../../http";
 import { pool } from "../../pool";
 import { Rule } from "./rule";
@@ -182,5 +183,27 @@ export class UniqueRule extends Rule {
    */
   public error() {
     return this.trans("unique");
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public toJson() {
+    return "Unique " + capitalize(this.input);
+  }
+
+  /**
+   * Get the rule expected type for the given input
+   * It should be overridden by the child class
+   */
+  public expectedType() {
+    return this.column === "id" ? "number" : "string";
+  }
+
+  /**
+   * Get column
+   */
+  public get column() {
+    return this.columnName || this.input;
   }
 }

@@ -73,9 +73,11 @@ export class Router {
       return this;
     }
 
-    path = this.stacks.prefix.reduce((path, prefix) => {
+    const prefix = this.stacks.prefix.reduce((path, prefix) => {
       return concatRoute(prefix, path);
-    }, path);
+    }, "");
+
+    path = concatRoute(prefix, path);
 
     // admin
     // users
@@ -122,6 +124,7 @@ export class Router {
       handler,
       ...options,
       name,
+      $prefix: prefix || "/",
     };
 
     if (routeData.name) {
@@ -275,6 +278,7 @@ export class Router {
         {
           ...options,
           name: resourceName,
+          restful: true,
         },
       );
     }
@@ -288,6 +292,7 @@ export class Router {
         {
           ...options,
           name: resourceName,
+          restful: true,
         },
       );
     }
@@ -302,6 +307,7 @@ export class Router {
       this.post(path, handler, {
         ...options,
         name: resourceName,
+        restful: true,
       });
     }
 
@@ -315,6 +321,7 @@ export class Router {
       this.put(path + "/:id", handler, {
         ...options,
         name: resourceName,
+        restful: true,
       });
     }
 
@@ -327,6 +334,7 @@ export class Router {
       this.patch(path + "/:id", handler, {
         ...options,
         name: resourceName,
+        restful: true,
       });
     }
 
@@ -339,6 +347,7 @@ export class Router {
         {
           ...options,
           name: resourceName,
+          restful: true,
         },
       );
     }
@@ -353,6 +362,7 @@ export class Router {
         {
           ...options,
           name: resourceName,
+          restful: true,
         },
       );
     }

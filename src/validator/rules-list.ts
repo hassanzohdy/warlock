@@ -1,8 +1,7 @@
 import config from "@mongez/config";
-import { colors } from "@mongez/copper";
 import { isEmpty } from "@mongez/supportive-is";
 import { Request } from "../http";
-import { Rule } from "./rules/rule";
+import { getRuleHandler } from "./utils";
 
 export class RulesList {
   /**
@@ -46,43 +45,10 @@ export class RulesList {
     )
       return;
 
-    for (let ruleName of this.rules) {
-      let rule: Rule;
+    for (const ruleName of this.rules) {
+      const rule = getRuleHandler(ruleName);
 
-      let ruleOptions: any[] = [];
-
-      if (ruleName instanceof Rule) {
-        rule = ruleName;
-      } else {
-        if (ruleName.includes(":")) {
-          const [baseRuleName, gluedRuleOptions] = ruleName.split(":");
-
-          ruleOptions = gluedRuleOptions.split(",");
-          ruleName = baseRuleName;
-        }
-
-        const RuleClass = config.get(`validation.rules.${ruleName}`);
-
-        if (!RuleClass) {
-          throw new Error(
-            colors.bold(
-              `Missing Validation Rule: ${colors.redBright(
-                ruleName + " rule",
-              )} is not listed under the configurations of ${colors.cyan(
-                "validation.rules",
-              )} list`,
-            ),
-          );
-        }
-
-        rule = new RuleClass();
-      }
-
-      rule
-        .setOptions(ruleOptions)
-        .setInput(this.input)
-        .setValue(this.value)
-        .setRequest(this.request);
+      rule.setInput(this.input).setValue(this.value).setRequest(this.request);
 
       const hasValue = !isEmpty(this.value);
 

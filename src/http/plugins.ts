@@ -2,16 +2,17 @@ import { FastifyCorsOptions } from "@fastify/cors";
 import fastifyJwt, { FastifyJWTOptions } from "@fastify/jwt";
 import fastifyMultipart from "@fastify/multipart";
 import config from "@mongez/config";
-import { registerPlugin } from "./server";
+import { rootPath } from "../utils";
+import { FastifyInstance } from "./server";
 
 const defaultCorsOptions: FastifyCorsOptions = {
   origin: "*",
   methods: "*",
 };
 
-export async function registerHttpPlugins() {
+export async function registerHttpPlugins(server: FastifyInstance) {
   // 👇🏻 register rate-limit plugin
-  await registerPlugin(import("@fastify/rate-limit"), {
+  server.register(import("@fastify/rate-limit"), {
     // max requests per time window
     max: config.get("http.rateLimit.max", 60),
     // maximum time that is will allow max requests
@@ -24,10 +25,10 @@ export async function registerHttpPlugins() {
     ...defaultCorsOptions,
   };
 
-  await registerPlugin(import("@fastify/cors"), corsOptions);
+  server.register(import("@fastify/cors"), corsOptions);
 
   // 👇🏻 import multipart plugin
-  registerPlugin(fastifyMultipart, {
+  server.register(fastifyMultipart, {
     attachFieldsToBody: true,
     limits: {
       // file size could be up to 10MB
@@ -35,10 +36,15 @@ export async function registerHttpPlugins() {
     },
   });
 
+  server.register(import("@fastify/static"), {
+    root: rootPath("public"),
+    prefix: "/public/",
+  });
+
   // 👇🏻 use the jwt plugin with your preferred secret key
   const jwtOptions: FastifyJWTOptions | undefined = config.get("auth.jwt");
 
   if (jwtOptions) {
-    registerPlugin(fastifyJwt, jwtOptions);
+    server.register(fastifyJwt, jwtOptions);
   }
 }

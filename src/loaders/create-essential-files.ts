@@ -106,7 +106,7 @@ export async function createConfigLoader() {
 
   // now create the file
   putFile(
-    warlockPath("config-loader.ts"),
+    warlockPath(configFileLoaderName() + ".ts"),
     await prettier.format(
       imports.join("\n") +
         fileContents.join("\n") +
@@ -116,4 +116,8 @@ export async function createConfigLoader() {
       },
     ),
   );
+}
+
+export function configFileLoaderName() {
+  return "config-loader";
 }

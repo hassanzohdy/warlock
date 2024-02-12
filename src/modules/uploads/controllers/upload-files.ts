@@ -89,7 +89,7 @@ export async function uploadFiles(request: Request, response: Response) {
 
 uploadFiles.validation = {
   rules: {
-    uploads: ["required", "file"],
+    uploads: ["required", "array", "file"],
     directory: ["string"],
     random: ["boolean"],
   },

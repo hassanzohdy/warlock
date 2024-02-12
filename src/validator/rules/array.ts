@@ -19,4 +19,11 @@ export class ArrayRule extends Rule {
   public error() {
     return this.trans("array");
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public toJson() {
+    return "Array";
+  }
 }

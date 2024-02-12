@@ -1,24 +1,7 @@
 import { log } from "@mongez/logger";
 import { GenericObject } from "@mongez/reinforcements";
-import { CacheData, CacheDriver } from "../types";
+import { CacheData, CacheDriver, CacheOperationType } from "../types";
 import { parseCacheKey } from "../utils";
-
-export type OperationType =
-  | "fetching"
-  | "fetched"
-  | "caching"
-  | "cached"
-  | "flushing"
-  | "flushed"
-  | "removing"
-  | "removed"
-  | "clearing"
-  | "cleared"
-  | "expired"
-  | "notFound"
-  | "connecting"
-  | "error"
-  | "connected";
 
 const messages = {
   clearing: "Clearing namespace",
@@ -113,7 +96,7 @@ export abstract class BaseCacheDriver<ClientType, Options extends GenericObject>
   /**
    * Log the operation
    */
-  protected log(operation: OperationType, key?: string) {
+  protected log(operation: CacheOperationType, key?: string) {
     if (key) {
       // this will be likely used with file cache driver as it will convert the dot to slash
       // to make it consistent and not to confuse developers we will output the key by making sure it's a dot

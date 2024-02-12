@@ -120,10 +120,7 @@ export function dateOutput(
       outputObject.timestamp = date.getTime();
     }
 
-    // if there is a timezone, we need to return the offset from the UTC time
-    if (timezone) {
-      outputObject.offset = dayjsDate.utcOffset();
-    }
+    outputObject.offset = dayjsDate.utcOffset();
 
     if (optionsData.humanTime) {
       outputObject.humanTime = (dayjsDate as any).fromNow();
@@ -146,6 +143,8 @@ export function dateOutput(
     return outputObject;
   } catch (error: any) {
     log.error("dateOutput", "error", error.message);
+
+    console.log("error", error);
 
     return date;
   }

@@ -79,15 +79,15 @@ export function t(keyword: string, placeholders?: any) {
  */
 export async function fromRequest<T = any>(
   key: string,
-  callback: () => Promise<any>,
+  callback: (request: Request) => Promise<any>,
 ): Promise<T> {
   const request = requestContext().request;
 
-  if (!request) return callback();
+  if (!request) return callback(request);
 
   if (request[key]) return request[key];
 
-  request[key] = await callback();
+  request[key] = await callback(request);
 
   return request[key];
 }

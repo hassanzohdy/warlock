@@ -40,4 +40,17 @@ export class MissingIfRule extends Rule {
   public error() {
     return this.trans("missing");
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public toJson() {
+    const [input, ...values] = this.options;
+
+    if (values.length === 1) {
+      return `Missing If ${input} equals '${values[0]}'`;
+    }
+
+    return `Missing If ${input} equals one of: '${values.join("', '")}'`;
+  }
 }

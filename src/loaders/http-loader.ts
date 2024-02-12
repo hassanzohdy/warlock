@@ -2,7 +2,10 @@ import { fileExists, putFileAsync } from "@mongez/fs";
 import { rtrim, trim } from "@mongez/reinforcements";
 import path from "path";
 import { srcPath, warlockPath } from "../utils";
-import { createEssentialFiles } from "./../loaders/create-essential-files";
+import {
+  configFileLoaderName,
+  createEssentialFiles,
+} from "./../loaders/create-essential-files";
 import { HttpModulesLoader } from "./../loaders/http-modules-loader";
 
 export class HttpLoader {
@@ -19,7 +22,7 @@ export class HttpLoader {
       this.paths.push("src/main");
     }
 
-    this.paths.push("./bootstrap", "./config-loader");
+    this.paths.push("./bootstrap", "./" + configFileLoaderName());
 
     this.paths.push(...this.fetchAppPaths());
 
