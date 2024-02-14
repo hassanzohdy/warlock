@@ -12,6 +12,8 @@ export type Middleware = (
   response: Response,
 ) => ReturnedResponse | undefined | void;
 
+export type RouterGroupCallback = () => void;
+
 /**
  * Resource standard methods
  */

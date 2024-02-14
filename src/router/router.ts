@@ -20,6 +20,7 @@ import {
   RouteHandlerValidation,
   RouteOptions,
   RouteResource,
+  RouterGroupCallback,
   RouterStacks,
 } from "./types";
 
@@ -373,7 +374,7 @@ export class Router {
   /**
    * Group routes with options
    */
-  public group(options: GroupedRoutesOptions, callback: () => void) {
+  public group(options: GroupedRoutesOptions, callback: RouterGroupCallback) {
     const {
       prefix,
       // name must always be defined because

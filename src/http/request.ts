@@ -195,6 +195,23 @@ export class Request<User extends Auth = any> {
   }
 
   /**
+   * Get access token from Authorization header
+   *
+   * If the Authorization header does not start with `Bearer` value then return null
+   */
+  public get accessToken() {
+    const authorization = this.header("authorization");
+
+    if (!authorization) return null;
+
+    const [type, value] = authorization.split(" ");
+
+    if (type.toLowerCase() !== "bearer") return null;
+
+    return value;
+  }
+
+  /**
    * Get the authorization header
    */
   public get authorization() {
