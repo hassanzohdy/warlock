@@ -1,6 +1,5 @@
 import config from "@mongez/config";
 import { log } from "@mongez/logger";
-import { cache } from "../cache";
 import { Request, Response } from "./../http";
 import { jwt } from "./jwt";
 import { AccessToken } from "./models/access-token";
@@ -8,8 +7,6 @@ import { AccessToken } from "./models/access-token";
 export function authMiddleware(allowedUserType?: string) {
   return async function auth(request: Request, response: Response) {
     try {
-      if (await cache.get("accessToken")) {
-      }
       await jwt.verify(request);
 
       // use our own jwt verify to verify the token

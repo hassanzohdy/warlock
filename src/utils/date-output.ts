@@ -2,6 +2,7 @@ import config from "@mongez/config";
 import { log } from "@mongez/logger";
 import dayjs, { Dayjs } from "dayjs";
 import timezone from "dayjs/plugin/timezone";
+import { requestContext } from "../http";
 dayjs.extend(timezone);
 
 export type DateOutputOptions = {
@@ -98,6 +99,11 @@ export function dateOutput(
     ...options,
   };
 
+  if (!optionsData.locale) {
+    const { request } = requestContext();
+    optionsData.locale = request?.locale;
+  }
+
   try {
     let dayjsDate = dayjs(date);
     const timezone = optionsData.timezone || config.get("app.timezone");
@@ -106,8 +112,8 @@ export function dateOutput(
       dayjsDate = dayjsDate.tz(timezone);
     }
 
-    if (options?.locale) {
-      dayjsDate = dayjsDate.locale(options.locale);
+    if (optionsData?.locale) {
+      dayjsDate = dayjsDate.locale(optionsData.locale);
     }
 
     const outputObject: DateOutputReturn = {};

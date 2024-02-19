@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 import config from "@mongez/config";
 import { putJsonFile } from "@mongez/fs";
 import {
@@ -218,7 +219,7 @@ export class Postman {
           );
           if (!adminFolder) {
             adminFolder = {
-              name: prepareSegment(adminFolderName),
+              name: adminFolderName,
               item: [],
             };
             (currentFolder.item as PostmanFolder[]).push(adminFolder);
@@ -232,7 +233,7 @@ export class Postman {
 
           if (!folder) {
             folder = {
-              name: prepareSegment(segment),
+              name: segment,
               item: [],
             };
 
@@ -264,7 +265,6 @@ export class Postman {
     // Now, postmanCollection contains the structured data in the desired format
     // console.log(JSON.stringify(postmanCollection, null, 2));
 
-    putJsonFile(rootPath("postman1.json"), postmanCollection);
     putJsonFile(rootPath("postman2.json"), wrappedCollection);
   }
 
@@ -296,8 +296,8 @@ export class Postman {
 
     for (const item of folder.item) {
       if (item.name.startsWith("admin-")) {
-        // remove the "admin-" prefix
-        item.name = prepareSegment(item.name.replace("admin-", ""));
+        item.name = item.name.substring("admin-".length);
+
         adminFolders.push(item as PostmanFolder);
       } else {
         otherFolders.push(item as PostmanFolder);
@@ -331,10 +331,6 @@ function removeId(path: string) {
   return trim(path.replace(/:id$/, ""));
 }
 
-function checkHaveId(path: string) {
-  return path.endsWith(":id");
-}
-
 export function renderGetMethodRoute(path: string) {
   if (path.endsWith(":id")) {
     return `Get ${singular(prepareSegment(removeId(path)))} by id`;
@@ -354,9 +350,7 @@ export function namedMethodRoute(path: string, method: string) {
     case "PUT":
       return `Update ${singular(removeId(path))}`;
     case "DELETE":
-      return checkHaveId(path)
-        ? `Delete ${singular(removeId(path))} by id`
-        : `Delete ${singular(removeId(path))}s`;
+      return `Delete ${singular(removeId(path))}`;
     case "PATCH":
       return `Patch ${singular(removeId(path))}`;
 
@@ -465,20 +459,16 @@ function flattenFolders(folder: PostmanFolder): PostmanFolder[] {
   let flattenedItems: PostmanFolder[] = [];
 
   for (const item of folder.item) {
-    if (Object.prototype.hasOwnProperty.call(item, "request")) {
+    if (item.hasOwnProperty("request")) {
       // It's a request, add it to the flattened list
       flattenedItems.push(item as PostmanFolder);
-    } else if (Object.prototype.hasOwnProperty.call(item, "item")) {
-      const nestedFolder = item as PostmanFolder;
-      const flattenedNestedItems = flattenFolders(nestedFolder);
-
-      if (flattenedNestedItems.length === 0) {
-        // Include only folders with empty items
-        flattenedItems.push({ ...nestedFolder, item: [] });
-      } else {
-        flattenedItems = flattenedItems.concat(flattenedNestedItems);
-      }
+    } else if (item.hasOwnProperty("item")) {
+      // It's a nested folder, recursively flatten it
+      flattenedItems = flattenedItems.concat(
+        flattenFolders(item as PostmanFolder),
+      );
     }
   }
+
   return flattenedItems;
 }
