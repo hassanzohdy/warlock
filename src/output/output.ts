@@ -59,15 +59,18 @@ export class Output {
    */
   public request!: Request;
 
+  // public resource: GenericObject = {};
+
   /**
    * Constructor
    */
   public constructor(public resource: OutputResource = {}) {
-    //
-    if (this.resource instanceof Model) {
-      this.resource = this.resource.data;
-    } else if (this.resource instanceof Output) {
-      this.resource = this.resource.resource;
+    if (resource instanceof Model) {
+      this.resource = (this.resource as any).data;
+    } else if (resource instanceof Output) {
+      this.resource = resource.resource;
+    } else {
+      this.resource = resource;
     }
 
     this.originalResource = resource;

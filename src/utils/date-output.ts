@@ -3,6 +3,7 @@ import { log } from "@mongez/logger";
 import dayjs, { Dayjs } from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import { requestContext } from "../http";
+
 dayjs.extend(timezone);
 
 export type DateOutputOptions = {
@@ -126,7 +127,9 @@ export function dateOutput(
       outputObject.timestamp = date.getTime();
     }
 
-    outputObject.offset = dayjsDate.utcOffset();
+    if (optionsData.offset) {
+      outputObject.offset = dayjsDate.utcOffset();
+    }
 
     if (optionsData.humanTime) {
       outputObject.humanTime = (dayjsDate as any).fromNow();

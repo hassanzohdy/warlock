@@ -4,7 +4,9 @@ import { toSnakeCase } from "@mongez/reinforcements";
 import { Command } from "commander";
 import glob from "fast-glob";
 import path from "path";
+import { registerCommand } from "../../commander";
 import { Seed } from "./seed";
+import { pathToFileURL } from "url";
 
 export function databaseSeedsCommand() {
   return new Command("db:seed")
@@ -51,7 +53,9 @@ export function seedDatabase(seedsPath: string, once = false) {
         `Collecting Seeds from ${colors.magentaBright(relativePath)}`,
       );
 
-      const fileExports = await import(file);
+      const modulePath = pathToFileURL(file).href;
+
+      const fileExports = await import(modulePath);
 
       // count the number of exported functions
       const exportedFunctions = Object.keys(fileExports).length;
@@ -119,3 +123,5 @@ export function seedDatabase(seedsPath: string, once = false) {
     }
   });
 }
+
+registerCommand(databaseSeedsCommand());

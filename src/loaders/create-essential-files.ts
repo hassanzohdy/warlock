@@ -12,16 +12,6 @@ export async function createEssentialFiles() {
   );
 
   await createConfigLoader();
-
-  // putFile(
-  //   warlockPath("config-loader.ts"),
-  //   `import loadConfigurations from "src/config";\nloadConfigurations();`,
-  // );
-
-  putFile(
-    warlockPath("start-http-application.ts"),
-    'import { startHttpApplication } from "@mongez/warlock"; startHttpApplication();',
-  );
 }
 
 export async function createConfigLoader() {
@@ -55,19 +45,21 @@ export async function createConfigLoader() {
         setLogConfigurations(logConfigurations);
         `,
       );
-    } else if (file === "database") {
-      imports.push(
-        `import databaseConfigurations from "src/config/database";`,
-        `import { setDatabaseConfigurations } from "@mongez/monpulse";`,
-      );
+    }
+    //  else if (file === "database") {
+    //   imports.push(
+    //     `import databaseConfigurations from "src/config/database";`,
+    //     `import { setDatabaseConfigurations } from "@mongez/monpulse";`,
+    //   );
 
-      fileContents.push(
-        `
-        // Database configurations
-        setDatabaseConfigurations(databaseConfigurations);
-        `,
-      );
-    } else if (file === "mail") {
+    //   fileContents.push(
+    //     `
+    //     // Database configurations
+    //     setDatabaseConfigurations(databaseConfigurations);
+    //     `,
+    //   );
+    // }
+    else if (file === "mail") {
       imports.push(
         `import mailConfigurations from "src/config/mail";`,
         `import { setMailConfigurations } from "@mongez/warlock";`,
@@ -79,19 +71,21 @@ export async function createConfigLoader() {
         setMailConfigurations(mailConfigurations);
         `,
       );
-    } else if (file === "cache") {
-      imports.push(
-        `import cacheConfigurations from "src/config/cache";`,
-        `import { cache } from "@mongez/warlock";`,
-      );
+    }
+    //  else if (file === "cache") {
+    //   imports.push(
+    //     `import cacheConfigurations from "src/config/cache";`,
+    //     `import { cache } from "@mongez/warlock";`,
+    //   );
 
-      fileContents.push(
-        `
-        // Cache configurations
-        cache.setCacheConfigurations(cacheConfigurations);
-        `,
-      );
-    } else {
+    //   fileContents.push(
+    //     `
+    //     // Cache configurations
+    //     cache.setCacheConfigurations(cacheConfigurations);
+    //     `,
+    //   );
+    // }
+    else {
       const importFileName = toCamelCase(file) + "Configurations";
       imports.push(`import ${importFileName} from "src/config/${file}";`);
 

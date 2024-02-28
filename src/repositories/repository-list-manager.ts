@@ -23,6 +23,11 @@ export abstract class RepositoryListManager<
   protected defaultOptions: RepositoryOptions = {};
 
   /**
+   * Simple selected columns
+   */
+  protected simpleSelectColumns: string[] = ["id"];
+
+  /**
    * Default filters list
    */
   protected defaultFilters: FilterByOptions = {
@@ -37,6 +42,9 @@ export abstract class RepositoryListManager<
     },
     createdBy: ["int", "createdBy.id"],
     isActive: "boolean",
+    simple: (_value: any, query) => {
+      query.select(this.simpleSelectColumns);
+    },
   };
 
   /**

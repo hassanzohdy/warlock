@@ -4,23 +4,18 @@ import { getFile } from "@mongez/fs";
 import { debounce } from "@mongez/reinforcements";
 import chokidar from "chokidar";
 import esbuild from "esbuild";
-import { HttpLoader } from "../loaders/http-loader";
+import { buildHttpApp } from "../builder/build-http-app";
 import { rootPath, srcPath, warlockPath } from "../utils";
 import { nativeNodeModulesPlugin, startServerPlugin } from "./../esbuild";
 
 export async function startHttpApp() {
-  const httpLoader = new HttpLoader();
-  await httpLoader.build();
-
-  // watch for any changes in the src directory, .env and tsconfig.json
-  // if any change happens, we will restart the child process
-  // const watchList = ["src", ".env", "tsconfig.json"];
-
   // use esbuild to watch and rebuild the project
+
+  const httpPath = await buildHttpApp();
 
   const builder = await esbuild.context({
     platform: "node",
-    entryPoints: [httpLoader.httpDevelopmentPath],
+    entryPoints: [httpPath],
     bundle: true,
     minify: false,
     packages: "external",
@@ -30,7 +25,13 @@ export async function startHttpApp() {
     format: "cjs",
     target: ["esnext"],
     outdir: warlockPath(),
-    plugins: [typecheckPlugin(), nativeNodeModulesPlugin, startServerPlugin],
+    plugins: [
+      typecheckPlugin({
+        watch: true,
+      }),
+      nativeNodeModulesPlugin,
+      startServerPlugin,
+    ],
   });
 
   const watcher = chokidar.watch(
@@ -38,6 +39,7 @@ export async function startHttpApp() {
       srcPath(),
       rootPath(".env"),
       rootPath(".env.local"),
+      rootPath(".env.shared"),
       rootPath(".env.development"),
       rootPath(".production"),
       rootPath(".env.test"),
@@ -59,7 +61,7 @@ export async function startHttpApp() {
       if (e === "unlink") {
         cachedFiles.delete(path);
 
-        await httpLoader.build();
+        await buildHttpApp();
 
         builder.rebuild();
 
@@ -74,11 +76,9 @@ export async function startHttpApp() {
 
       cachedFiles.set(path, contents);
 
-      await httpLoader.build();
+      await buildHttpApp();
 
       builder.rebuild();
     }, 10),
   );
-
-  // builder.watch();
 }

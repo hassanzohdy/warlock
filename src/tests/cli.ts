@@ -2,10 +2,8 @@ import { ensureDirectory, putFile } from "@mongez/fs";
 import esbuild from "esbuild";
 import path from "path";
 import { nativeNodeModulesPlugin } from "../esbuild";
-import {
-  configFileLoaderName,
-  createConfigLoader,
-} from "../loaders/create-essential-files";
+import { configFileLoaderName } from "../loaders/create-essential-files";
+import { HttpLoader } from "../loaders/http-loader";
 import { srcPath, warlockPath } from "../utils";
 
 export async function buildTestServer() {
@@ -16,7 +14,8 @@ export async function buildTestServer() {
     `import { bootstrap } from "@mongez/warlock";\n bootstrap();`,
   );
 
-  await createConfigLoader();
+  const httpLoader = new HttpLoader();
+  await httpLoader.build();
 
   let fileContents =
     "import { startTestApplication } from '@mongez/warlock';\n";

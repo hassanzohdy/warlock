@@ -2,8 +2,8 @@ import { colors } from "@mongez/copper";
 import { spawnSync } from "child_process";
 import esbuild from "esbuild";
 import path from "path";
+import { buildHttpApp } from "../builder/build-http-app";
 import { getWarlockConfig } from "../config/get-warlock-config";
-import { HttpLoader } from "../loaders/http-loader";
 import { nativeNodeModulesPlugin } from "./../esbuild";
 
 export async function buildHttpForProduction() {
@@ -12,10 +12,9 @@ export async function buildHttpForProduction() {
 
   console.log(colors.yellow("Scanning project files..."));
 
-  const httpLoader = new HttpLoader();
   const config = await getWarlockConfig();
 
-  await httpLoader.build();
+  const httpPath = await buildHttpApp();
 
   console.log(colors.magenta("Bundling project files..."));
 
@@ -25,7 +24,7 @@ export async function buildHttpForProduction() {
 
   await esbuild.build({
     platform: "node",
-    entryPoints: [httpLoader.httpDevelopmentPath],
+    entryPoints: [httpPath],
     bundle: true,
     packages: config.build.bundle ? undefined : "external",
     minify: true,

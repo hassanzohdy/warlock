@@ -70,6 +70,11 @@ export type RequestHandler<T extends Auth = any> = {
    * Validation static object property which can be optional
    */
   validation?: RouteHandlerValidation;
+
+  /**
+   * Request Handler Description
+   */
+  description?: string;
 };
 
 export type RouteOptions = {

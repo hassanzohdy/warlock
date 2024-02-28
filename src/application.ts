@@ -1,14 +1,10 @@
-import events from "@mongez/events";
-import { connectToDatabase } from "@mongez/monpulse";
-import { cache } from "./cache";
+import { setupCache, setupDatabase } from "./bootstrap/setup";
 import { createHttpApplication } from "./http";
 
 export async function startHttpApplication() {
-  cache.init();
-
-  await Promise.all([connectToDatabase(), createHttpApplication()]);
-
-  events.trigger("app.http.started");
+  setupCache();
+  setupDatabase();
+  createHttpApplication();
 }
 
 export type AppConfigurations = {

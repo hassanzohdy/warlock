@@ -1,4 +1,4 @@
-import { fileExists, putFileAsync } from "@mongez/fs";
+import { fileExists, putFile, putFileAsync } from "@mongez/fs";
 import { rtrim, trim } from "@mongez/reinforcements";
 import path from "path";
 import { srcPath, warlockPath } from "../utils";
@@ -13,10 +13,17 @@ export class HttpLoader {
 
   public httpDevelopmentPath = warlockPath("http.ts");
 
+  public httpPath = "./start-http-application";
+
   public async init() {
     this.paths = [];
 
     await createEssentialFiles();
+
+    putFile(
+      warlockPath(`${this.httpPath}.ts`),
+      'import { startHttpApplication } from "@mongez/warlock"; startHttpApplication();',
+    );
 
     if (fileExists(srcPath("main.ts"))) {
       this.paths.push("src/main");
@@ -26,7 +33,7 @@ export class HttpLoader {
 
     this.paths.push(...this.fetchAppPaths());
 
-    this.paths.push("./start-http-application");
+    this.paths.push(this.httpPath);
 
     return this;
   }

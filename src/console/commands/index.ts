@@ -1,1 +1,2 @@
-export * from "./database-seeds";
+import "./database/migrate";
+import "./database/seeds";
