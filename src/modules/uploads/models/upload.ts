@@ -1,6 +1,7 @@
 import { Casts, Model } from "@mongez/monpulse";
 import { trim } from "@mongez/reinforcements";
 import { UploadOutput } from "../output/upload-output";
+import { copyUpload } from "../utils/copy-upload";
 import { uploadsPath } from "./../../../utils";
 
 export class Upload extends Model {
@@ -27,6 +28,7 @@ export class Upload extends Model {
     mimeType: "string",
     width: "number",
     height: "number",
+    directory: "string",
     url: "string",
     provider: "object",
     isRemote: "boolean",
@@ -72,6 +74,13 @@ export class Upload extends Model {
    */
   public get hash(): string {
     return this.get("hash");
+  }
+
+  /**
+   * Clone the uploaded file into a new different path
+   */
+  public async copy(saveTo?: string) {
+    return copyUpload(this, saveTo);
   }
 }
 

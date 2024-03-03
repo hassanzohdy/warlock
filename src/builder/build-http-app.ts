@@ -1,3 +1,4 @@
+import { ensureDirectoryAsync } from "@mongez/fs";
 import { warlockPath } from "../utils/paths";
 import {
   createAppBuilder,
@@ -11,6 +12,8 @@ import { createConfigLoader } from "./config-loader-builder";
 
 export async function buildHttpApp() {
   const { addImport, saveAs } = createAppBuilder();
+
+  await ensureDirectoryAsync(warlockPath());
 
   const data = await Promise.all([
     createBootstrapFile(),

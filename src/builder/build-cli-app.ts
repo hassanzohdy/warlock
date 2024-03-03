@@ -1,4 +1,4 @@
-import { getFileAsync } from "@mongez/fs";
+import { ensureDirectoryAsync, getFileAsync } from "@mongez/fs";
 import { toSnakeCase } from "@mongez/reinforcements";
 import { loadMigrationsFiles } from "../console/commands/database/migrate";
 import { srcPath, warlockPath } from "../utils/paths";
@@ -12,6 +12,8 @@ import { createConfigLoader } from "./config-loader-builder";
 
 export async function buildCliApp() {
   const { addImport, saveAs } = createAppBuilder();
+
+  await ensureDirectoryAsync(warlockPath());
 
   const data = await Promise.all([
     createBootstrapFile(),

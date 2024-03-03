@@ -6,7 +6,7 @@ import { Request, Response, UploadedFile } from "../../../http";
 import { uploadsPath } from "../../../utils";
 import { Upload } from "../models";
 
-async function getDirectory(directoryInput?: string) {
+export async function getUploadsDirectory(directoryInput?: string) {
   if (directoryInput) return directoryInput;
 
   const configDirectory = config.get("uploads.saveTo");
@@ -33,7 +33,7 @@ export async function uploadFiles(request: Request, response: Response) {
 
   const isRandom = request.bool("random");
 
-  const baseDirectoryPath = await getDirectory(directory);
+  const baseDirectoryPath = await getUploadsDirectory(directory);
 
   const addFile = async (file: UploadedFile) => {
     const hash = Random.string(64);

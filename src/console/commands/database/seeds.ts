@@ -4,9 +4,9 @@ import { toSnakeCase } from "@mongez/reinforcements";
 import { Command } from "commander";
 import glob from "fast-glob";
 import path from "path";
+import { pathToFileURL } from "url";
 import { registerCommand } from "../../commander";
 import { Seed } from "./seed";
-import { pathToFileURL } from "url";
 
 export function databaseSeedsCommand() {
   return new Command("db:seed")

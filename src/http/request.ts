@@ -612,6 +612,8 @@ export class Request<User extends Auth = any> {
    */
   public set(key: string, value: any) {
     set(this.payload.all, key, value);
+
+    return this;
   }
 
   /**

@@ -77,13 +77,13 @@ export function t(keyword: string, placeholders?: any) {
  * Get the value of the given key from the request
  * If not found, then execute the given callback and store its result in the request then return it
  */
-export async function fromRequest<T = any>(
+export async function fromRequest<T>(
   key: string,
-  callback: (request: Request) => Promise<any>,
+  callback: (request: Request) => Promise<T>,
 ): Promise<T> {
   const request = requestContext().request;
 
-  if (!request) return callback(request);
+  if (!request) return await callback(request);
 
   if (request[key]) return request[key];
 
