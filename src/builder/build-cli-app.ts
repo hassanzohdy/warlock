@@ -7,6 +7,9 @@ import {
   createBootstrapFile,
   globModuleDirectory,
   loadEventFiles,
+  loadLocalesFiles,
+  loadMainFiles,
+  loadRoutesFiles,
 } from "./app-builder";
 import { createConfigLoader } from "./config-loader-builder";
 
@@ -18,8 +21,11 @@ export async function buildCliApp() {
   const data = await Promise.all([
     createBootstrapFile(),
     createConfigLoader(),
+    loadMainFiles(),
+    loadRoutesFiles(),
     loadEventFiles(),
     loadCommandFiles(),
+    loadLocalesFiles(),
     loadMigrationsFiles(),
     createCliApplicationStarter(),
   ]);
@@ -34,8 +40,11 @@ export async function buildCliApp() {
 export async function createCliApplicationStarter() {
   const { addImport, addContent, saveAs } = createAppBuilder();
 
-  addImport(`import { startConsoleApplication } from "@mongez/warlock"`);
+  addImport(
+    `import { startConsoleApplication, $registerBuiltInCommands } from "@mongez/warlock"`,
+  );
 
+  addContent(`$registerBuiltInCommands();`);
   addContent(`startConsoleApplication();`);
 
   await saveAs("start-console-application");
@@ -50,12 +59,16 @@ export async function loadCommandFiles() {
 
   addImport(`import { colors } from "@mongez/copper";`);
   addImport(`import { Command } from "commander";`);
-  addImport(`import {registerCommand } from "@mongez/warlock"`);
+  addImport(
+    `import { preloadCommand, registerCommand } from "@mongez/warlock"`,
+  );
 
   const createCommandFrom = async (moduleCommandName: string, path: string) => {
     const fileContents = await getFileAsync(srcPath(path + ".ts"));
 
     const hasDescription = fileContents.includes("export const description");
+
+    const hasPreload = fileContents.includes("export const preload");
 
     const description = hasDescription
       ? `      
@@ -63,6 +76,10 @@ export async function loadCommandFiles() {
     command_${moduleCommandName}.description(description_${moduleCommandName});
       `
       : "";
+
+    const preload = hasPreload
+      ? `preloadCommand(command_${moduleCommandName},${moduleCommandName}.preload);`
+      : ``;
 
     const hasOptions = fileContents.includes("export const options");
 
@@ -95,9 +112,13 @@ export async function loadCommandFiles() {
       throw new Error(\`Command action is missing in \${colors.yellow("${path}")}\`);
     }
 
-    const command_${moduleCommandName} = new Command(commandName_${moduleCommandName}).action(action_${moduleCommandName});
+    const command_${moduleCommandName} = new Command(commandName_${moduleCommandName}).action(async (options: any) => {
+      await action_${moduleCommandName}(options);
+    });
 
     ${description}
+
+    ${preload}
 
     ${options}
 

@@ -1,11 +1,12 @@
 import config from "@mongez/config";
 import { log } from "@mongez/logger";
+import { Middleware } from "../router";
 import { Request, Response } from "./../http";
 import { jwt } from "./jwt";
 import { AccessToken } from "./models/access-token";
 
 export function authMiddleware(allowedUserType?: string) {
-  return async function auth(request: Request, response: Response) {
+  const auth: Middleware = async (request: Request, response: Response) => {
     try {
       await jwt.verify(request);
 
@@ -61,4 +62,37 @@ export function authMiddleware(allowedUserType?: string) {
       });
     }
   };
+
+  if (allowedUserType) {
+    const userAccessTokenKey = `${allowedUserType}AccessToken`;
+    const userAccessTokenKeyNameHeader = `${allowedUserType}AccessTokenHeader`;
+    auth.postman = {
+      onCollectingVariables(variables) {
+        if (
+          variables.find(
+            variable => variable.key === userAccessTokenKeyNameHeader,
+          )
+        )
+          return;
+
+        variables.push({
+          key: userAccessTokenKey,
+          value: "YOUR_TOKEN_HERE",
+        });
+
+        variables.push({
+          key: userAccessTokenKeyNameHeader,
+          value: `Bearer {{${userAccessTokenKey}}}`,
+        });
+      },
+      onAddingRequest({ request }) {
+        request.header.push({
+          key: "Authorization",
+          value: `{{${userAccessTokenKeyNameHeader}}}`,
+        });
+      },
+    };
+  }
+
+  return auth;
 }

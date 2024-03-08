@@ -14,6 +14,13 @@ export class MaxLengthRule extends Rule {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public toJson() {
+    return `Max Length: ${this.options[0]}`;
+  }
+
+  /**
    * Get error message
    */
   public error() {

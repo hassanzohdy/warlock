@@ -1,5 +1,6 @@
+import { Command } from "commander";
 import { buildHttpForProduction } from "./build-http-production";
 
-buildHttpForProduction().then(() => {
-  process.exit(0);
-});
+export function registerProductionBuildCommand() {
+  return new Command("build").action(buildHttpForProduction);
+}

@@ -1,5 +1,4 @@
 import { colors } from "@mongez/copper";
-import { spawnSync } from "child_process";
 import esbuild from "esbuild";
 import path from "path";
 import { buildHttpApp } from "../builder/build-http-app";
@@ -17,10 +16,6 @@ export async function buildHttpForProduction() {
   const httpPath = await buildHttpApp();
 
   console.log(colors.magenta("Bundling project files..."));
-
-  spawnSync("tsc", ["--noEmit"], {
-    stdio: "inherit",
-  });
 
   await esbuild.build({
     platform: "node",

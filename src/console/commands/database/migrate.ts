@@ -5,7 +5,7 @@ import {
   createAppBuilder,
   globModuleDirectoryPattern,
 } from "../../../builder/app-builder";
-import { registerCommand } from "../../commander";
+import { preloadCommand } from "../../commander";
 
 export async function loadMigrationsFiles() {
   const { addImport, addContent, saveAs } = createAppBuilder();
@@ -53,19 +53,21 @@ const addMigrations = (imports: any) => {
 }
 
 export function registerMigrationCommand() {
-  return new Command("migrate")
-    .description("Generate Database Migrations")
-    .option("-f, --fresh", "Drop all migrations and generate fresh migrations")
-    .option("-l, --list", "List all migrations")
-    .action(async options => {
-      if (options.list) {
-        return listMigrations();
-      }
-
-      await migrate(options.fresh);
-
-      console.log("Done");
-    });
+  return preloadCommand(
+    new Command("migrate")
+      .description("Generate Database Migrations")
+      .option(
+        "-f, --fresh",
+        "Drop all migrations and generate fresh migrations",
+      )
+      .option("-l, --list", "List all migrations")
+      .action(async options => {
+        if (options.list) {
+          await listMigrations();
+        } else {
+          await migrate(options.fresh);
+        }
+      }),
+    ["database"],
+  );
 }
-
-registerCommand(registerMigrationCommand());

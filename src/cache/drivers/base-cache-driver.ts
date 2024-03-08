@@ -18,6 +18,8 @@ const messages = {
   notFound: "Key not found",
   connecting: "Connecting to the cache engine.",
   connected: "Connected to the cache engine.",
+  disconnecting: "Disconnecting from the cache engine.",
+  disconnected: "Disconnected from the cache engine.",
   error: "Error occurred",
 };
 
@@ -172,5 +174,12 @@ export abstract class BaseCacheDriver<ClientType, Options extends GenericObject>
   public async connect() {
     this.log("connecting");
     this.log("connected");
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public async disconnect() {
+    this.log("disconnected");
   }
 }

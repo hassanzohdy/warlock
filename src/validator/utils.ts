@@ -4,7 +4,12 @@ import { Rule } from "./rules";
 import { Validation } from "./types";
 import { ValidationSchema } from "./validation-schema";
 
-export function getValidationSchema(rules: ValidationSchema | Validation) {
+export function getValidationSchema(
+  rules:
+    | ValidationSchema
+    | Validation
+    | Record<string, ValidationSchema | (string | Rule)[]>,
+) {
   if (rules instanceof ValidationSchema === false) {
     return new ValidationSchema(rules);
   }

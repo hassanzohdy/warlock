@@ -23,7 +23,9 @@ export type CacheOperationType =
   | "notFound"
   | "connecting"
   | "error"
-  | "connected";
+  | "connected"
+  | "disconnecting"
+  | "disconnected";
 
 export type MemoryCacheOptions = {
   /**
@@ -155,6 +157,10 @@ export interface CacheDriver<ClientType, Options> {
    * The cache client
    */
   client?: ClientType;
+  /**
+   * Disconnect the cache driver
+   */
+  disconnect(): Promise<void>;
 }
 
 export type CacheData = {

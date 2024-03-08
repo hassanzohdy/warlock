@@ -83,17 +83,6 @@ export const startServerPlugin = {
       serverProcess.on("error", err => {
         console.error("Server process error:", err);
       });
-
-      // Optionally, you can add an event handler for when the server process exits.
-      // serverProcess.on("exit", (code, signal) => {
-      //   if (code === 0) {
-      //     console.log("Server process exited successfully.");
-      //   } else {
-      //     console.error(
-      //       `Server process exited with code ${code} and signal ${signal}.`,
-      //     );
-      //   }
-      // });
     });
   },
 };

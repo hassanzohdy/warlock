@@ -14,6 +14,13 @@ export class MaxRule extends Rule {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public toJson() {
+    return `Max: ${this.options[0]}`;
+  }
+
+  /**
    * Get error message
    */
   public error() {

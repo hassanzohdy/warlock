@@ -1,16 +1,32 @@
 import type { RouteShorthandOptions } from "fastify";
 import type { Auth } from "../auth";
 import type { Request, Response, ReturnedResponse } from "../http";
+import type { PostmanRequestEvent, PostmanVariable } from "../postman/types";
+import { Rule, Validation, ValidationSchema } from "../validator";
 
 /**
  * Middleware method
  * Receives the request and response objects
  * And returns a response object or undefined if the request should continue
  */
-export type Middleware = (
-  request: Request,
-  response: Response,
-) => ReturnedResponse | undefined | void;
+export type Middleware = {
+  (request: Request, response: Response): ReturnedResponse | undefined | void;
+
+  /**
+   * Postman configurations
+   * Used only when generating postman
+   */
+  postman?: {
+    /**
+     * Called when collecting variables
+     */
+    onCollectingVariables?: (variables: PostmanVariable[]) => void;
+    /**
+     * Called when adding the request to the collection
+     */
+    onAddingRequest?: (postmanRequest: PostmanRequestEvent) => void;
+  };
+};
 
 export type RouterGroupCallback = () => void;
 
@@ -31,7 +47,10 @@ export type RouteHandlerValidation = {
   /**
    * Validation rules
    */
-  rules?: Record<string, any>;
+  rules?:
+    | ValidationSchema
+    | Validation
+    | Record<string, ValidationSchema | (string | Rule)[]>;
   /**
    * Validation custom message
    */
@@ -139,6 +158,12 @@ export type Route = RouteOptions & {
    * this will be used for generating the documentation
    */
   $prefix: string;
+  /**
+   * Path prefix Stack
+   * Kindly note the prefix is auto added by the router and it should be added to the path itself
+   * this will be used for generating the documentation
+   */
+  $prefixStack: string[];
 };
 export type PartialPick<T, F extends keyof T> = Omit<T, F> &
   Partial<Pick<T, F>>;

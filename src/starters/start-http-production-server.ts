@@ -1,6 +1,8 @@
 import { spawn } from "child_process";
+import { Command } from "commander";
 import path from "path";
 import { getWarlockConfig } from "../config/get-warlock-config";
+import { preloadCommand } from "../console";
 
 async function main() {
   const config = await getWarlockConfig();
@@ -19,4 +21,6 @@ async function main() {
   );
 }
 
-main();
+export function registerRunProductionServerCommand() {
+  return preloadCommand(new Command("start").action(main), ["watch"]);
+}

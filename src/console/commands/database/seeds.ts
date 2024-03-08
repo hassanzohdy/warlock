@@ -1,38 +1,37 @@
 import { colors } from "@mongez/copper";
-import { connectToDatabase } from "@mongez/monpulse";
 import { toSnakeCase } from "@mongez/reinforcements";
 import { Command } from "commander";
 import glob from "fast-glob";
 import path from "path";
 import { pathToFileURL } from "url";
-import { registerCommand } from "../../commander";
+import { preloadCommand } from "../../commander";
 import { Seed } from "./seed";
 
-export function databaseSeedsCommand() {
-  return new Command("db:seed")
-    .option(
-      "--once",
-      "If set, the seed will be run only for one time even you run this command multiple times.",
-    )
-    .option("--fresh", "Clear the previous seeds and run it again.")
-    .description(
-      "Run database seeds for all modules, make sure each seeds are in `seeds` directory in any module in `src/app` that you want to run seeds for it. ",
-    )
-    .action(async options => {
-      await connectToDatabase();
-      if (options.fresh) {
-        console.log("Clearing previous seeds...");
+export function registerDatabaseSeedsCommand() {
+  return preloadCommand(
+    new Command("db:seed")
+      .option(
+        "--once",
+        "If set, the seed will be run only for one time even you run this command multiple times.",
+      )
+      .option("--fresh", "Clear the previous seeds and run it again.")
+      .description(
+        "Run database seeds for all modules, make sure each seeds are in `seeds` directory in any module in `src/app` that you want to run seeds for it. ",
+      )
+      .action(async options => {
+        if (options.fresh) {
+          console.log("Clearing previous seeds...");
 
-        await Seed.delete();
-      }
+          await Seed.delete();
+        }
 
-      await seedDatabase(
-        process.cwd() + "/src/app/**/seeds/*.ts",
-        options.once ?? false,
-      );
-
-      process.exit(0);
-    });
+        await seedDatabase(
+          process.cwd() + "/src/app/**/seeds/*.ts",
+          options.once ?? false,
+        );
+      }),
+    ["database"],
+  );
 }
 
 export function seedDatabase(seedsPath: string, once = false) {
@@ -54,6 +53,8 @@ export function seedDatabase(seedsPath: string, once = false) {
       );
 
       const modulePath = pathToFileURL(file).href;
+
+      console.log(modulePath);
 
       const fileExports = await import(modulePath);
 
@@ -123,5 +124,3 @@ export function seedDatabase(seedsPath: string, once = false) {
     }
   });
 }
-
-registerCommand(databaseSeedsCommand());

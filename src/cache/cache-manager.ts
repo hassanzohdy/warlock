@@ -177,6 +177,13 @@ export class CacheManager implements CacheDriver<any, any> {
   public registerDriver(driverName: string, driverClass: DriverClass) {
     (this.configurations.drivers as any)[driverName] = driverClass;
   }
+
+  /**
+   * Disconnect the cache manager
+   */
+  public async disconnect() {
+    await this.currentDriver?.disconnect();
+  }
 }
 
 export const cache = new CacheManager();

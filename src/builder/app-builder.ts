@@ -117,6 +117,15 @@ export async function createBootstrapFile() {
   return "import './bootstrap'";
 }
 
+export async function createEnvironmentModeDisplayFile() {
+  await createWarlockFile(
+    "environment-mode.ts",
+    `import { displayEnvironmentMode } from "@mongez/warlock";\n displayEnvironmentMode();`,
+  );
+
+  return "import './environment-mode'";
+}
+
 export async function loadMainFiles() {
   const { addImportPath, saveAs } = createAppBuilder();
 

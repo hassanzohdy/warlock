@@ -150,4 +150,17 @@ export class RedisCacheDriver
       //
     }
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  public async disconnect() {
+    if (!this.client) return;
+
+    this.log("disconnecting");
+
+    await this.client.quit();
+
+    this.log("disconnected");
+  }
 }

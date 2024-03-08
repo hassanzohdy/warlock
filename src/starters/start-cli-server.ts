@@ -1,5 +1,4 @@
-// import nodemon from "nodemon";
-import { typecheckPlugin } from "@jgoz/esbuild-plugin-typecheck";
+// import { typecheckPlugin } from "@jgoz/esbuild-plugin-typecheck";
 import { spawn } from "child_process";
 import esbuild from "esbuild";
 import { buildCliApp } from "../builder/build-cli-app";
@@ -19,11 +18,11 @@ export async function startCliServer() {
     packages: "external",
     sourcemap: "linked",
     sourceRoot: srcPath(),
-    // logLevel: "info",
     format: "cjs",
     target: ["esnext"],
     outdir: warlockPath(),
-    plugins: [typecheckPlugin(), nativeNodeModulesPlugin],
+    // plugins: [typecheckPlugin(), nativeNodeModulesPlugin],
+    plugins: [nativeNodeModulesPlugin],
   });
 
   const args = process.argv.slice(2);

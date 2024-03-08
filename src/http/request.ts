@@ -66,6 +66,11 @@ export class Request<User extends Auth = any> {
   [key: string]: any;
 
   /**
+   * Locale code
+   */
+  protected _locale = "";
+
+  /**
    * Set request handler
    */
   public setRequest(request: FastifyRequest) {
@@ -88,16 +93,30 @@ export class Request<User extends Auth = any> {
   }
 
   /**
+   * Set locale code
+   */
+
+  /**
    * Get locale code that will be used for translation
    */
   public get localized() {
-    return (
+    if (this._locale) return this._locale;
+
+    return (this._locale =
       this.header("locale-code") ||
       this.header("locale") ||
       this.query["locale"] ||
       this.query["localeCode"] ||
-      this.query["locale-code"]
-    );
+      this.query["locale-code"]);
+  }
+
+  /**
+   * Set locale code
+   */
+  public setLocaleCode(localeCode: string) {
+    this._locale = localeCode;
+
+    return this;
   }
 
   /**

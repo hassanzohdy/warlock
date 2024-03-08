@@ -9,6 +9,10 @@ export async function startHttpApplication() {
 
 export type AppConfigurations = {
   /**
+   * App name
+   */
+  appName?: string;
+  /**
    * Default locale code
    *
    * @default en

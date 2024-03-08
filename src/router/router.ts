@@ -75,21 +75,17 @@ export class Router {
     }
 
     const prefix = this.stacks.prefix.reduce((path, prefix) => {
-      return concatRoute(prefix, path);
+      return concatRoute(path, prefix);
     }, "");
 
-    path = concatRoute(prefix, path);
-
-    // admin
-    // users
-    // list
     const name = this.stacks.name.reduceRight(
       (name, prefixName) => {
-        // admin.list
         return trim(prefixName + "." + name, ".");
       },
       options.name || trim(path.replace(/\//g, "."), "."),
     );
+
+    path = concatRoute(prefix, path);
 
     options.middleware = [
       ...(options.middleware || []),
@@ -126,6 +122,8 @@ export class Router {
       ...options,
       name,
       $prefix: prefix || "/",
+      // it must be a new array to avoid modifying the original array
+      $prefixStack: [...this.stacks.prefix],
     };
 
     if (routeData.name) {
@@ -256,119 +254,123 @@ export class Router {
       };
     } = {},
   ) {
-    // get base resource name
-    const baseResourceName = options.name || toCamelCase(ltrim(path, "/"));
+    return this.prefix(path, () => {
+      path = "";
+      // get base resource name
+      const baseResourceName = options.name || toCamelCase(ltrim(path, "/"));
 
-    // clone the resource so we don't mess up with it
-    const routeResource = resource;
+      // clone the resource so we don't mess up with it
+      const routeResource = resource;
 
-    const isAcceptableResource = (type: ResourceMethod) => {
-      return Boolean(
-        // check if the route is not excluded
-        (!options.except || !options.except.includes(type)) &&
-          // check if the only option is set and the route is included
-          (!options.only || options.only.includes(type)),
-      );
-    };
+      const isAcceptableResource = (type: ResourceMethod) => {
+        return Boolean(
+          // check if the route is not excluded
+          (!options.except || !options.except.includes(type)) &&
+            // check if the only option is set and the route is included
+            (!options.only || options.only.includes(type)),
+        );
+      };
 
-    if (routeResource.list && isAcceptableResource("list")) {
-      const resourceName = baseResourceName + ".list";
-      this.get(
-        path,
-        options.replace?.list || routeResource.list.bind(routeResource),
-        {
+      if (routeResource.list && isAcceptableResource("list")) {
+        const resourceName = baseResourceName + ".list";
+        this.get(
+          path,
+          options.replace?.list || routeResource.list.bind(routeResource),
+          {
+            ...options,
+            name: resourceName,
+            restful: true,
+          },
+        );
+      }
+
+      if (routeResource.get && isAcceptableResource("get")) {
+        const resourceName = baseResourceName + ".single";
+
+        this.get(
+          path + "/:id",
+          options.replace?.get || routeResource.get.bind(routeResource),
+          {
+            ...options,
+            name: resourceName,
+            restful: true,
+          },
+        );
+      }
+
+      if (routeResource.create && isAcceptableResource("create")) {
+        const resourceName = baseResourceName + ".create";
+
+        const handler =
+          options.replace?.create ||
+          this.manageValidation(routeResource, "create");
+
+        this.post(path, handler, {
           ...options,
           name: resourceName,
           restful: true,
-        },
-      );
-    }
+        });
+      }
 
-    if (routeResource.get && isAcceptableResource("get")) {
-      const resourceName = baseResourceName + ".single";
+      if (routeResource.update && isAcceptableResource("update")) {
+        const resourceName = baseResourceName + ".update";
 
-      this.get(
-        path + "/:id",
-        options.replace?.get || routeResource.get.bind(routeResource),
-        {
+        const handler =
+          options.replace?.update ||
+          this.manageValidation(routeResource, "update");
+
+        this.put(path + "/:id", handler, {
           ...options,
           name: resourceName,
           restful: true,
-        },
-      );
-    }
+        });
+      }
 
-    if (routeResource.create && isAcceptableResource("create")) {
-      const resourceName = baseResourceName + ".create";
+      if (routeResource.patch && isAcceptableResource("patch")) {
+        const resourceName = baseResourceName + ".patch";
 
-      const handler =
-        options.replace?.create ||
-        this.manageValidation(routeResource, "create");
+        const handler =
+          options.replace?.patch ||
+          this.manageValidation(routeResource, "patch");
 
-      this.post(path, handler, {
-        ...options,
-        name: resourceName,
-        restful: true,
-      });
-    }
-
-    if (routeResource.update && isAcceptableResource("update")) {
-      const resourceName = baseResourceName + ".update";
-
-      const handler =
-        options.replace?.update ||
-        this.manageValidation(routeResource, "update");
-
-      this.put(path + "/:id", handler, {
-        ...options,
-        name: resourceName,
-        restful: true,
-      });
-    }
-
-    if (routeResource.patch && isAcceptableResource("patch")) {
-      const resourceName = baseResourceName + ".patch";
-
-      const handler =
-        options.replace?.patch || this.manageValidation(routeResource, "patch");
-
-      this.patch(path + "/:id", handler, {
-        ...options,
-        name: resourceName,
-        restful: true,
-      });
-    }
-
-    if (routeResource.delete && isAcceptableResource("delete")) {
-      const resourceName = baseResourceName + ".delete";
-
-      this.delete(
-        path + "/:id",
-        options.replace?.delete || routeResource.delete.bind(routeResource),
-        {
+        this.patch(path + "/:id", handler, {
           ...options,
           name: resourceName,
           restful: true,
-        },
-      );
-    }
+        });
+      }
 
-    if (routeResource.bulkDelete && isAcceptableResource("delete")) {
-      const resourceName = baseResourceName + ".bulkDelete";
+      if (routeResource.delete && isAcceptableResource("delete")) {
+        const resourceName = baseResourceName + ".delete";
 
-      this.delete(
-        path,
-        options.replace?.bulkDelete ||
-          routeResource.bulkDelete.bind(routeResource),
-        {
-          ...options,
-          name: resourceName,
-          restful: true,
-        },
-      );
-    }
+        this.delete(
+          path + "/:id",
+          options.replace?.delete || routeResource.delete.bind(routeResource),
+          {
+            ...options,
+            name: resourceName,
+            restful: true,
+          },
+        );
+      }
 
-    return this;
+      if (routeResource.bulkDelete && isAcceptableResource("delete")) {
+        const resourceName = baseResourceName + ".bulkDelete";
+
+        this.delete(
+          path,
+          options.replace?.bulkDelete ||
+            routeResource.bulkDelete.bind(routeResource),
+          {
+            ...options,
+            name: resourceName,
+            restful: true,
+          },
+        );
+      }
+
+      return this;
+    });
   }
 
   /**

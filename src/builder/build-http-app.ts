@@ -3,6 +3,7 @@ import { warlockPath } from "../utils/paths";
 import {
   createAppBuilder,
   createBootstrapFile,
+  createEnvironmentModeDisplayFile,
   loadEventFiles,
   loadLocalesFiles,
   loadMainFiles,
@@ -17,6 +18,7 @@ export async function buildHttpApp() {
 
   const data = await Promise.all([
     createBootstrapFile(),
+    createEnvironmentModeDisplayFile(),
     createConfigLoader(),
     loadMainFiles(),
     loadLocalesFiles(),

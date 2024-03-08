@@ -1,86 +1,22 @@
 /* eslint-disable no-prototype-builtins */
 import config from "@mongez/config";
 import { putJsonFile } from "@mongez/fs";
-import {
-  GenericObject,
-  capitalize,
-  ltrim,
-  rtrim,
-  trim,
-} from "@mongez/reinforcements";
+import { GenericObject, capitalize, rtrim, trim } from "@mongez/reinforcements";
 import { isEmpty } from "@mongez/supportive-is";
 import { plural, singular } from "pluralize";
 import { router } from "../router";
 import { rootPath } from "../utils";
 import { ArraySchema, ValidationSchema } from "../validator";
 import { getRuleHandler, getValidationSchema } from "../validator/utils";
-
-export type PostmanNode = PostmanCategoryType | PostmanRequestType;
-
-export type PostmanCategoryType = {
-  name: string;
-  description?: string;
-  item: PostmanNode[];
-};
-
-interface PostmanFolder {
-  name: string;
-  item: (PostmanFolder | PostmanRequestType)[];
-}
-
-interface PostmanOutput {
-  info: GenericObject;
-  item: (PostmanFolder | PostmanRequestType)[];
-}
-
-export type MethodType =
-  | "GET"
-  | "POST"
-  | "PUT"
-  | "DELETE"
-  | "PATCH"
-  | "OPTIONS"
-  | "HEAD";
-
-export type PostmanBodyType = {
-  mode: "urlencoded" | "raw" | "formdata" | "file";
-  raw: string;
-  options?: GenericObject;
-};
-
-export type PostmanQueryType = {
-  key: string;
-  value: string;
-};
-
-export type PostmanRequestUrl = {
-  raw: string;
-  host?: string[];
-  protocol?: string;
-  path?: string[];
-  variable?: PostmanInput[];
-};
-
-export type PostmanInternalRequestType = {
-  method: MethodType;
-  header?: GenericObject[];
-  body?: GenericObject;
-  url: PostmanRequestUrl;
-};
-
-export type PostmanRequestType = {
-  name: string;
-  // path: string;
-  request: PostmanInternalRequestType;
-  response?: GenericObject[];
-
-  // description?: string;
-  // method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH" | "OPTIONS" | "HEAD";
-  // headers?: GenericObject;
-  // body?: GenericObject;
-  // query?: GenericObject;
-  // response?: GenericObject;
-};
+import { PostmanEvents } from "./postman-events";
+import {
+  PostmanInput,
+  PostmanInternalRequestType,
+  PostmanNode,
+  PostmanOutput,
+  PostmanRequest,
+  PostmanVariable,
+} from "./types";
 
 export class Postman {
   /**
@@ -143,18 +79,46 @@ export class Postman {
   }
 
   /**
+   * folders list
+   */
+  protected folders: any[] = [];
+
+  protected flatFolders: any[] = [];
+
+  /**
    * Generate postman
    */
   public async generate() {
-    const postmanCollection = {
+    const postmanCollection: any = {
       item: [],
-      name: "main",
+      parent: "",
+      id: "",
+      name: "",
+      namespace: "",
     };
 
-    for (const route of router.list()) {
-      const { path, method } = route;
+    this.flatFolders.push(postmanCollection);
 
-      const sanitizedPath = ltrim(path, "/").replaceAll("/", ".");
+    for (const route of router.list()) {
+      const { path, method, $prefixStack } = route;
+
+      const parentFolders = $prefixStack.map((prefix, index) => {
+        let parent = "";
+        for (let i = 0; i < index; i++) {
+          parent += `${$prefixStack[i]}`;
+        }
+
+        const namespace = parent + prefix;
+
+        return {
+          name: prepareSegment(prefix),
+          namespace,
+          id: prefix,
+          item: [],
+          parent,
+          type: "folder",
+        };
+      });
 
       let inputs: PostmanInput[] = [];
 
@@ -162,6 +126,7 @@ export class Postman {
         const validationSchema = getValidationSchema(
           route.handler.validation?.rules,
         );
+
         inputs = parseValidationSchema(validationSchema);
       }
 
@@ -169,19 +134,18 @@ export class Postman {
         method,
         header: [],
         url: {
-          raw: `${this._baseUrl}${path}`,
-          protocol: "https",
-          host: [this._baseUrl],
-          path: path.split("/").slice(1),
+          raw: `{{baseUrl}}${path}`,
+          host: [`{{baseUrl}}${path}`],
         },
       };
 
       if (!isEmpty(inputs)) {
         if (method === "GET") {
-          request.url.variable = inputs;
+          request.url.query = inputs;
         } else {
           const hasFileInput =
             inputs.find(input => input.type === "file") !== undefined;
+
           request.body = {
             mode: hasFileInput ? "formdata" : "raw",
           };
@@ -189,13 +153,21 @@ export class Postman {
           if (hasFileInput) {
             request.body.formdata = inputs;
           } else {
+            request.body.options = {
+              raw: {
+                language: "json",
+              },
+            };
+
             request.body.raw = JSON.stringify(
-              inputs.map(input => {
-                return {
-                  [input.key]:
-                    input.value || input.type + ": " + input.description,
-                };
-              }),
+              this.inputsListToObject(
+                inputs,
+                // route.handler.validation?.rules
+                //   ? getJsonValidationSchema(
+                //       getValidationSchema(route.handler.validation?.rules),
+                //     )
+                //   : [],
+              ),
               null,
               2,
             );
@@ -203,121 +175,159 @@ export class Postman {
         }
       }
 
-      // Find or create the folder based on the sanitizedPath
-      let currentFolder: PostmanFolder = postmanCollection as any;
-      const pathSegments = sanitizedPath.split(".");
-      for (let i = 0; i < pathSegments.length; i++) {
-        const segment = pathSegments[i];
+      for (const folder of parentFolders) {
+        // check if folder id equals to namespace
+        // if so, then it is a parent folder
+        if (!this.flatFolders.find(f => f.namespace === folder.namespace)) {
+          this.flatFolders.push(folder);
+        }
 
-        // If the segment is "admin" and there is a next segment, combine them
-        if (this.shouldWrapWithAdmin(segment) && i < pathSegments.length - 1) {
-          const nextSegment = pathSegments[i + 1];
-          const adminFolderName = `${segment}-${nextSegment}`;
+        const parentFolder = this.flatFolders.find(f => f.id === folder.parent);
 
-          let adminFolder = (currentFolder.item as PostmanFolder[]).find(
-            item => item.name === adminFolderName,
-          );
-          if (!adminFolder) {
-            adminFolder = {
-              name: adminFolderName,
-              item: [],
-            };
-            (currentFolder.item as PostmanFolder[]).push(adminFolder);
+        if (parentFolder) {
+          // make sure first the folder is not in the parent list
+
+          if (
+            !parentFolder.item.find(
+              (f: any) => f.namespace === folder.namespace,
+            )
+          ) {
+            parentFolder.item.push(folder);
           }
-          currentFolder = adminFolder;
-          i++; // Skip the next segment, as it has been combined with "admin"
-        } else {
-          let folder = (currentFolder.item as PostmanFolder[]).find(
-            item => item.name === segment,
-          );
-
-          if (!folder) {
-            folder = {
-              name: segment,
-              item: [],
-            };
-
-            (currentFolder.item as PostmanFolder[]).push(folder);
-          }
-          currentFolder = folder;
         }
       }
 
-      currentFolder.item = flattenFolders(currentFolder);
+      const currentFolder =
+        parentFolders.length > 0
+          ? this.flatFolders.find(
+              f =>
+                f.namespace ===
+                parentFolders[parentFolders.length - 1].namespace,
+            ) || postmanCollection
+          : postmanCollection;
 
       // Add the request to the current folder
-      currentFolder.item.push({
+      const postmanRequest: PostmanRequest = {
         name:
-          route.label ||
-          namedMethodRoute(
-            prepareSegment(route.$prefix ? ltrim(path, route.$prefix) : path),
-            method,
-          ),
+          route.description ||
+          route.handler.description ||
+          namedMethodRoute(path, method),
         request,
-        response: [],
-      });
-    }
+      };
+      if (route.middleware) {
+        const middlewareThatsHasPostman = route.middleware.filter(
+          middleware => middleware.postman !== undefined,
+        );
 
-    const wrappedCollection = this.wrapFolders(
-      postmanCollection as PostmanFolder,
-    );
+        middlewareThatsHasPostman.forEach(middleware => {
+          middleware?.postman?.onAddingRequest?.({
+            ...postmanRequest,
+            route,
+          });
 
-    // Now, postmanCollection contains the structured data in the desired format
-    // console.log(JSON.stringify(postmanCollection, null, 2));
-
-    putJsonFile(rootPath("postman2.json"), wrappedCollection);
-  }
-
-  /**
-   * Check if the segment should be wrapped with "admin"
-   */
-  private shouldWrapWithAdmin(folderName: string): boolean {
-    return folderName.startsWith("admin");
-  }
-
-  /**
-   * Wrap folders
-   */
-
-  private wrapFolders(folder: PostmanFolder): PostmanOutput {
-    const wrappedFolderAdmin: PostmanFolder = {
-      name: "admin",
-      item: [],
-    };
-
-    const wrappedFolderOther: PostmanFolder = {
-      name: "other",
-      item: [],
-    };
-
-    // Separate folders starting with "admin" from the rest
-    const adminFolders: PostmanFolder[] = [];
-    const otherFolders: PostmanFolder[] = [];
-
-    for (const item of folder.item) {
-      if (item.name.startsWith("admin-")) {
-        item.name = item.name.substring("admin-".length);
-
-        adminFolders.push(item as PostmanFolder);
-      } else {
-        otherFolders.push(item as PostmanFolder);
+          if (middleware?.postman?.onCollectingVariables) {
+            PostmanEvents.onCollectingVariables(
+              middleware?.postman?.onCollectingVariables,
+            );
+          }
+        });
       }
+
+      currentFolder.item.push(postmanRequest);
     }
 
-    // Add the "admin" folder to the wrapped folder
-    wrappedFolderAdmin.item.push(...adminFolders);
-    wrappedFolderOther.item.push(...otherFolders);
+    const prepareFolders = (folders: any) => {
+      return folders.map((item: any) => {
+        if (item.type !== "folder") {
+          return item;
+        }
 
-    const topLevelCollection: PostmanOutput = {
+        return {
+          name: item.name,
+          item: prepareFolders(item.item),
+        };
+      });
+    };
+
+    const collectionName =
+      config.get("postman.collectionName") || config.get("app.appName");
+
+    const wrappedCollection: PostmanOutput = {
       info: {
-        name: "New Collection",
+        name: collectionName,
+        description: config.get("postman.description", ""),
         schema:
           "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
       },
-      item: [wrappedFolderAdmin, ...wrappedFolderOther.item],
+      item: prepareFolders(postmanCollection.item),
+      variable: this.generateVariables(),
     };
 
-    return topLevelCollection;
+    const logFolder = (folder: any) => {
+      for (const item of folder.item) {
+        if (item.type === "folder") {
+          logFolder(item);
+        }
+      }
+    };
+
+    logFolder(postmanCollection);
+
+    putJsonFile(rootPath("postman.json"), wrappedCollection, {
+      spaces: 2,
+    });
+  }
+
+  protected inputsListToObject(inputs: PostmanInput[]) {
+    const obj: GenericObject = {};
+
+    for (const input of inputs) {
+      obj[input.key] =
+        (input.value || input.type) +
+        (input.description ? ": " + input.description : "");
+    }
+
+    return obj;
+  }
+
+  /**
+   * Generate variables
+   */
+  protected generateVariables() {
+    const variables: PostmanVariable[] = [];
+
+    variables.push(
+      this.newVariable("baseUrl", config.get("postman.baseUrl", this._baseUrl)),
+    );
+
+    const otherVariables = config.get("postman.variables", {});
+
+    for (const variable in otherVariables) {
+      const value = otherVariables[variable];
+
+      variables.push(this.newVariable(variable, value));
+    }
+
+    PostmanEvents.trigger("collectingVariables", variables);
+
+    return variables;
+  }
+
+  /**
+  /**
+   * Make a new variable
+   */
+  protected newVariable(
+    key: string,
+    value: string,
+    type: "string" | "number" = "string",
+  ) {
+    return {
+      id: key,
+      key,
+      value,
+      type,
+    };
   }
 }
 
@@ -328,12 +338,19 @@ function prepareSegment(segment: string) {
 function removeId(path: string) {
   // remove :id from the end of the path
 
-  return trim(path.replace(/:id$/, ""));
+  return trim(path.replace(/:id$/, "")).replace(/\s+/g, " ");
 }
 
 export function renderGetMethodRoute(path: string) {
-  if (path.endsWith(":id")) {
-    return `Get ${singular(prepareSegment(removeId(path)))} by id`;
+  if (path.includes(":")) {
+    //  we need to get rid of the word that starts with that `:` first
+    const segments = path
+      .split("/")
+      .filter(segment => !segment.startsWith(":"));
+
+    const lastSegment = segments.pop() as string;
+
+    return `Get ${capitalize(singular(lastSegment))}`;
   }
 
   const lastSegment = path.split("/").pop() as string;
@@ -346,12 +363,20 @@ export function namedMethodRoute(path: string, method: string) {
     case "GET":
       return renderGetMethodRoute(path);
     case "POST":
-      return `Create new ${singular(path)}`;
+      path = prepareSegment(path);
+      return `Create New ${singular(path)}`;
     case "PUT":
+      path = prepareSegment(path);
       return `Update ${singular(removeId(path))}`;
     case "DELETE":
-      return `Delete ${singular(removeId(path))}`;
+      path = prepareSegment(path);
+      if (path.includes(":")) {
+        return `Delete ${singular(removeId(path))}`;
+      }
+
+      return `Delete ${plural(removeId(path))} list`;
     case "PATCH":
+      path = prepareSegment(path);
       return `Patch ${singular(removeId(path))}`;
 
     default:
@@ -359,12 +384,68 @@ export function namedMethodRoute(path: string, method: string) {
   }
 }
 
-type PostmanInput = {
-  key: string;
-  type: "text" | "file" | "number" | "boolean" | "array" | "object";
-  description?: string;
-  value?: any;
-};
+export function getJsonValidationSchema(schema: ValidationSchema) {
+  const inputs = schema.inputs;
+
+  const finalInputs: PostmanInput[] = [];
+
+  for (const input in inputs) {
+    const inputRules = inputs[input];
+
+    if (inputRules instanceof ArraySchema) {
+      finalInputs.push(...parseValidationSchema(inputRules, input + ".$"));
+    } else if (inputRules instanceof ValidationSchema) {
+      finalInputs.push(...parseValidationSchema(inputRules, input));
+    } else {
+      const data: Partial<PostmanInput> = {
+        key: input,
+        type: "text",
+      };
+
+      // now we need to generate the description from the rules
+      let description = "";
+      let isLocalized = false;
+
+      for (const rule of inputRules) {
+        const ruleHandler = getRuleHandler(rule);
+        const expectedType = ruleHandler.expectedType();
+
+        if (expectedType) {
+          data.type = getProperType(expectedType);
+        }
+
+        ruleHandler.setInput(input);
+
+        if (ruleHandler.getName() === "localized") {
+          isLocalized = true;
+        } else {
+          description += `${ruleHandler.toJson()} | `;
+        }
+      }
+
+      description = rtrim(description, " | ");
+
+      if (isLocalized) {
+        finalInputs.push({
+          key: input,
+          description,
+          value: [
+            {
+              value: "",
+              localeCode: "",
+            },
+          ],
+        } as PostmanInput);
+      } else {
+        data.description = description;
+
+        finalInputs.push(data as PostmanInput);
+      }
+    }
+  }
+
+  return finalInputs;
+}
 
 export function parseValidationSchema(
   schema: ValidationSchema,
@@ -453,22 +534,4 @@ function getProperType(type: string) {
     default:
       return "text";
   }
-}
-
-function flattenFolders(folder: PostmanFolder): PostmanFolder[] {
-  let flattenedItems: PostmanFolder[] = [];
-
-  for (const item of folder.item) {
-    if (item.hasOwnProperty("request")) {
-      // It's a request, add it to the flattened list
-      flattenedItems.push(item as PostmanFolder);
-    } else if (item.hasOwnProperty("item")) {
-      // It's a nested folder, recursively flatten it
-      flattenedItems = flattenedItems.concat(
-        flattenFolders(item as PostmanFolder),
-      );
-    }
-  }
-
-  return flattenedItems;
 }

@@ -3,8 +3,10 @@ import { typecheckPlugin } from "@jgoz/esbuild-plugin-typecheck";
 import { getFile } from "@mongez/fs";
 import { debounce } from "@mongez/reinforcements";
 import chokidar from "chokidar";
+import { Command } from "commander";
 import esbuild from "esbuild";
 import { buildHttpApp } from "../builder/build-http-app";
+import { preloadCommand } from "../console";
 import { rootPath, srcPath, warlockPath } from "../utils";
 import { nativeNodeModulesPlugin, startServerPlugin } from "./../esbuild";
 
@@ -21,7 +23,6 @@ export async function startHttpApp() {
     packages: "external",
     sourcemap: "linked",
     sourceRoot: srcPath(),
-    // logLevel: "info",
     format: "cjs",
     target: ["esnext"],
     outdir: warlockPath(),
@@ -81,4 +82,8 @@ export async function startHttpApp() {
       builder.rebuild();
     }, 10),
   );
+}
+
+export function registerHttpDevelopmentServerCommand() {
+  return preloadCommand(new Command("dev").action(startHttpApp), ["watch"]);
 }

@@ -14,6 +14,13 @@ export class MinLengthRule extends Rule {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public toJson() {
+    return `Min Length: ${this.options[0]}`;
+  }
+
+  /**
    * Get error message
    */
   public error() {
