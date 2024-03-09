@@ -1,5 +1,4 @@
 import { FastifyCorsOptions } from "@fastify/cors";
-import fastifyJwt, { FastifyJWTOptions } from "@fastify/jwt";
 import fastifyMultipart from "@fastify/multipart";
 import config from "@mongez/config";
 import { rootPath } from "../utils";
@@ -40,11 +39,4 @@ export async function registerHttpPlugins(server: FastifyInstance) {
     root: rootPath("public"),
     prefix: "/public/",
   });
-
-  // 👇🏻 use the jwt plugin with your preferred secret key
-  const jwtOptions: FastifyJWTOptions | undefined = config.get("auth.jwt");
-
-  if (jwtOptions) {
-    server.register(fastifyJwt, jwtOptions);
-  }
 }
