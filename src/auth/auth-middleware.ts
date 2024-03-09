@@ -8,7 +8,8 @@ import { AccessToken } from "./models/access-token";
 export function authMiddleware(allowedUserType?: string) {
   const auth: Middleware = async (request: Request, response: Response) => {
     try {
-      await jwt.verify(request);
+      // get current user jwt
+      const user = await jwt.verify(request);
 
       // use our own jwt verify to verify the token
       const accessToken = await AccessToken.first({
@@ -21,8 +22,6 @@ export function authMiddleware(allowedUserType?: string) {
         });
       }
 
-      // get current user
-      const user: any = request.baseRequest.user;
       // now, we need to get an instance of user using its corresponding model
       const userType = user.userType || accessToken.get("userType");
 

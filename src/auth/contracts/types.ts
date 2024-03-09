@@ -1,5 +1,5 @@
-import { FastifyJWTOptions } from "@fastify/jwt";
-import { Model } from "@mongez/monpulse";
+import { type Model } from "@mongez/monpulse";
+import { type Algorithm } from "fast-jwt";
 
 export type AuthConfigurations = {
   /**
@@ -12,5 +12,12 @@ export type AuthConfigurations = {
   /**
    * JWT configurations
    */
-  jwt: FastifyJWTOptions;
+  jwt: {
+    secret: string;
+    algorithm?: Algorithm;
+    refresh?: {
+      secret?: string;
+      expiresIn?: number | string;
+    };
+  };
 };
