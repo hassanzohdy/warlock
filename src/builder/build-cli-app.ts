@@ -1,6 +1,7 @@
 import { ensureDirectoryAsync, getFileAsync } from "@mongez/fs";
 import { toSnakeCase } from "@mongez/reinforcements";
 import { loadMigrationsFiles } from "../console/commands/database/migrate";
+import { loadSeedsFiles } from "../console/commands/database/seeds";
 import { srcPath, warlockPath } from "../utils/paths";
 import {
   createAppBuilder,
@@ -27,6 +28,7 @@ export async function buildCliApp() {
     loadCommandFiles(),
     loadLocalesFiles(),
     loadMigrationsFiles(),
+    loadSeedsFiles(),
     createCliApplicationStarter(),
   ]);
 

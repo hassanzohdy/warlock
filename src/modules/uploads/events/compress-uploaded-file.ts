@@ -44,5 +44,6 @@ export async function compressUploadingFile(file: Upload) {
 
 export function compressImageWhileUploading() {
   if (!config.get("uploads.compress")) return;
-  Upload.events().onSaving(compressUploadingFile);
+
+  Upload?.events().onSaving(compressUploadingFile);
 }

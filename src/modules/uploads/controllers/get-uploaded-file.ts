@@ -2,7 +2,7 @@ import config from "@mongez/config";
 import { sha1 } from "@mongez/encryption";
 import { fileExists } from "@mongez/fs";
 import systemPath from "path";
-import { Request, Response } from "../../../http";
+import type { Request, Response } from "../../../http";
 import { Image, ImageFormat } from "../../../image";
 import { cachePath, uploadsPath } from "../../../utils";
 

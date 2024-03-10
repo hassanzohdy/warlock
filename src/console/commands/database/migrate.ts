@@ -12,7 +12,6 @@ export async function loadMigrationsFiles() {
 
   addImport(
     'import { setMigrationsList, listMigrations, migrate } from "@mongez/monpulse"',
-    'import { setupDatabase } from "@mongez/warlock"',
   );
 
   addContent(`
@@ -25,7 +24,9 @@ const addMigrations = (imports: any) => {
 }
 `);
 
-  const migrationsList = await globModuleDirectoryPattern("models/**/setup.ts");
+  const migrationsList = await globModuleDirectoryPattern(
+    "models/**/migration.ts",
+  );
 
   for (const path of migrationsList) {
     const pathList = path.split("/");
@@ -57,7 +58,7 @@ export function registerMigrationCommand() {
     new Command("migrate")
       .description("Generate Database Migrations")
       .option(
-        "-f, --fresh",
+        "-r, --refresh",
         "Drop all migrations and generate fresh migrations",
       )
       .option("-l, --list", "List all migrations")
@@ -65,7 +66,7 @@ export function registerMigrationCommand() {
         if (options.list) {
           await listMigrations();
         } else {
-          await migrate(options.fresh);
+          await migrate(options.refresh);
         }
       }),
     ["database"],

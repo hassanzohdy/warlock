@@ -14,7 +14,6 @@ export async function transpile(file: string, exportAs: string) {
     outfile,
     sourcemap: "linked",
     sourceRoot: srcPath(),
-    // logLevel: "info",
     format: "cjs",
     target: ["esnext"],
     plugins: [nativeNodeModulesPlugin],

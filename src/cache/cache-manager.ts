@@ -1,12 +1,11 @@
 import { GenericObject } from "@mongez/reinforcements";
-import { NullCacheDriver } from "./drivers";
 import { CacheConfigurations, CacheDriver, DriverClass } from "./types";
 
 export class CacheManager implements CacheDriver<any, any> {
   /**
    * Cache Driver
    */
-  public currentDriver: CacheDriver<any, any> = new NullCacheDriver();
+  public currentDriver?: CacheDriver<any, any>;
 
   /**
    * Loaded drivers

@@ -1,4 +1,5 @@
-import { Model } from "@mongez/monpulse";
+import { FindOrCreateOptions, Model } from "@mongez/monpulse";
+import { GenericObject } from "@mongez/reinforcements";
 import { Request } from "../http";
 import { RepositoryDestroyManager } from "./repository-destroyer-manager";
 import { RepositoryFiller } from "./repository-filler";
@@ -47,6 +48,24 @@ export abstract class RepositoryFillerManager<
     const filler = this.makeFiller();
 
     return filler.update(model, data) as Promise<T>;
+  }
+
+  /**
+   * Find or create
+   */
+  public async findOrCreate(
+    where: GenericObject,
+    data: GenericObject,
+    options?: FindOrCreateOptions,
+  ) {
+    return this.model.findOrCreate(where, data, options);
+  }
+
+  /**
+   * Update or create
+   */
+  public async updateOrCreate(where: GenericObject, data: GenericObject) {
+    return this.model.updateOrCreate(where, data);
   }
 
   /**

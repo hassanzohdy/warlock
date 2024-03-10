@@ -6,7 +6,7 @@ import {
   type SignerOptions,
   type VerifierOptions,
 } from "fast-jwt";
-import { Request } from "../http";
+import { Request } from "../http/request";
 
 const getSecretKey = () => config.get("auth.jwt.secret") as string;
 const getAlgorithm = () => config.get("auth.jwt.algorithm") as Algorithm;

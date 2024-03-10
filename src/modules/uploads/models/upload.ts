@@ -91,7 +91,7 @@ export async function uploadsMigration() {
   await UploadBlueprint.index("path");
 }
 
-uploadsMigration.down = async function () {
+uploadsMigration.down = async () => {
   await UploadBlueprint.dropIndex("hash");
   await UploadBlueprint.dropIndex("path");
 };

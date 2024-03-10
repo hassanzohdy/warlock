@@ -2,7 +2,7 @@ import { fileExistsAsync, unlinkAsync } from "@mongez/fs";
 import { Model } from "@mongez/monpulse";
 import { Upload } from "../models";
 
-Upload.events().onDeleted(async (upload: Upload) => {
+Upload?.events().onDeleted(async (upload: Upload) => {
   const path = upload.path;
 
   if (!(await fileExistsAsync(path))) return;
@@ -10,7 +10,7 @@ Upload.events().onDeleted(async (upload: Upload) => {
   unlinkAsync(path);
 });
 
-Model.events()
+Model?.events()
   .onUpdated(async (model: Model, oldModel: Model) => {
     const uploads = oldModel.get("_uploads");
 

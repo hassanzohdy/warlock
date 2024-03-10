@@ -1,7 +1,8 @@
 import config from "@mongez/config";
 import { log } from "@mongez/logger";
-import { Middleware } from "../router";
-import { Request, Response } from "./../http";
+import type { Middleware } from "../router";
+import type { Request } from "./../http/request";
+import type { Response } from "./../http/response";
 import { jwt } from "./jwt";
 import { AccessToken } from "./models/access-token";
 

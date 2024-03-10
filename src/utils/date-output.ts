@@ -1,8 +1,8 @@
 import config from "@mongez/config";
 import { log } from "@mongez/logger";
 import dayjs, { Dayjs } from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import { requestContext } from "../http";
+import timezone from "dayjs/plugin/timezone.js";
+import { requestContext } from "../http/middleware/inject-request-context";
 
 dayjs.extend(timezone);
 

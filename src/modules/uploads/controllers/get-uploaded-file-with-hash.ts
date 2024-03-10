@@ -10,7 +10,7 @@ import {
   getAWSConfigurations,
   uploadToAWS,
 } from "./../../../aws";
-import { Request, Response } from "./../../../http";
+import type { Request, Response } from "./../../../http";
 import { Image } from "./../../../image";
 import { cachePath } from "./../../../utils";
 

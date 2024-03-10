@@ -1,4 +1,4 @@
-import { Request, Response } from "../../../http";
+import type { Request, Response } from "../../../http";
 import { Upload } from "../models";
 
 export async function deleteFile(request: Request, response: Response) {

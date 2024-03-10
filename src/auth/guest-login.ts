@@ -1,5 +1,5 @@
 import config from "@mongez/config";
-import { Request, Response } from "../http";
+import type { Request, Response } from "../http";
 import { Guest } from "./models/guest";
 
 export async function guestLogin(_request: Request, response: Response) {
