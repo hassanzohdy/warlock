@@ -1,4 +1,3 @@
-import { srcPath } from "@mongez/node";
 import { ltrim } from "@mongez/reinforcements";
 import { Command } from "commander";
 import {
@@ -6,6 +5,7 @@ import {
   globModuleDirectoryPattern,
 } from "../../../builder/app-builder";
 import { preloadCommand } from "../../commander";
+import { srcPath } from "./../../../utils/paths";
 import { startSeeding } from "./seeder";
 
 export function registerDatabaseSeedsCommand() {

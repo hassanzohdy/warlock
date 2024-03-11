@@ -1,8 +1,8 @@
 import { fileExists, getFile, putFile } from "@mongez/fs";
 import { log } from "@mongez/logger";
-import { rootPath } from "@mongez/node";
 import { Random } from "@mongez/reinforcements";
 import { Command } from "commander";
+import { rootPath } from "./../../utils/paths";
 
 export function registerJWTSecretGenerator() {
   return new Command("jwt.secret").action(() => {

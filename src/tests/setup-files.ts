@@ -11,7 +11,7 @@ import { createConfigLoader } from "../builder/config-loader-builder";
 import { warlockPath } from "../utils";
 
 export async function buildTestGlobalSetupFile() {
-  const { addImport, saveAs, addContent } = createAppBuilder();
+  const { addImport, saveAs } = createAppBuilder();
 
   await ensureDirectoryAsync(warlockPath());
 
