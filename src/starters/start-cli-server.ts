@@ -1,4 +1,5 @@
 // import { typecheckPlugin } from "@jgoz/esbuild-plugin-typecheck";
+import { fileExistsAsync } from "@mongez/fs";
 import { spawn } from "child_process";
 import esbuild from "esbuild";
 import { buildCliApp } from "../builder/build-cli-app";
@@ -7,6 +8,11 @@ import { nativeNodeModulesPlugin } from "./../esbuild";
 
 export async function startCliServer() {
   // use esbuild to watch and rebuild the project
+  const outputCliPath = warlockPath("cli.js");
+
+  if (await fileExistsAsync(outputCliPath)) {
+    return require(outputCliPath);
+  }
 
   const cliPath = await buildCliApp();
 
@@ -20,14 +26,14 @@ export async function startCliServer() {
     sourceRoot: srcPath(),
     format: "cjs",
     target: ["esnext"],
-    outdir: warlockPath(),
+    outfile: outputCliPath,
     // plugins: [typecheckPlugin(), nativeNodeModulesPlugin],
     plugins: [nativeNodeModulesPlugin],
   });
 
   const args = process.argv.slice(2);
 
-  const processChild = spawn("node", [warlockPath("cli.js"), ...args], {
+  const processChild = spawn("node", [outputCliPath, ...args], {
     stdio: "inherit",
   });
 

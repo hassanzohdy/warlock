@@ -15,6 +15,10 @@ export function registerDatabaseSeedsCommand() {
         "--once",
         "If set, the seed will be run only for one time even you run this command multiple times.",
       )
+      .option(
+        "-p --parallel",
+        "Run seeds in parallel, this will speed up the seeding process.",
+      )
       .option("--fresh", "Clear the previous seeds and run it again.")
       .description(
         "Run database seeds for all modules, make sure each seeds are in `seeds` directory in any module in `src/app` that you want to run seeds for it. ",
@@ -23,6 +27,7 @@ export function registerDatabaseSeedsCommand() {
         await startSeeding({
           fresh: options.fresh,
           once: options.once,
+          parallel: options.parallel,
         });
       }),
     ["database"],
