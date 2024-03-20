@@ -23,9 +23,10 @@ export class RepositoryFiller {
   /**
    * Create new record
    */
-  public async create(data: any): Promise<Model> {
-    const model = this.repository.newModel();
-
+  public async create(
+    data: any,
+    model: Model = this.repository.newModel(),
+  ): Promise<Model> {
     if (this.fillable) {
       data = await this.parseFillable(model, data);
     } else if (this.filled) {

@@ -2,7 +2,6 @@
 import { fileExistsAsync } from "@mongez/fs";
 import { spawn } from "child_process";
 import esbuild from "esbuild";
-import { buildCliApp } from "../builder/build-cli-app";
 import { srcPath, warlockPath } from "../utils";
 import { nativeNodeModulesPlugin } from "./../esbuild";
 
@@ -13,6 +12,8 @@ export async function startCliServer() {
   if (await fileExistsAsync(outputCliPath)) {
     return require(outputCliPath);
   }
+
+  const { buildCliApp } = await import("../builder/build-cli-app");
 
   const cliPath = await buildCliApp();
 

@@ -1,3 +1,4 @@
+import config from "@mongez/config";
 import path from "path";
 
 /**
@@ -29,7 +30,14 @@ export function storagePath(relativePath = "") {
  * If no path is given, it will return the absolute path to the uploads folder
  */
 export function uploadsPath(relativePath = "") {
-  return rootPath("storage", "uploads", relativePath);
+  const configPath = config.get("uploads.root");
+  if (!configPath) {
+    return rootPath("storage", "uploads", relativePath);
+  }
+
+  return typeof configPath === "function"
+    ? configPath(relativePath)
+    : path.resolve(configPath, relativePath);
 }
 
 /**

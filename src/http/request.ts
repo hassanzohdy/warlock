@@ -636,6 +636,17 @@ export class Request<User extends Auth = any> {
   }
 
   /**
+   * Set the given value if the request does not have the input
+   */
+  public setDefault(key: string, value: any) {
+    if (this.has(key)) return this;
+
+    set(this.payload.all, key, value);
+
+    return this;
+  }
+
+  /**
    * Unset request payload keys
    */
   public unset(...keys: string[]) {

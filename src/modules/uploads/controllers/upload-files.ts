@@ -1,28 +1,9 @@
-import config from "@mongez/config";
 import { fileSize } from "@mongez/fs";
 import { Random, ltrim } from "@mongez/reinforcements";
-import dayjs from "dayjs";
 import { Request, Response, UploadedFile } from "../../../http";
 import { uploadsPath } from "../../../utils";
 import { Upload } from "../models";
-
-export async function getUploadsDirectory(directoryInput?: string) {
-  if (directoryInput) return directoryInput;
-
-  const configDirectory = config.get("uploads.saveTo");
-
-  const path = dayjs().format("DD-MM-YYYY");
-
-  if (configDirectory) {
-    if (typeof configDirectory === "function") {
-      return await configDirectory(path);
-    }
-
-    return configDirectory;
-  }
-
-  return path;
-}
+import { getUploadsDirectory } from "../utils/get-uploads-directory";
 
 export async function uploadFiles(request: Request, response: Response) {
   const files = request.file("uploads");

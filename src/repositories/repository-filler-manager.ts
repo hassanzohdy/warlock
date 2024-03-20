@@ -23,14 +23,14 @@ export abstract class RepositoryFillerManager<
   /**
    * Create new record
    */
-  public create(data: any): Promise<T> {
+  public create(data: any, model?: T): Promise<T> {
     const filler = this.makeFiller();
 
     if (data instanceof Request) {
       data = data.all();
     }
 
-    return filler.create(data) as Promise<T>;
+    return filler.create(data, model) as Promise<T>;
   }
 
   /**

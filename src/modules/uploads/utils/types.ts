@@ -28,6 +28,10 @@ export type UploadsConfigurations = {
    */
   saveTo?: string | ((defaultPath: string) => string);
   /**
+   * Uploads directory
+   */
+  root?: string | ((relativePath: string) => string);
+  /**
    * Modify upload output before sending it to response
    */
   extend?: (upload: UploadOutput) => any;

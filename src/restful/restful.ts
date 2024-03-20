@@ -109,19 +109,20 @@ export abstract class Restful<T extends Model> implements RouteResource {
    */
   public async create(request: Request, response: Response) {
     try {
-      const beforeCreate = await this.beforeCreate(request, response);
+      const model = this.repository.newModel();
+      const beforeCreate = await this.beforeCreate(request, response, model);
 
       if (beforeCreate) {
         return beforeCreate;
       }
 
-      const beforeSave = await this.beforeSave(request, response);
+      const beforeSave = await this.beforeSave(request, response, model);
 
       if (beforeSave) {
         return beforeSave;
       }
 
-      const record = await this.repository.create(request.all());
+      const record = await this.repository.create(request.all(), model);
 
       const createOutput = await this.onCreate(request, response, record);
 
@@ -303,6 +304,7 @@ export abstract class Restful<T extends Model> implements RouteResource {
   protected async beforeCreate(
     _request: Request,
     _response: Response,
+    _record: T,
   ): Promise<any> {
     //
   }

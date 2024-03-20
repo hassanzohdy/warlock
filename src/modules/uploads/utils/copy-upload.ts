@@ -1,8 +1,8 @@
 import { copyFileAsync, ensureDirectoryAsync } from "@mongez/fs";
 import { Random } from "@mongez/reinforcements";
-import { uploadsPath } from "../../../utils";
-import { getUploadsDirectory } from "../controllers/upload-files";
+import { uploadsPath } from "../../../utils/paths";
 import { Upload } from "../models";
+import { getUploadsDirectory } from "./../utils/get-uploads-directory";
 
 export async function copyUpload(upload: Upload, saveTo?: string) {
   const hash = Random.string(64);
