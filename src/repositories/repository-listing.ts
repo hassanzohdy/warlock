@@ -130,7 +130,7 @@ export class RepositoryListing<
 
     const paginate = this.options.paginate;
 
-    const limit = this.options.limit;
+    const limit = Number(this.options.limit);
 
     if (paginate) {
       const { documents, paginationInfo } = await this.query.paginate(
@@ -163,7 +163,7 @@ export class RepositoryListing<
   ) {
     await this.prepareQuery();
 
-    return this.query.chunk(this.option("limit", 15), callback);
+    return this.query.chunk(Number(this.option("limit", 15)), callback);
   }
 
   /**
@@ -982,7 +982,9 @@ export class RepositoryListing<
     }
 
     if (orderBy === "random") {
-      return this.query.random(this.options.limit || this.options.defaultLimit);
+      return this.query.random(
+        Number(this.options.limit || this.options.defaultLimit),
+      );
     }
 
     this.query.sortBy(orderBy);

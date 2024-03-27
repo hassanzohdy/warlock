@@ -1,3 +1,5 @@
+import { ltrim } from "@mongez/reinforcements";
+
 let baseUrl = "";
 
 /**
@@ -18,19 +20,19 @@ export function url(path = "") {
  * Get uploads url
  */
 export function uploadsUrl(path = "") {
-  return url("/uploads/" + path);
+  return url("/uploads/" + ltrim(path, "/"));
 }
 
 /**
  * Get full path for the given path related to public route
  */
 export function publicUrl(path = "") {
-  return url("/public/" + path);
+  return url("/public/" + ltrim(path, "/"));
 }
 
 /**
  * Assets url
  */
 export function assetsUrl(path = "") {
-  return publicUrl("/assets/" + path);
+  return publicUrl("/assets/" + ltrim(path, "/"));
 }

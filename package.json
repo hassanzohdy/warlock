@@ -1,6 +1,6 @@
 {
     "name": "@mongez/warlock",
-    "version": "2.0.9",
+    "version": "2.0.10",
     "description": "A comprehensive nodejs framework for building nodejs applications",
     "main": "src/index.ts",
     "bin": "./bin/warlock.js",
@@ -22,6 +22,7 @@
         "@mongez/config": "^1.0.26",
         "@mongez/dotenv": "^1.1.8",
         "@mongez/events": "^2.1.0",
+        "@mongez/encryption": "^1.0.4",
         "@mongez/fs": "^3.0.4",
         "@mongez/http": "^2.2.6",
         "@mongez/localization": "^2.2.4",
